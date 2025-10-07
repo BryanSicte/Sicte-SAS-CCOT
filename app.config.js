@@ -9,6 +9,9 @@ export default {
     newArchEnabled: true,
     extra: {
       apiUrl: process.env.REACT_APP_API_URL || "http://localhost:3000/api",
+      eas: {
+        projectId: "3e845c37-4e47-4c6a-bb0d-1ad1897e3c3d"
+      }
     },
     splash: {
       image: "./assets/LogoSicte12.png",
@@ -19,6 +22,7 @@ export default {
       supportsTablet: true
     },
     android: {
+      package: "com.sicte.sas.ccot",
       adaptiveIcon: {
         foregroundImage: "./assets/LogoSicte12.png",
         backgroundColor: "#ffffff"
