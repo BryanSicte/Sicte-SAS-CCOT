@@ -25,7 +25,30 @@ npx expo start -c --tunnel
 ```bash
 npx expo-doctor
 ```
-### Construir APK
+### Construir .aab
+```bash
+eas build -p android
+```
+### Esto genera el .aab y lo sube a Google Play
+```bash
+eas build -p android --profile production
+eas submit -p android --profile production
+```
+### Genera .apk para pruebas internas
+```bash
+eas build -p android --profile preview
+```
+### Genera versión con Expo Go / Development Client para debugging
+```bash
+eas build -p android --profile development
+```
+
+#### o
 ```bash
 eas build -p android --clear-cache
 ```
+### Actualizar APK
+```bash
+eas update
+```
+

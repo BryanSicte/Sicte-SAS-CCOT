@@ -29,10 +29,17 @@ export default {
       },
       edgeToEdgeEnabled: true
     },
-    jsEngine: "jsc",
+    jsEngine: "hermes",
     web: {
       favicon: "./assets/LogoSicte12.png",
       bundler: "metro"
+    },
+    updates: {
+      url: "https://u.expo.dev/3e845c37-4e47-4c6a-bb0d-1ad1897e3c3d",
+      fallbackToCacheTimeout: 0
+    },
+    runtimeVersion: {
+      policy: "appVersion"
     },
     plugins: [
       "expo-font"
