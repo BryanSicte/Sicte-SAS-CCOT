@@ -8,7 +8,7 @@ export default {
     userInterfaceStyle: "light",
     newArchEnabled: true,
     extra: {
-      apiUrl: process.env.REACT_APP_API_URL || "http://localhost:3000/api",
+      apiUrl: process.env.REACT_APP_API_URL,
       eas: {
         projectId: "3e845c37-4e47-4c6a-bb0d-1ad1897e3c3d"
       }
@@ -30,6 +30,7 @@ export default {
       edgeToEdgeEnabled: true
     },
     jsEngine: "hermes",
+    debug: true,
     web: {
       favicon: "./assets/LogoSicte12.png",
       bundler: "metro"

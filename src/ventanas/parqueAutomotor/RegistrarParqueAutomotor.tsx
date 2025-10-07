@@ -11,6 +11,7 @@ import LabeledDatePicker from "../../compuestos/Date";
 import Toast from "react-native-toast-message";
 import { getUsuariosCedulaNombre, setParqueAutomotor } from "../../servicios/Api";
 import { usePlantaData } from "../../contexto/PlantaDataContext";
+import { useUserData } from "../../contexto/UserDataContext";
 
 export default function RegistrarParqueAutomotor({ navigation }) {
     const stylesGlobal = useGlobalStyles();
@@ -18,8 +19,11 @@ export default function RegistrarParqueAutomotor({ navigation }) {
     const colors = isDark ? darkColors : lightColors;
     const [loading, setLoading] = useState(false);
     const { planta, setPlanta } = usePlantaData();
+    const { user } = useUserData();
     const [formData, setFormData] = useState({
         fecha: new Date(),
+        cedulaUsuario: user.cedula,
+        usuario: user.nombre,
         sede: "",
         placa: "",
         cedula: "",
@@ -59,8 +63,12 @@ export default function RegistrarParqueAutomotor({ navigation }) {
     const handleForm = async () => {
         if (!formData.sede) { Toast.show({ type: "info", text1: "Falta información", text2: "Por favor ingrese la sede.", position: "top" }); return; }
         if (!formData.placa) { Toast.show({ type: "info", text1: "Falta información", text2: "Por favor ingrese la placa.", position: "top" }); return; }
+        if (formData.placa.length < 5 || formData.placa.length > 6) { Toast.show({ type: "info", text1: "Placa inválida", text2: "La placa debe tener entre 5 y 6 caracteres.", position: "top" }); return; }
+        const placaPattern = /^[A-Z]{3}[0-9]{2}[A-Z0-9]{1}$/;
+        if (!placaPattern.test(formData.placa)) { Toast.show({ type: "info", text1: "Placa inválida", text2: "La placa debe tener el formato ABC12D o ABC123.", position: "top" }); return; }
         if (!formData.cedula) { Toast.show({ type: "info", text1: "Falta información", text2: "Por favor ingrese la cedula.", position: "top" }); return; }
         if (!formData.nombre) { Toast.show({ type: "info", text1: "Falta información", text2: "Por favor ingrese la nombre.", position: "top" }); return; }
+        if (formData.nombre === 'Usuario no encontrado') { Toast.show({ type: "info", text1: "Falta información", text2: "Por favor ingrese una cedula correcta.", position: "top" }); return; }
         if (!formData.estado) { Toast.show({ type: "info", text1: "Falta información", text2: "Por favor ingrese la estado.", position: "top" }); return; }
 
         try {
@@ -73,6 +81,8 @@ export default function RegistrarParqueAutomotor({ navigation }) {
             Toast.show({ type: "success", text1: "Registro exitoso", text2: "Los datos fueron enviados correctamente.", position: "top" });
             setFormData({
                 fecha: new Date(),
+                cedulaUsuario: user.cedula,
+                usuario: user.nombre,
                 sede: "",
                 placa: "",
                 cedula: "",
@@ -144,15 +154,35 @@ export default function RegistrarParqueAutomotor({ navigation }) {
                             showSeconds
                             disabled
                         />
+                        <LabeledInput
+                            label="Cedula Usuario"
+                            placeholder="Ingrese la cedula"
+                            value={formData.cedulaUsuario}
+                            onChangeText={(text) => setFormData({ ...formData, nombre: text })}
+                            icon="card-outline"
+                            disabled
+                        />
+                        <LabeledInput
+                            label="Nombre Usuario"
+                            placeholder="Ingrese el nombre"
+                            value={formData.usuario}
+                            onChangeText={(text) => setFormData({ ...formData, nombre: text })}
+                            icon="person-outline"
+                            disabled
+                        />
                         <LabeledSelect
                             label="Sede"
                             value={formData.sede}
                             onValueChange={(value) => setFormData({ ...formData, sede: value })}
                             icon="business-outline"
                             items={[
-                                { label: "Ferias", value: "Ferias" },
-                                { label: "San Cipriano", value: "San Cipriano" },
-                                { label: "Enel", value: "Enel" },
+                                { label: "Armenia", value: "Armenia" },
+                                { label: "Bogota Enel", value: "Bogota Enel" },
+                                { label: "Bogota Ferias", value: "Bogota Ferias" },
+                                { label: "Bogota San Cipriano", value: "Bogota San Cipriano" },
+                                { label: "Manizales", value: "Manizales" },
+                                { label: "Pereira", value: "Pereira" },
+                                { label: "Zipaquira", value: "Zipaquira" },
                             ]}
                             placeholder="Selecciona una sede"
                         />
