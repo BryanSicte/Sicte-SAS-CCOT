@@ -10,6 +10,7 @@ import { useFonts, TiltWarp_400Regular } from "@expo-google-fonts/tilt-warp";
 import * as SplashScreen from "expo-splash-screen";
 import Toast from "react-native-toast-message";
 import { getToastConfig } from './ToastConfig';
+import * as Updates from "expo-updates";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -34,6 +35,22 @@ export default function App() {
     if (!fontsLoaded) {
         return null;
     }
+
+    useEffect(() => {
+        const checkForUpdates = async () => {
+            try {
+                const update = await Updates.checkForUpdateAsync();
+                if (update.isAvailable) {
+                    await Updates.fetchUpdateAsync();
+                    await Updates.reloadAsync();
+                }
+            } catch (error) {
+                console.log("Error checking for updates:", error);
+            }
+        };
+
+        checkForUpdates();
+    }, []);
 
     return (
         <SafeAreaProvider>
