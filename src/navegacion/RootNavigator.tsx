@@ -22,7 +22,7 @@ import ParqueAutomotor from '../ventanas/parqueAutomotor/ParqueAutomotor';
 import RegistrarParqueAutomotor from '../ventanas/parqueAutomotor/RegistrarParqueAutomotor';
 import { useNavigationParams } from '../contexto/NavigationParamsContext';
 import { handleLogout } from '../utilitarios/HandleLogout';
-import { useIsMobileWeb } from '../utilitarios/isMobileWeb';
+import { useIsMobileWeb } from '../utilitarios/IsMobileWeb';
 
 export type RootStackParamList = {
     Home: undefined;

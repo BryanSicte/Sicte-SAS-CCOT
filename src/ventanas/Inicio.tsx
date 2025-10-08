@@ -5,7 +5,7 @@ import Carousel from "react-native-reanimated-carousel";
 import { RootStackParamList } from "../navegacion/RootNavigator";
 import { useGlobalStyles } from "../estilos/GlobalStyles";
 import { useMenu } from "../contexto/MenuContext";
-import { useIsMobileWeb } from "../utilitarios/isMobileWeb";
+import { useIsMobileWeb } from "../utilitarios/IsMobileWeb";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Home">;
 

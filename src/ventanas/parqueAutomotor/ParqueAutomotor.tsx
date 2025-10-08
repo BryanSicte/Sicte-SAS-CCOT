@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView } from 'react-native';
+import { View, Text, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navegacion/RootNavigator';
 import { useGlobalStyles } from '../../estilos/GlobalStyles';
@@ -94,30 +94,42 @@ export default function ParqueAutomotor({ navigation }: Props) {
 
             {activeTab === "registros" && (
                 <>
-                    <View style={{
-                        marginTop: 20,
-                        marginHorizontal: 20,
-                        marginBottom: 10,
-                        flexDirection: "row",
-                        justifyContent: "space-between",
-                        alignSelf: "stretch",
-                    }}>
-                        <CustomButton
-                            label="Descargar"
-                            variant="secondary"
-                            onPress={handleDownloadXLSX}
-                        />
-                        <CustomButton
-                            label="Nuevo"
-                            variant="primary"
-                            onPress={() => {
-                                setParams("RegistrarParqueAutomotor", { label: "Parque Automotor" });
-                                navigation.navigate("RegistrarParqueAutomotor")
-                            }}
-                        />
-                    </View>
+                    <KeyboardAvoidingView
+                        style={{ flex: 1 }}
+                        behavior={Platform.OS === "ios" ? "padding" : "height"}
+                        keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
+                    >
+                        <ScrollView
+                            contentContainerStyle={{ paddingBottom: 30 }}
+                            showsVerticalScrollIndicator={false}
+                            keyboardShouldPersistTaps="handled"
+                        >
+                            <View style={{
+                                marginTop: 20,
+                                marginHorizontal: 20,
+                                marginBottom: 10,
+                                flexDirection: "row",
+                                justifyContent: "space-between",
+                                alignSelf: "stretch",
+                            }}>
+                                <CustomButton
+                                    label="Descargar"
+                                    variant="secondary"
+                                    onPress={handleDownloadXLSX}
+                                />
+                                <CustomButton
+                                    label="Nuevo"
+                                    variant="primary"
+                                    onPress={() => {
+                                        setParams("RegistrarParqueAutomotor", { label: "Parque Automotor" });
+                                        navigation.navigate("RegistrarParqueAutomotor")
+                                    }}
+                                />
+                            </View>
 
-                    <CustomTable headers={headers} data={dataTabla} />
+                            <CustomTable headers={headers} data={dataTabla} />
+                        </ScrollView>
+                    </KeyboardAvoidingView>
                 </>
             )}
 

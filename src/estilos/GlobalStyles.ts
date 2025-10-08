@@ -2,7 +2,7 @@ import { StyleSheet, Platform } from 'react-native';
 import { lightColors, darkColors } from './Colors';
 import { useThemeCustom } from '../contexto/ThemeContext';
 import { useMenu } from '../contexto/MenuContext';
-import { useIsMobileWeb } from '../utilitarios/isMobileWeb';
+import { useIsMobileWeb } from '../utilitarios/IsMobileWeb';
 
 export const useGlobalStyles = () => {
     const { isDark } = useThemeCustom();

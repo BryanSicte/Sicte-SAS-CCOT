@@ -4,7 +4,7 @@ import { WebView } from "react-native-webview";
 import { useMenu } from "../contexto/MenuContext";
 import { useRoute } from "@react-navigation/native";
 import { menuConfig } from "../navegacion/MenuConfig";
-import { useIsMobileWeb } from "../utilitarios/isMobileWeb";
+import { useIsMobileWeb } from "../utilitarios/IsMobileWeb";
 
 export default function PowerBIEmbed() {
     const { open } = useMenu();
