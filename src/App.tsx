@@ -12,7 +12,7 @@ import Toast from "react-native-toast-message";
 import { getToastConfig } from './ToastConfig';
 import * as Updates from "expo-updates";
 
-SplashScreen.preventAutoHideAsync();
+SplashScreen.preventAutoHideAsync().catch(() => { });
 
 function ThemedToast() {
     const { isDark } = useThemeCustom();
@@ -29,7 +29,6 @@ export default function App() {
     useEffect(() => {
         const checkForUpdates = async () => {
             try {
-                await new Promise(resolve => setTimeout(resolve, 2000));
                 const update = await Updates.checkForUpdateAsync();
                 if (update.isAvailable) {
                     await Updates.fetchUpdateAsync();
@@ -39,13 +38,14 @@ export default function App() {
                 console.log("Error checking for updates:", error);
             }
         };
-
         checkForUpdates();
     }, []);
 
     useEffect(() => {
         if (fontsLoaded) {
-            SplashScreen.hideAsync();
+            setTimeout(() => {
+                SplashScreen.hideAsync().catch(() => { });
+            }, 500);
         }
     }, [fontsLoaded]);
 

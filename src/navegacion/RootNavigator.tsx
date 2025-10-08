@@ -432,6 +432,9 @@ export default function RootNavigator() {
                     <Text style={{ color: colors.texto, fontSize: stylesGlobal.texto.fontSize - 2, marginBottom: 5, textAlign: "center" }}>
                         Rol: {user.rol}
                     </Text>
+                    <Text style={{ color: colors.texto, fontSize: stylesGlobal.texto.fontSize - 4, marginBottom: 5, textAlign: "center" }}>
+                        Version 1.0.0
+                    </Text>
 
                     <View
                         style={{
