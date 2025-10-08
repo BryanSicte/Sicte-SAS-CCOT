@@ -4,7 +4,7 @@ export default {
     slug: "sicte-ccot",
     version: "1.0.0",
     orientation: "default",
-    icon: "./assets/LogoSicte12.png",
+    icon: "./assets/LogoSicte13.png",
     userInterfaceStyle: "light",
     newArchEnabled: true,
     extra: {
@@ -14,8 +14,8 @@ export default {
       }
     },
     splash: {
-      image: "./assets/LogoSicte12.png",
-      resizeMode: "contain",
+      image: "./assets/LogoSicte14.png",
+      resizeMode: "cover",
       backgroundColor: "#ffffff"
     },
     ios: {
@@ -24,7 +24,7 @@ export default {
     android: {
       package: "com.sicte.sas.ccot",
       adaptiveIcon: {
-        foregroundImage: "./assets/LogoSicte12.png",
+        foregroundImage: "./assets/LogoSicte13.png",
         backgroundColor: "#ffffff"
       },
       edgeToEdgeEnabled: true
@@ -32,8 +32,12 @@ export default {
     jsEngine: "hermes",
     debug: true,
     web: {
+      bundler: "metro",
       favicon: "./assets/LogoSicte12.png",
-      bundler: "metro"
+      name: "Sicte CCOT",
+      shortName: "CCOT",
+      themeColor: "#ffffff",
+      backgroundColor: "#ffffff"
     },
     updates: {
       url: "https://u.expo.dev/3e845c37-4e47-4c6a-bb0d-1ad1897e3c3d",

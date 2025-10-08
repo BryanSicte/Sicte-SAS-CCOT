@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import RootNavigator from './navegacion/RootNavigator';
 import { ThemeProvider, useThemeCustom } from './contexto/ThemeContext';
@@ -26,19 +26,19 @@ export default function App() {
         TiltWarp: TiltWarp_400Regular,
     });
 
-    useEffect(() => {
-        const checkForUpdates = async () => {
-            try {
-                const update = await Updates.checkForUpdateAsync();
-                if (update.isAvailable) {
-                    await Updates.fetchUpdateAsync();
-                    await Updates.reloadAsync();
-                }
-            } catch (error) {
-                console.log("Error checking for updates:", error);
+    const ensureLatestVersion = useCallback(async () => {
+        try {
+            const update = await Updates.checkForUpdateAsync();
+            if (update.isAvailable) {
+                if (__DEV__) console.log("🌀 Nueva actualización detectada, aplicando...");
+                await Updates.fetchUpdateAsync();
+                await Updates.reloadAsync(); 
+            } else {
+                if (__DEV__) console.log("✅ App ya está en la última versión.");
             }
-        };
-        checkForUpdates();
+        } catch (error) {
+            console.log("⚠️ Error verificando actualizaciones:", error);
+        }
     }, []);
 
     useEffect(() => {
@@ -47,6 +47,22 @@ export default function App() {
                 SplashScreen.hideAsync().catch(() => { });
             }, 500);
         }
+        const startApp = async () => {
+            try {
+                await ensureLatestVersion();
+
+                await new Promise((resolve) => setTimeout(resolve, 300));
+
+                if (fontsLoaded) {
+                    await SplashScreen.hideAsync();
+                }
+            } catch (err) {
+                console.log("Error inicializando la app:", err);
+                await SplashScreen.hideAsync();
+            }
+        };
+
+        startApp();
     }, [fontsLoaded]);
 
     if (!fontsLoaded) {
