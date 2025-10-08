@@ -4,11 +4,13 @@ import { WebView } from "react-native-webview";
 import { useMenu } from "../contexto/MenuContext";
 import { useRoute } from "@react-navigation/native";
 import { menuConfig } from "../navegacion/MenuConfig";
+import { useIsMobileWeb } from "../utilitarios/isMobileWeb";
 
 export default function PowerBIEmbed() {
     const { open } = useMenu();
     const route = useRoute();
     const { reportName } = route.params || {};
+    const isMobileWeb = useIsMobileWeb();
 
     const findReport = (nameBD) => {
         for (const section of menuConfig) {
@@ -36,7 +38,7 @@ export default function PowerBIEmbed() {
             <View
                 style={[
                     styles.container,
-                    { marginLeft: open ? 250 : 60 }
+                    { marginLeft: !isMobileWeb ? open ? 250 : 60 : open ? 250 : 0}
                 ]}
             >
                 <iframe

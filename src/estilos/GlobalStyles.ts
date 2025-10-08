@@ -2,10 +2,12 @@ import { StyleSheet, Platform } from 'react-native';
 import { lightColors, darkColors } from './Colors';
 import { useThemeCustom } from '../contexto/ThemeContext';
 import { useMenu } from '../contexto/MenuContext';
+import { useIsMobileWeb } from '../utilitarios/isMobileWeb';
 
 export const useGlobalStyles = () => {
     const { isDark } = useThemeCustom();
     const { open } = useMenu();
+    const isMobileWeb = useIsMobileWeb();
 
     return StyleSheet.create({
         container: {
@@ -18,7 +20,7 @@ export const useGlobalStyles = () => {
             justifyContent: "flex-start",
             height: "100%",
             padding: 0,
-            paddingLeft: Platform.OS === "web" ? (open ? 250 : 60) : 0,
+            paddingLeft: Platform.OS === "web" && !isMobileWeb ? (open ? 250 : 60) : 0,
             backgroundColor: isDark ? darkColors.backgroundContainer : lightColors.backgroundContainer,
         },
         title: {

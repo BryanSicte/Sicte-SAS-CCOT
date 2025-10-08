@@ -168,22 +168,44 @@ export const getHeaderOptions = (
 
         headerTitleAlign: Platform.OS !== "web" && title !== "CCOT" ? "left" : "center",
         headerTitle: () => {
-            const maxLength = 14;
-            const displayTitle = Platform.OS !== "web" && title.length > maxLength ? title.substring(0, maxLength) + "..." : title;
+            const [containerWidth, setContainerWidth] = useState(0);
+            const [textWidth, setTextWidth] = useState(0);
+            const [displayTitle, setDisplayTitle] = useState(title);
+
+            useEffect(() => {
+                if (textWidth && containerWidth) {
+                    if (textWidth > containerWidth - (showLogo ? 170 : 60)) {
+                        let maxChars = Math.floor((containerWidth - (showLogo ? 170 : 60)) / 15);
+                        setDisplayTitle(title.length > maxChars ? title.slice(0, maxChars) + "..." : title);
+                    } else {
+                        setDisplayTitle(title);
+                    }
+                }
+            }, [textWidth, containerWidth, title, showLogo]);
 
             return (
-                <Text
+                <View
                     style={{
-                        fontSize: 35,
-                        fontWeight: "bold",
-                        color: colors.texto,
-                        fontFamily: "TiltWarp",
+                        flex: 1,
+                        alignItems: Platform.OS === "web" ? "center" : "flex-start",
+                        overflow: "hidden",
                     }}
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
+                    onLayout={(e) => setContainerWidth(e.nativeEvent.layout.width)}
                 >
-                    {displayTitle}
-                </Text>
+                    <Text
+                        onLayout={(e) => setTextWidth(e.nativeEvent.layout.width)}
+                        style={{
+                            fontSize: 35,
+                            fontWeight: "bold",
+                            color: colors.texto,
+                            fontFamily: "TiltWarp",
+                        }}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                    >
+                        {displayTitle}
+                    </Text>
+                </View>
             );
         },
 

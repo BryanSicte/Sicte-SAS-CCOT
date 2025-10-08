@@ -7,7 +7,7 @@ import { View, Text, Pressable, Platform, Animated, StyleSheet, ScrollView } fro
 import { useThemeCustom } from '../contexto/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
 import { lightColors, darkColors } from '../estilos/Colors';
-import { useNavigation, useRoute } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useMenu } from "../contexto/MenuContext";
 import { useGlobalStyles } from '../estilos/GlobalStyles';
@@ -21,6 +21,8 @@ import { usePageUserData } from '../contexto/PageUserDataContext';
 import ParqueAutomotor from '../ventanas/parqueAutomotor/ParqueAutomotor';
 import RegistrarParqueAutomotor from '../ventanas/parqueAutomotor/RegistrarParqueAutomotor';
 import { useNavigationParams } from '../contexto/NavigationParamsContext';
+import { handleLogout } from '../utilitarios/HandleLogout';
+import { useIsMobileWeb } from '../utilitarios/isMobileWeb';
 
 export type RootStackParamList = {
     Home: undefined;
@@ -40,26 +42,20 @@ export default function RootNavigator() {
     const headerHeight = Platform.OS === "web" ? 64 : 64 + insets.top;
     const { open, toggleMenu } = useMenu();
     const stylesGlobal = useGlobalStyles();
-    const menuWidth = Platform.OS === "web" ? (open ? 250 : 60) : (open ? 250 : 0);
+    const isMobileWeb = useIsMobileWeb();
+    const menuWidth = Platform.OS === "web" && !isMobileWeb ? (open ? 250 : 60) : (open ? 250 : 0);
     const [activeMenu, setActiveMenu] = useState<number | null>(null);
     const { user, logout, getUser } = useUserData();
     const { pages, clearPages } = usePageUserData();
     const { menuVisibleUser, setMenuVisibleUser } = useUserMenu();
     const { params } = useNavigationParams();
 
-    const handleLogout = async () => {
-        await clearPages();
-        await logout();
-        setMenuVisibleUser(false);
-        Toast.show({
-            type: "info",
-            text1: "Sesión finalizada",
-            text2: "Has cerrado sesión correctamente.",
-            position: "top",
-        });
-        navigation.reset({
-            index: 0,
-            routes: [{ name: "Home" }],
+    const cerrarSesion = async () => {
+        await handleLogout({
+            navigation,
+            clearPages,
+            logout,
+            setMenuVisibleUser,
         });
     };
 
@@ -146,7 +142,7 @@ export default function RootNavigator() {
                                 isDark,
                                 colors,
                                 navigation,
-                                showLogo: true,
+                                showLogo: !isMobileWeb,
                             }),
                             title: "Sicte CCOT",
                         };
@@ -164,7 +160,7 @@ export default function RootNavigator() {
                             isDark,
                             colors,
                             navigation,
-                            showLogo: true,
+                            showLogo: !isMobileWeb,
                         });
                     }}
                 />
@@ -180,7 +176,7 @@ export default function RootNavigator() {
                                 isDark,
                                 colors,
                                 navigation,
-                                showLogo: true,
+                                showLogo: !isMobileWeb,
                             }),
                         };
                     }}
@@ -197,7 +193,7 @@ export default function RootNavigator() {
                                 isDark,
                                 colors,
                                 navigation,
-                                showLogo: true,
+                                showLogo: !isMobileWeb,
                             }),
                         };
                     }}
@@ -215,7 +211,7 @@ export default function RootNavigator() {
                                 isDark,
                                 colors,
                                 navigation,
-                                showLogo: true,
+                                showLogo: !isMobileWeb,
                             }),
                             title: data?.label ?? "CCOT",
                         };
@@ -236,7 +232,7 @@ export default function RootNavigator() {
                                 isDark,
                                 colors,
                                 navigation,
-                                showLogo: true,
+                                showLogo: !isMobileWeb,
                             }),
                             title: report?.label ?? "CCOT",
                         };
@@ -244,7 +240,7 @@ export default function RootNavigator() {
                 />
             </Stack.Navigator>
 
-            {open && Platform.OS !== "web" && (
+            {open && isMobileWeb && (
                 <Pressable
                     onPress={() => {
                         setMenuVisibleUser(false);
@@ -487,7 +483,7 @@ export default function RootNavigator() {
                     />
 
                     <Pressable
-                        onPress={handleLogout}
+                        onPress={cerrarSesion}
                         style={({ pressed, hovered }: any) => [
                             styles.item,
                             { paddingVertical: 6 },
@@ -537,6 +533,7 @@ const MenuItem = ({
     const { isDark } = useThemeCustom();
     const colors = isDark ? darkColors : lightColors;
     const { setParams } = useNavigationParams();
+    const isMobileWeb = useIsMobileWeb();
 
     return (
         <Pressable
@@ -545,7 +542,7 @@ const MenuItem = ({
                     onDisabledPress?.();
                     return;
                 }
-                if (Platform.OS !== "web") {
+                if (isMobileWeb) {
                     toggleMenu();
                 }
 

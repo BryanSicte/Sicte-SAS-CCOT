@@ -13,6 +13,9 @@ import { getUsuariosCedulaNombre, setParqueAutomotor } from "../../servicios/Api
 import { usePlantaData } from "../../contexto/PlantaDataContext";
 import { useUserData } from "../../contexto/UserDataContext";
 import { useNavigationParams } from "../../contexto/NavigationParamsContext";
+import { usePageUserData } from "../../contexto/PageUserDataContext";
+import { useUserMenu } from "../../contexto/UserMenuContext";
+import { handleLogout } from "../../utilitarios/HandleLogout";
 
 export default function RegistrarParqueAutomotor({ navigation }) {
     const stylesGlobal = useGlobalStyles();
@@ -21,7 +24,9 @@ export default function RegistrarParqueAutomotor({ navigation }) {
     const colors = isDark ? darkColors : lightColors;
     const [loading, setLoading] = useState(false);
     const { planta, setPlanta } = usePlantaData();
-    const { user } = useUserData();
+    const { user, logout, getUser } = useUserData();
+    const { clearPages } = usePageUserData();
+    const { setMenuVisibleUser } = useUserMenu();
 
     const createEmptyFormData = (user) => ({
         fecha: new Date(),
@@ -49,6 +54,22 @@ export default function RegistrarParqueAutomotor({ navigation }) {
     };
 
     useEffect(() => {
+        const loadUser = async () => {
+            try {
+                const userTemp = await getUser();
+                if (userTemp === null) {
+                    await handleLogout({
+                        navigation,
+                        clearPages,
+                        logout,
+                        setMenuVisibleUser,
+                    });
+                }
+            } catch (error) {
+                console.log("Error obteniendo usuario:", error);
+            }
+        };
+        loadUser();
         loadData();
     }, []);
 

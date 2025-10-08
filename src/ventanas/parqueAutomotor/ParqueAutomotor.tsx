@@ -12,6 +12,10 @@ import { getParqueAutomotor } from '../../servicios/Api';
 import Toast from 'react-native-toast-message';
 import { exportToExcel } from '../../utilitarios/ExportToExcel';
 import { useNavigationParams } from '../../contexto/NavigationParamsContext';
+import { useUserData } from '../../contexto/UserDataContext';
+import { handleLogout } from '../../utilitarios/HandleLogout';
+import { usePageUserData } from '../../contexto/PageUserDataContext';
+import { useUserMenu } from '../../contexto/UserMenuContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ParqueAutomotor'>;
 
@@ -29,6 +33,9 @@ export default function ParqueAutomotor({ navigation }: Props) {
     const headers = ["Fecha", "Usuario", "Sede", "Placa", "Estado", "Nombre"];
     const [data, setData] = useState<any[]>([]);
     const [dataTabla, setDataTabla] = useState<any[]>([]);
+    const { getUser, logout } = useUserData();
+    const { clearPages } = usePageUserData();
+    const { setMenuVisibleUser } = useUserMenu();
 
     const loadData = async () => {
         try {
@@ -50,9 +57,22 @@ export default function ParqueAutomotor({ navigation }: Props) {
     };
 
     useEffect(() => {
-        const currentPath = window.location.pathname;
-        window.history.replaceState({}, '', currentPath);
-
+        const loadUser = async () => {
+            try {
+                const userTemp = await getUser();
+                if (userTemp === null) {
+                    await handleLogout({
+                        navigation,
+                        clearPages,
+                        logout,
+                        setMenuVisibleUser,
+                    });
+                }
+            } catch (error) {
+                console.log("Error obteniendo usuario:", error);
+            }
+        };
+        loadUser();
         loadData();
     }, []);
 

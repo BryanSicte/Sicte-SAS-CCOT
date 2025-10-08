@@ -5,6 +5,7 @@ import Carousel from "react-native-reanimated-carousel";
 import { RootStackParamList } from "../navegacion/RootNavigator";
 import { useGlobalStyles } from "../estilos/GlobalStyles";
 import { useMenu } from "../contexto/MenuContext";
+import { useIsMobileWeb } from "../utilitarios/isMobileWeb";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Home">;
 
@@ -26,7 +27,7 @@ const images = [
 export default function Inicio({ }: Props) {
     const { open } = useMenu();
     const stylesGlobal = useGlobalStyles();
-
+    const isMobileWeb = useIsMobileWeb();
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const slideAnim = useRef(new Animated.Value(-30)).current;
     const lineWidth = useRef(new Animated.Value(0)).current;
@@ -89,7 +90,7 @@ export default function Inicio({ }: Props) {
             <View
                 style={{
                     position: "absolute",
-                    top: height * 0.25,
+                    top: isMobileWeb ? height * 0.15 : height * 0.25,
                     alignSelf: "center",
                     alignItems: "center"
                 }}
