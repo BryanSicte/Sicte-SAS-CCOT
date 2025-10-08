@@ -11,6 +11,7 @@ import { darkColors, lightColors } from '../../estilos/Colors';
 import { getParqueAutomotor } from '../../servicios/Api';
 import Toast from 'react-native-toast-message';
 import { exportToExcel } from '../../utilitarios/ExportToExcel';
+import { useNavigationParams } from '../../contexto/NavigationParamsContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ParqueAutomotor'>;
 
@@ -20,11 +21,11 @@ const tabs: TabItem[] = [
     // { key: "config", label: "Config" },
 ];
 
-export default function ParqueAutomotor({ route, navigation }: Props) {
+export default function ParqueAutomotor({ navigation }: Props) {
     const stylesGlobal = useGlobalStyles();
     const { isDark } = useThemeCustom();
     const colors = isDark ? darkColors : lightColors;
-
+    const { setParams } = useNavigationParams();
     const headers = ["Fecha", "Usuario", "Sede", "Placa", "Estado", "Nombre"];
     const [data, setData] = useState<any[]>([]);
     const [dataTabla, setDataTabla] = useState<any[]>([]);
@@ -49,6 +50,9 @@ export default function ParqueAutomotor({ route, navigation }: Props) {
     };
 
     useEffect(() => {
+        const currentPath = window.location.pathname;
+        window.history.replaceState({}, '', currentPath);
+
         loadData();
     }, []);
 
@@ -86,7 +90,10 @@ export default function ParqueAutomotor({ route, navigation }: Props) {
                         <CustomButton
                             label="Nuevo"
                             variant="primary"
-                            onPress={() => navigation.navigate("RegistrarParqueAutomotor", { label: "Parque Automotor" })}
+                            onPress={() => {
+                                setParams("RegistrarParqueAutomotor", { label: "Parque Automotor" });
+                                navigation.navigate("RegistrarParqueAutomotor")
+                            }}
                         />
                     </View>
 

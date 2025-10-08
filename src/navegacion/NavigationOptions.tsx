@@ -4,6 +4,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { StackNavigationOptions } from "@react-navigation/stack";
 import Storage from "../utilitarios/Storage";
 import { useUserMenu } from "../contexto/UserMenuContext";
+import { useNavigationParams } from "../contexto/NavigationParamsContext";
 
 type HeaderOptionsParams = {
     toggleMenu: () => void;
@@ -18,6 +19,7 @@ type HeaderOptionsParams = {
 function UserHeaderButton({ navigation, colors }: any) {
     const [dataUser, setDataUser] = useState<any>(null);
     const { setMenuVisibleUser } = useUserMenu();
+    const { setParams } = useNavigationParams();
 
     useEffect(() => {
         const loadUser = async () => {
@@ -36,7 +38,8 @@ function UserHeaderButton({ navigation, colors }: any) {
             <Pressable
                 onPress={() => {
                     if (!dataUser) {
-                        navigation.navigate("Login", { label: "Iniciar Sesion" });
+                        setParams("Login", { label: "Iniciar Sesion" });
+                        navigation.navigate("Login");
                     } else {
                         setMenuVisibleUser((prev: boolean) => !prev);
                     }

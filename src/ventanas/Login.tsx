@@ -11,13 +11,15 @@ import Toast from "react-native-toast-message";
 import { login } from '../servicios/Api';
 import { useUserData } from '../contexto/UserDataContext';
 import { usePageUserData } from '../contexto/PageUserDataContext';
+import { useNavigationParams } from '../contexto/NavigationParamsContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
-export default function Login({ route, navigation }: Props) {
+export default function Login({ navigation }: Props) {
     const stylesGlobal = useGlobalStyles();
     const styles = stylesLocal();
-    const mensaje = route.params?.message
+    const { params, setParams } = useNavigationParams();
+    const mensaje = params["Login"].message;
     const [correo, setCorreo] = useState('');
     const [password, setPassword] = useState('');
     const { user, setUser } = useUserData();
@@ -26,7 +28,8 @@ export default function Login({ route, navigation }: Props) {
 
     const redireccion = () => {
         if (mensaje === "Parque Automotor") {
-            navigation.replace("ParqueAutomotor", { label: "Parque Automotor" });
+            setParams("ParqueAutomotor", { label: "Parque Automotor" });
+            navigation.replace("ParqueAutomotor");
         } else {
             navigation.replace("Home");
         }

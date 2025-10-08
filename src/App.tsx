@@ -6,6 +6,7 @@ import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-cont
 import { MenuProvider } from './contexto/MenuContext';
 import { UserMenuProvider } from "./contexto/UserMenuContext";
 import { GlobalDataProvider } from './contexto/GlobalDataProvider';
+import { NavigationParamsProvider } from './contexto/NavigationParamsContext';
 import { useFonts, TiltWarp_400Regular } from "@expo-google-fonts/tilt-warp";
 import * as SplashScreen from "expo-splash-screen";
 import Toast from "react-native-toast-message";
@@ -32,7 +33,7 @@ export default function App() {
             if (update.isAvailable) {
                 if (__DEV__) console.log("🌀 Nueva actualización detectada, aplicando...");
                 await Updates.fetchUpdateAsync();
-                await Updates.reloadAsync(); 
+                await Updates.reloadAsync();
             } else {
                 if (__DEV__) console.log("✅ App ya está en la última versión.");
             }
@@ -69,19 +70,34 @@ export default function App() {
         return null;
     }
 
+    const linking = {
+        prefixes: ['https://sicte-sas-ccot.up.railway.app', 'exp://'],
+        config: {
+            screens: {
+                Home: '',
+                Login: 'login',
+                ParqueAutomotor: 'parqueAutomotor',
+                RegistrarParqueAutomotor: 'parqueAutomotor/registrar',
+                PowerBIEmbed: 'powerbi/:reportName',
+            },
+        },
+    };
+
     return (
         <SafeAreaProvider>
             <ThemeProvider>
-                <NavigationContainer>
-                    <MenuProvider>
-                        <UserMenuProvider>
-                            <GlobalDataProvider>
-                                <RootNavigator />
-                                <ThemedToast />
-                            </GlobalDataProvider>
-                        </UserMenuProvider>
-                    </MenuProvider>
-                </NavigationContainer>
+                <NavigationParamsProvider>
+                    <NavigationContainer linking={linking}>
+                        <MenuProvider>
+                            <UserMenuProvider>
+                                <GlobalDataProvider>
+                                    <RootNavigator />
+                                    <ThemedToast />
+                                </GlobalDataProvider>
+                            </UserMenuProvider>
+                        </MenuProvider>
+                    </NavigationContainer>
+                </NavigationParamsProvider>
             </ThemeProvider>
         </SafeAreaProvider>
     );

@@ -2,10 +2,34 @@ import React from "react";
 import { View, StyleSheet, Platform } from "react-native";
 import { WebView } from "react-native-webview";
 import { useMenu } from "../contexto/MenuContext";
+import { useRoute } from "@react-navigation/native";
+import { menuConfig } from "../navegacion/MenuConfig";
 
-export default function PowerBIEmbed({ route }: any) {
-    const { url } = route.params;
+export default function PowerBIEmbed() {
     const { open } = useMenu();
+    const route = useRoute();
+    const { reportName } = route.params || {};
+
+    const findReport = (nameBD) => {
+        for (const section of menuConfig) {
+            if (section.items) {
+                const found = section.items.find(item => item.nameBD === nameBD);
+                if (found) return found;
+            }
+        }
+        return null;
+    };
+
+    const report = findReport(reportName);
+    const url = report?.params?.url;
+
+    if (!url) {
+        return (
+            <View style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
+                <p style={{ color: "#555" }}>⚠️ Reporte no encontrado: {reportName}</p>
+            </View>
+        );
+    }
 
     if (Platform.OS === "web") {
         return (

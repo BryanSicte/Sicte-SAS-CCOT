@@ -7,7 +7,7 @@ import { View, Text, Pressable, Platform, Animated, StyleSheet, ScrollView } fro
 import { useThemeCustom } from '../contexto/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
 import { lightColors, darkColors } from '../estilos/Colors';
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useMenu } from "../contexto/MenuContext";
 import { useGlobalStyles } from '../estilos/GlobalStyles';
@@ -20,6 +20,7 @@ import { useUserData } from '../contexto/UserDataContext';
 import { usePageUserData } from '../contexto/PageUserDataContext';
 import ParqueAutomotor from '../ventanas/parqueAutomotor/ParqueAutomotor';
 import RegistrarParqueAutomotor from '../ventanas/parqueAutomotor/RegistrarParqueAutomotor';
+import { useNavigationParams } from '../contexto/NavigationParamsContext';
 
 export type RootStackParamList = {
     Home: undefined;
@@ -44,6 +45,7 @@ export default function RootNavigator() {
     const { user, logout, getUser } = useUserData();
     const { pages, clearPages } = usePageUserData();
     const { menuVisibleUser, setMenuVisibleUser } = useUserMenu();
+    const { params } = useNavigationParams();
 
     const handleLogout = async () => {
         await clearPages();
@@ -109,6 +111,16 @@ export default function RootNavigator() {
         canAccess(user?.rol, pages?.[item.key])
     );
 
+    const findReport = (nameBD) => {
+        for (const section of menuConfig) {
+            if (section.items) {
+                const found = section.items.find(item => item.nameBD === nameBD);
+                if (found) return found;
+            }
+        }
+        return null;
+    };
+
     return (
         <View style={{ flex: 1 }}>
             <Stack.Navigator
@@ -126,10 +138,9 @@ export default function RootNavigator() {
                 <Stack.Screen
                     name="Home"
                     component={Inicio}
-                    options={({ route }) => {
-                        const params = route.params as { label?: string };
+                    options={() => {
                         return {
-                            ...getHeaderOptions(params?.label ?? "CCOT", {
+                            ...getHeaderOptions("CCOT", {
                                 toggleMenu,
                                 toggleTheme,
                                 isDark,
@@ -161,10 +172,9 @@ export default function RootNavigator() {
                 <Stack.Screen
                     name="ParqueAutomotor"
                     component={ParqueAutomotor}
-                    options={({ route }) => {
-                        const params = route.params as { label?: string };
+                    options={() => {
                         return {
-                            ...getHeaderOptions(params?.label ?? "CCOT", {
+                            ...getHeaderOptions("Parque Automotor", {
                                 toggleMenu,
                                 toggleTheme,
                                 isDark,
@@ -172,7 +182,6 @@ export default function RootNavigator() {
                                 navigation,
                                 showLogo: true,
                             }),
-                            title: params?.label ?? "CCOT",
                         };
                     }}
                 />
@@ -180,10 +189,9 @@ export default function RootNavigator() {
                 <Stack.Screen
                     name="RegistrarParqueAutomotor"
                     component={RegistrarParqueAutomotor}
-                    options={({ route }) => {
-                        const params = route.params as { label?: string };
+                    options={() => {
                         return {
-                            ...getHeaderOptions(params?.label ?? "CCOT", {
+                            ...getHeaderOptions("Parque Automotor", {
                                 toggleMenu,
                                 toggleTheme,
                                 isDark,
@@ -191,7 +199,6 @@ export default function RootNavigator() {
                                 navigation,
                                 showLogo: true,
                             }),
-                            title: params?.label ?? "CCOT",
                         };
                     }}
                 />
@@ -199,10 +206,10 @@ export default function RootNavigator() {
                 <Stack.Screen
                     name="Login"
                     component={Login}
-                    options={({ route }) => {
-                        const params = route.params as { label?: string };
+                    options={() => {
+                        const data = params["Login"];
                         return {
-                            ...getHeaderOptions(params?.label ?? "CCOT", {
+                            ...getHeaderOptions(data?.label ?? "CCOT", {
                                 toggleMenu,
                                 toggleTheme,
                                 isDark,
@@ -210,7 +217,7 @@ export default function RootNavigator() {
                                 navigation,
                                 showLogo: true,
                             }),
-                            title: params?.label ?? "CCOT",
+                            title: data?.label ?? "CCOT",
                         };
                     }}
                 />
@@ -219,9 +226,11 @@ export default function RootNavigator() {
                     name="PowerBIEmbed"
                     component={PowerBIEmbed}
                     options={({ route }) => {
-                        const params = route.params as { label?: string };
+                        const { reportName } = route.params || {};
+                        const report = findReport(reportName);
+
                         return {
-                            ...getHeaderOptions(params?.label ?? "CCOT", {
+                            ...getHeaderOptions(report?.label ?? "CCOT", {
                                 toggleMenu,
                                 toggleTheme,
                                 isDark,
@@ -229,7 +238,7 @@ export default function RootNavigator() {
                                 navigation,
                                 showLogo: true,
                             }),
-                            title: params?.label ?? "CCOT",
+                            title: report?.label ?? "CCOT",
                         };
                     }}
                 />
@@ -433,7 +442,7 @@ export default function RootNavigator() {
                         Rol: {user.rol}
                     </Text>
                     <Text style={{ color: colors.texto, fontSize: stylesGlobal.texto.fontSize - 4, marginBottom: 5, textAlign: "center" }}>
-                        Version 1.0.1
+                        Version 1.0.3
                     </Text>
 
                     <View
@@ -527,6 +536,7 @@ const MenuItem = ({
     const navigation = useNavigation<any>();
     const { isDark } = useThemeCustom();
     const colors = isDark ? darkColors : lightColors;
+    const { setParams } = useNavigationParams();
 
     return (
         <Pressable
@@ -538,7 +548,13 @@ const MenuItem = ({
                 if (Platform.OS !== "web") {
                     toggleMenu();
                 }
-                navigation.navigate(route, { ...params, ...(label !== "Inicio" ? { label } : {}) });
+
+                setParams(route, { ...params, ...(label !== "Inicio" ? { label } : {}) });
+                if (params?.nameBD) {
+                    navigation.navigate(route, { reportName: params.nameBD });
+                } else {
+                    navigation.navigate(route);
+                }
             }}
             style={({ pressed, hovered }: any) => [
                 styles.item,
@@ -671,7 +687,7 @@ const SubMenu = ({
                                     showLabel={true}
                                     open={open}
                                     toggleMenu={toggleMenu}
-                                    params={{ ...subItem.params, label: subItem.label }}
+                                    params={{ ...subItem.params, label: subItem.label, nameBD: subItem.nameBD }}
                                     margin={0}
                                     disabled={pages?.[subItem.nameBD] !== "1"}
                                     onDisabledPress={showAccessDeniedToast}

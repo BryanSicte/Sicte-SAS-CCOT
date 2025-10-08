@@ -12,24 +12,29 @@ import Toast from "react-native-toast-message";
 import { getUsuariosCedulaNombre, setParqueAutomotor } from "../../servicios/Api";
 import { usePlantaData } from "../../contexto/PlantaDataContext";
 import { useUserData } from "../../contexto/UserDataContext";
+import { useNavigationParams } from "../../contexto/NavigationParamsContext";
 
 export default function RegistrarParqueAutomotor({ navigation }) {
     const stylesGlobal = useGlobalStyles();
     const { isDark } = useThemeCustom();
+    const { setParams } = useNavigationParams();
     const colors = isDark ? darkColors : lightColors;
     const [loading, setLoading] = useState(false);
     const { planta, setPlanta } = usePlantaData();
     const { user } = useUserData();
-    const [formData, setFormData] = useState({
+
+    const createEmptyFormData = (user) => ({
         fecha: new Date(),
-        cedulaUsuario: user.cedula,
-        usuario: user.nombre,
+        cedulaUsuario: user?.cedula || "Pendiente",
+        usuario: user?.nombre || "Pendiente",
         sede: "",
         placa: "",
         cedula: "",
         nombre: "",
         estado: "",
     });
+
+    const [formData, setFormData] = useState(createEmptyFormData(user));
 
     const loadData = async () => {
         try {
@@ -46,6 +51,13 @@ export default function RegistrarParqueAutomotor({ navigation }) {
     useEffect(() => {
         loadData();
     }, []);
+
+
+    useEffect(() => {
+        if (user) {
+            setFormData(createEmptyFormData(user));
+        }
+    }, [user]);
 
     const formatearFecha = (fecha) => {
         if (!(fecha instanceof Date)) fecha = new Date(fecha);
@@ -79,16 +91,7 @@ export default function RegistrarParqueAutomotor({ navigation }) {
             };
             const response = await setParqueAutomotor(dataEnviar);
             Toast.show({ type: "success", text1: "Registro exitoso", text2: "Los datos fueron enviados correctamente.", position: "top" });
-            setFormData({
-                fecha: new Date(),
-                cedulaUsuario: user.cedula,
-                usuario: user.nombre,
-                sede: "",
-                placa: "",
-                cedula: "",
-                nombre: "",
-                estado: "",
-            });
+            setFormData(createEmptyFormData(user));
             navigation.replace("ParqueAutomotor", { label: "Parque Automotor" });
         } catch (error) {
             Toast.show({ type: "error", text1: "Error al enviar", text2: "No se pudo registrar la información.", position: "top" });
@@ -115,7 +118,10 @@ export default function RegistrarParqueAutomotor({ navigation }) {
                         marginBottom: 10,
                     }}>
                         <Pressable
-                            onPress={() => navigation.goBack()}
+                            onPress={() => {
+                                setParams("ParqueAutomotor", { label: "Parque Automotor" });
+                                navigation.replace("ParqueAutomotor");
+                            }}
                             style={({ pressed, hovered }: any) => [
                                 {
                                     flexDirection: "row",
