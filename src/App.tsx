@@ -27,18 +27,9 @@ export default function App() {
     });
 
     useEffect(() => {
-        if (fontsLoaded) {
-            SplashScreen.hideAsync();
-        }
-    }, [fontsLoaded]);
-
-    if (!fontsLoaded) {
-        return null;
-    }
-
-    useEffect(() => {
         const checkForUpdates = async () => {
             try {
+                await new Promise(resolve => setTimeout(resolve, 2000));
                 const update = await Updates.checkForUpdateAsync();
                 if (update.isAvailable) {
                     await Updates.fetchUpdateAsync();
@@ -51,6 +42,16 @@ export default function App() {
 
         checkForUpdates();
     }, []);
+
+    useEffect(() => {
+        if (fontsLoaded) {
+            SplashScreen.hideAsync();
+        }
+    }, [fontsLoaded]);
+
+    if (!fontsLoaded) {
+        return null;
+    }
 
     return (
         <SafeAreaProvider>

@@ -42,7 +42,6 @@ eas build -p android --profile preview
 ```bash
 eas build -p android --profile development
 ```
-
 #### o
 ```bash
 eas build -p android --clear-cache
@@ -50,5 +49,9 @@ eas build -p android --clear-cache
 ### Actualizar APK
 ```bash
 eas update
+```
+### Actualizar APK con mensaje 
+```bash
+eas update --branch preview --message "Implementa auto update al iniciar la app"
 ```
 
