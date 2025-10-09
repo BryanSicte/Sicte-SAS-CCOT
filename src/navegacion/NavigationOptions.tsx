@@ -1,5 +1,5 @@
-import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { Platform, Pressable, View, Image, Text } from "react-native";
+import React, { useEffect, useState } from "react";
+import { Platform, Pressable, View, Image, Text, Dimensions } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { StackNavigationOptions } from "@react-navigation/stack";
 import Storage from "../utilitarios/Storage";
@@ -14,6 +14,8 @@ type HeaderOptionsParams = {
     navigation: any;
     showLogo?: boolean;
     canGoBack?: boolean;
+    isMobileWeb?: boolean;
+
 };
 
 function UserHeaderButton({ navigation, colors }: any) {
@@ -94,6 +96,7 @@ export const getHeaderOptions = (
         navigation,
         showLogo = true,
         canGoBack = false,
+        isMobileWeb = false,
     }: HeaderOptionsParams
 ): StackNavigationOptions => {
     return {
@@ -166,36 +169,50 @@ export const getHeaderOptions = (
             </View>
         ),
 
-        headerTitleAlign: Platform.OS !== "web" && title !== "CCOT" ? "left" : "center",
+        headerTitleAlign: isMobileWeb && title !== "CCOT" ? "left" : "center",
         headerTitle: () => {
-            const [containerWidth, setContainerWidth] = useState(0);
-            const [textWidth, setTextWidth] = useState(0);
+            const [screenWidth, setScreenWidth] = useState(Dimensions.get("window").width);
             const [displayTitle, setDisplayTitle] = useState(title);
+            let maxChars = 20;
 
             useEffect(() => {
-                if (textWidth && containerWidth) {
-                    if (textWidth > containerWidth - (showLogo ? 170 : 60)) {
-                        let maxChars = Math.floor((containerWidth - (showLogo ? 170 : 60)) / 15);
+                const subscription = Dimensions.addEventListener("change", ({ window }) => {
+                    setScreenWidth(window.width);
+                });
+
+                return () => subscription?.remove?.();
+            }, []);
+
+            useEffect(() => {
+                if (screenWidth) {
+                    const screenWidthTemp = screenWidth - (showLogo ? 215 : 45) - 96;
+                    const fontSize = isMobileWeb ? 25 : 35;
+                    const avgCharWidthFactor = 0.6;
+                    const textWidthTemp = title.length * fontSize * avgCharWidthFactor;
+
+                    if (textWidthTemp > screenWidthTemp) {
+                        maxChars = Math.floor((screenWidthTemp) / (isMobileWeb ? 12 : 20)) - 4;
                         setDisplayTitle(title.length > maxChars ? title.slice(0, maxChars) + "..." : title);
                     } else {
-                        setDisplayTitle(title);
+                        maxChars = textWidthTemp;
+                        setDisplayTitle(title.length > maxChars ? title.slice(0, maxChars) + "..." : title);
                     }
                 }
-            }, [textWidth, containerWidth, title, showLogo]);
+            }, [screenWidth, showLogo]);
 
             return (
                 <View
                     style={{
                         flex: 1,
                         alignItems: Platform.OS === "web" ? "center" : "flex-start",
+                        justifyContent: "center",
                         overflow: "hidden",
+                        paddingLeft: isMobileWeb ? 0 : 20,
                     }}
-                    onLayout={(e) => setContainerWidth(e.nativeEvent.layout.width)}
                 >
                     <Text
-                        onLayout={(e) => setTextWidth(e.nativeEvent.layout.width)}
                         style={{
-                            fontSize: 35,
+                            fontSize: isMobileWeb ? 25 : 35,
                             fontWeight: "bold",
                             color: colors.texto,
                             fontFamily: "TiltWarp",

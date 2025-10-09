@@ -143,6 +143,7 @@ export default function RootNavigator() {
                                 colors,
                                 navigation,
                                 showLogo: !isMobileWeb,
+                                isMobileWeb: isMobileWeb,
                             }),
                             title: "Sicte CCOT",
                         };
@@ -161,6 +162,7 @@ export default function RootNavigator() {
                             colors,
                             navigation,
                             showLogo: !isMobileWeb,
+                            isMobileWeb: isMobileWeb,
                         });
                     }}
                 />
@@ -177,6 +179,7 @@ export default function RootNavigator() {
                                 colors,
                                 navigation,
                                 showLogo: !isMobileWeb,
+                                isMobileWeb: isMobileWeb,
                             }),
                         };
                     }}
@@ -194,6 +197,7 @@ export default function RootNavigator() {
                                 colors,
                                 navigation,
                                 showLogo: !isMobileWeb,
+                                isMobileWeb: isMobileWeb,
                             }),
                         };
                     }}
@@ -212,6 +216,7 @@ export default function RootNavigator() {
                                 colors,
                                 navigation,
                                 showLogo: !isMobileWeb,
+                                isMobileWeb: isMobileWeb,
                             }),
                             title: data?.label ?? "CCOT",
                         };
@@ -233,6 +238,7 @@ export default function RootNavigator() {
                                 colors,
                                 navigation,
                                 showLogo: !isMobileWeb,
+                                isMobileWeb: isMobileWeb,
                             }),
                             title: report?.label ?? "CCOT",
                         };

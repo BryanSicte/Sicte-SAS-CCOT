@@ -12,6 +12,7 @@ import { login } from '../servicios/Api';
 import { useUserData } from '../contexto/UserDataContext';
 import { usePageUserData } from '../contexto/PageUserDataContext';
 import { useNavigationParams } from '../contexto/NavigationParamsContext';
+import { useTokenUserData } from '../contexto/TokenUserContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
@@ -24,6 +25,7 @@ export default function Login({ navigation }: Props) {
     const [password, setPassword] = useState('');
     const { user, setUser } = useUserData();
     const { setPages } = usePageUserData();
+    const { setTokenUser } = useTokenUserData();
     const [loading, setLoading] = useState(false);
 
     const redireccion = () => {
@@ -50,18 +52,19 @@ export default function Login({ navigation }: Props) {
             const data = await login(correo, password);
             Toast.show({
                 type: "success",
-                text1: "¡Inicio de sesión exitoso!",
-                text2: `Bienvenido, ${data.usuario.nombre}.`,
+                text1: data.messages.message1,
+                text2: data.messages.message2,
                 position: "top",
             });
-            await setUser(data.usuario);
-            await setPages(data.page);
+            await setUser(data.data.usuario);
+            await setPages(data.data.page);
+            await setTokenUser(data.data.tokenUser);
             redireccion();
         } catch (error) {
             Toast.show({
                 type: "error",
-                text1: "Error",
-                text2: error.data.message || "Usuario o contraseña incorrectos",
+                text1: error.data.messages.message1,
+                text2: error.data.messages.message2,
                 position: "top",
             });
         } finally {

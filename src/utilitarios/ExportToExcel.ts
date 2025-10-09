@@ -44,6 +44,12 @@ export const exportToExcel = async (
             a.download = file;
             a.click();
             URL.revokeObjectURL(url);
+            Toast.show({
+                type: "success",
+                text1: "Archivo generado correctamente",
+                text2: `El archivo ${file} se esta descargando con éxito.`,
+                position: "top",
+            });
         } else {
             const wbout = XLSX.write(workbook, { type: "base64", bookType: "xlsx" });
             const uri = FileSystem.documentDirectory + file;
@@ -57,8 +63,8 @@ export const exportToExcel = async (
             } else {
                 Toast.show({
                     type: "success",
-                    text1: "Archivo generado",
-                    text2: `Se guardó ${file}`,
+                    text1: "Archivo generado correctamente",
+                    text2: `El archivo ${file} se ha guardado con éxito.`,
                     position: "top",
                 });
             }
@@ -67,8 +73,8 @@ export const exportToExcel = async (
         console.error("Error exportando Excel:", error);
         Toast.show({
             type: "error",
-            text1: "Error",
-            text2: "No se pudo exportar el archivo Excel.",
+            text1: "Error al exportar",
+            text2: "No fue posible generar el archivo Excel. Inténtalo nuevamente.",
             position: "top",
         });
     }

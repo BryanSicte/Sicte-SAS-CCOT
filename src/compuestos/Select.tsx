@@ -4,7 +4,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { useThemeCustom } from "../contexto/ThemeContext";
 import { darkColors, lightColors } from "../estilos/Colors";
 import { useGlobalStyles } from "../estilos/GlobalStyles";
-
 import { Item } from "react-native-picker-select";
 import CustomSelect from "../componentes/Select";
 

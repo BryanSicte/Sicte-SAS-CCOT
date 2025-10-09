@@ -12,6 +12,9 @@ import * as SplashScreen from "expo-splash-screen";
 import Toast from "react-native-toast-message";
 import { getToastConfig } from './ToastConfig';
 import * as Updates from "expo-updates";
+import { TokenUserProvider } from './contexto/TokenUserContext';
+import { UserDataProvider } from './contexto/UserDataContext';
+import { PageUserProvider } from './contexto/PageUserDataContext';
 
 SplashScreen.preventAutoHideAsync().catch(() => { });
 
@@ -86,19 +89,25 @@ export default function App() {
     return (
         <SafeAreaProvider>
             <ThemeProvider>
-                <NavigationParamsProvider>
-                    <NavigationContainer linking={linking}>
-                        <MenuProvider>
-                            <UserMenuProvider>
-                                <GlobalDataProvider>
-                                    <RootNavigator />
-                                    <ThemedToast />
-                                </GlobalDataProvider>
-                            </UserMenuProvider>
-                        </MenuProvider>
-                    </NavigationContainer>
-                </NavigationParamsProvider>
+                <TokenUserProvider>
+                    <PageUserProvider>
+                        <UserDataProvider>
+                            <GlobalDataProvider>
+                                <NavigationParamsProvider>
+                                    <NavigationContainer linking={linking}>
+                                        <MenuProvider>
+                                            <UserMenuProvider>
+                                                <RootNavigator />
+                                                <ThemedToast />
+                                            </UserMenuProvider>
+                                        </MenuProvider>
+                                    </NavigationContainer>
+                                </NavigationParamsProvider>
+                            </GlobalDataProvider>
+                        </UserDataProvider>
+                    </PageUserProvider>
+                </TokenUserProvider>
             </ThemeProvider>
-        </SafeAreaProvider>
+        </SafeAreaProvider >
     );
 }

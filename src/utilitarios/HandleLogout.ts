@@ -12,16 +12,16 @@ export const handleLogout = async ({
     logout: () => Promise<void>;
     setMenuVisibleUser?: (val: boolean) => void;
 }) => {
-    
+
     try {
         await clearPages();
-        await logout();
+        const result = await logout();
         setMenuVisibleUser?.(false);
-
+        
         Toast.show({
             type: "info",
-            text1: "Sesión finalizada",
-            text2: "Has cerrado sesión correctamente.",
+            text1: result.messages.message1,
+            text2: result.messages.message2,
             position: "top",
         });
 

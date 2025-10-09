@@ -43,7 +43,8 @@ export const UserDataProvider = ({ children }: { children: React.ReactNode }) =>
         await Storage.removeItem("dataUser");
         setUserState(null);
         const data = await login("invitado@sicte.com", "Invitado");
-        await setPages(data.page);
+        await setPages(data.data.page);
+        return data;
     };
 
     useEffect(() => {

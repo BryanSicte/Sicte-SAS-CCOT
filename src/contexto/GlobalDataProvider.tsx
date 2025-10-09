@@ -1,15 +1,18 @@
-import { UserDataProvider } from "./UserDataContext";
-import { PageUserProvider } from "./PageUserDataContext";
+import { useUserData } from "./UserDataContext";
 import { PlantaDataProvider } from "./PlantaDataContext";
+import TokenCountdown from "../componentes/TokenCountdown";
+import { useTokenUserData } from "./TokenUserContext";
 
 export const GlobalDataProvider = ({ children }: { children: React.ReactNode }) => {
+    const { tokenUser } = useTokenUserData();
+    const { user } = useUserData();
+
     return (
-        <PageUserProvider>
-            <UserDataProvider>
-                <PlantaDataProvider>
-                    {children}
-                </PlantaDataProvider>
-            </UserDataProvider>
-        </PageUserProvider>
+        <PlantaDataProvider>
+            {children}
+            {user &&
+                <TokenCountdown expiryDate={tokenUser?.expiryDate} floating />
+            }
+        </PlantaDataProvider>
     );
 };
