@@ -2,13 +2,23 @@ import React, { useEffect, useState } from "react";
 import { Text, View, StyleSheet } from "react-native";
 import { useThemeCustom } from "../contexto/ThemeContext";
 import { darkColors, lightColors } from "../estilos/Colors";
+import { handleLogout } from "../utilitarios/HandleLogout";
 
 type Props = {
     expiryDate: string;
     floating?: boolean;
+    navigation: any;
+    logout: () => void;
+    setMenuVisibleUser: (v: boolean) => void;
 };
 
-const TokenCountdown = ({ expiryDate, floating = false }: Props) => {
+const TokenCountdown = ({ 
+    expiryDate, 
+    floating = false,
+    navigation,
+    logout,
+    setMenuVisibleUser,
+}: Props) => {
     const [timeLeft, setTimeLeft] = useState<string>("");
     const { isDark } = useThemeCustom();
     const colors = isDark ? darkColors : lightColors;
@@ -16,13 +26,18 @@ const TokenCountdown = ({ expiryDate, floating = false }: Props) => {
     useEffect(() => {
         const target = new Date(expiryDate).getTime();
 
-        const interval = setInterval(() => {
+        const interval = setInterval(async () => {
             const now = new Date().getTime();
             const diff = target - now;
 
             if (diff <= 0) {
                 setTimeLeft("Expirado");
                 clearInterval(interval);
+                await handleLogout({
+                    navigation,
+                    logout,
+                    setMenuVisibleUser,
+                });
                 return;
             }
 
@@ -78,14 +93,16 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.3,
         shadowRadius: 3,
         elevation: 3,
+        flexDirection: "row",
         alignItems: "center",
     },
     title: {
-        fontSize: 12,
+        fontSize: 11,
         color: "gray",
     },
     timer: {
-        fontSize: 14,
+        paddingLeft: 5,
+        fontSize: 11,
         fontWeight: "bold",
     },
 });

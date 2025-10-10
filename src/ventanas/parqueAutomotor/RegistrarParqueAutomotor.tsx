@@ -13,7 +13,6 @@ import { getUsuariosCedulaNombre, setParqueAutomotor } from "../../servicios/Api
 import { usePlantaData } from "../../contexto/PlantaDataContext";
 import { useUserData } from "../../contexto/UserDataContext";
 import { useNavigationParams } from "../../contexto/NavigationParamsContext";
-import { usePageUserData } from "../../contexto/PageUserDataContext";
 import { useUserMenu } from "../../contexto/UserMenuContext";
 import { handleLogout } from "../../utilitarios/HandleLogout";
 
@@ -25,7 +24,6 @@ export default function RegistrarParqueAutomotor({ navigation }) {
     const [loading, setLoading] = useState(false);
     const { planta, setPlanta } = usePlantaData();
     const { user, logout, getUser } = useUserData();
-    const { clearPages } = usePageUserData();
     const { setMenuVisibleUser } = useUserMenu();
 
     const createEmptyFormData = (user) => ({
@@ -44,10 +42,10 @@ export default function RegistrarParqueAutomotor({ navigation }) {
     const loadData = async () => {
         try {
             const data = await getUsuariosCedulaNombre()
-            Toast.show({ type: "success", text1: "Información de planta recibida", text2: `Los datos fueron recibidos correctamente.`, position: "top" });
             await setPlanta(data);
+            Toast.show({ type: "success", text1: data.messages.message1, text2: data.messages.message2, position: "top" });
         } catch (error) {
-            Toast.show({ type: "error", text1: "Error", text2: error.data.message || "Datos no recibidos", position: "top" });
+            Toast.show({ type: "error", text1: error.data.messages.message1, text2: error.data.messages.message2, position: "top" });
         } finally {
             setLoading(false);
         }
@@ -60,7 +58,6 @@ export default function RegistrarParqueAutomotor({ navigation }) {
                 if (userTemp === null) {
                     await handleLogout({
                         navigation,
-                        clearPages,
                         logout,
                         setMenuVisibleUser,
                     });
@@ -111,11 +108,13 @@ export default function RegistrarParqueAutomotor({ navigation }) {
                 fecha: formatearFecha(formData.fecha),
             };
             const response = await setParqueAutomotor(dataEnviar);
-            Toast.show({ type: "success", text1: "Registro exitoso", text2: "Los datos fueron enviados correctamente.", position: "top" });
-            setFormData(createEmptyFormData(user));
-            navigation.replace("ParqueAutomotor", { label: "Parque Automotor" });
+            Toast.show({ type: "success", text1: response.messages.message1, text2: response.messages.message2, position: "top" });
+            setTimeout(() => {
+                setFormData(createEmptyFormData(user));
+                navigation.replace("ParqueAutomotor", { label: "Parque Automotor" });
+            }, 2000);
         } catch (error) {
-            Toast.show({ type: "error", text1: "Error al enviar", text2: "No se pudo registrar la información.", position: "top" });
+            Toast.show({ type: "error", text1: error.data.messages.message1, text2: error.data.messages.message2, position: "top" });
         } finally {
             setLoading(false);
         }
@@ -235,7 +234,7 @@ export default function RegistrarParqueAutomotor({ navigation }) {
                             value={formData.cedula}
                             onChangeText={(text) => {
                                 let value = text.replace(/[^0-9]/g, "");
-                                const persona = planta.find((p) => p.nit === value);
+                                const persona = planta.data.find((p) => p.nit === value);
                                 setFormData({ ...formData, cedula: value, nombre: persona?.nombre ? persona.nombre : "Usuario no encontrado" });
                             }}
                             icon="card-outline"

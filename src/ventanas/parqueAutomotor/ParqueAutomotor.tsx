@@ -14,7 +14,6 @@ import { exportToExcel } from '../../utilitarios/ExportToExcel';
 import { useNavigationParams } from '../../contexto/NavigationParamsContext';
 import { useUserData } from '../../contexto/UserDataContext';
 import { handleLogout } from '../../utilitarios/HandleLogout';
-import { usePageUserData } from '../../contexto/PageUserDataContext';
 import { useUserMenu } from '../../contexto/UserMenuContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ParqueAutomotor'>;
@@ -34,14 +33,13 @@ export default function ParqueAutomotor({ navigation }: Props) {
     const [data, setData] = useState<any[]>([]);
     const [dataTabla, setDataTabla] = useState<any[]>([]);
     const { getUser, logout } = useUserData();
-    const { clearPages } = usePageUserData();
     const { setMenuVisibleUser } = useUserMenu();
 
     const loadData = async () => {
         try {
             const response = await getParqueAutomotor();
             setData(response);
-            const tablaFormateada = response.map((item: any) => [
+            const tablaFormateada = response.data.map((item: any) => [
                 item.fecha,
                 item.usuario,
                 item.sede,
@@ -50,9 +48,9 @@ export default function ParqueAutomotor({ navigation }: Props) {
                 item.nombre,
             ]);
             setDataTabla(tablaFormateada);
-            Toast.show({ type: "success", text1: "Información de planta recibida", text2: `Los datos fueron recibidos correctamente.`, position: "top" });
+            Toast.show({ type: "success", text1: response.messages.message1, text2: response.messages.message2, position: "top" });
         } catch (error) {
-            Toast.show({ type: "error", text1: "Error", text2: error.data.message || "Datos no recibidos", position: "top" });
+            Toast.show({ type: "error", text1: error.data.messages.message1, text2: error.data.messages.message2, position: "top" });
         }
     };
 
@@ -63,7 +61,6 @@ export default function ParqueAutomotor({ navigation }: Props) {
                 if (userTemp === null) {
                     await handleLogout({
                         navigation,
-                        clearPages,
                         logout,
                         setMenuVisibleUser,
                     });

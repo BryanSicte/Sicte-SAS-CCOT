@@ -1,16 +1,45 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { View, StyleSheet, Platform } from "react-native";
 import { WebView } from "react-native-webview";
 import { useMenu } from "../contexto/MenuContext";
 import { useRoute } from "@react-navigation/native";
 import { menuConfig } from "../navegacion/MenuConfig";
 import { useIsMobileWeb } from "../utilitarios/IsMobileWeb";
+import Storage from "../utilitarios/Storage";
+import Toast from "react-native-toast-message";
 
-export default function PowerBIEmbed() {
+export default function PowerBIEmbed({ navigation }) {
     const { open } = useMenu();
     const route = useRoute();
     const { reportName } = route.params || {};
     const isMobileWeb = useIsMobileWeb();
+    let autorizacion = "0";
+
+    const loadData = async () => {
+        let pages;
+        const storedPages = await Storage.getItem("dataPageUser");
+        if (!storedPages) return;
+        pages = JSON.parse(storedPages);
+        if (pages.hasOwnProperty(reportName)) {
+            if (pages[reportName] === "1") {
+                autorizacion = pages[reportName];
+            } else {
+                Toast.show({
+                    type: "info",
+                    text1: "Acceso restringido",
+                    text2: "No tienes permisos para entrar aquí 🚫",
+                    position: "top",
+                });
+                setTimeout(() => {
+                    navigation.replace("Home");
+                }, 2000);
+            }
+        }
+    };
+
+    useEffect(() => {
+        loadData();
+    }, []);
 
     const findReport = (nameBD) => {
         for (const section of menuConfig) {
@@ -38,7 +67,7 @@ export default function PowerBIEmbed() {
             <View
                 style={[
                     styles.container,
-                    { marginLeft: !isMobileWeb ? open ? 250 : 60 : open ? 250 : 0}
+                    { marginLeft: !isMobileWeb ? open ? 250 : 60 : open ? 250 : 0 }
                 ]}
             >
                 <iframe

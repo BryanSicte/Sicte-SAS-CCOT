@@ -1,20 +1,21 @@
 import Toast from "react-native-toast-message";
 import { CommonActions } from "@react-navigation/native";
+import Storage from "../utilitarios/Storage";
 
 export const handleLogout = async ({
     navigation,
-    clearPages,
     logout,
     setMenuVisibleUser,
 }: {
     navigation: any;
-    clearPages: () => Promise<void>;
     logout: () => Promise<void>;
     setMenuVisibleUser?: (val: boolean) => void;
 }) => {
 
     try {
-        await clearPages();
+        await Storage.removeItem("dataPageUser");
+        await Storage.removeItem("dataTokenUser");
+        await Storage.removeItem("dataPlanta");
         const result = await logout();
         setMenuVisibleUser?.(false);
         

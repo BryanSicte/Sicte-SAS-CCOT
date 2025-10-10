@@ -92,18 +92,18 @@ export default function App() {
                 <TokenUserProvider>
                     <PageUserProvider>
                         <UserDataProvider>
-                            <GlobalDataProvider>
-                                <NavigationParamsProvider>
-                                    <NavigationContainer linking={linking}>
-                                        <MenuProvider>
-                                            <UserMenuProvider>
+                            <NavigationParamsProvider>
+                                <NavigationContainer linking={linking}>
+                                    <MenuProvider>
+                                        <UserMenuProvider>
+                                            <GlobalDataProvider>
                                                 <RootNavigator />
                                                 <ThemedToast />
-                                            </UserMenuProvider>
-                                        </MenuProvider>
-                                    </NavigationContainer>
-                                </NavigationParamsProvider>
-                            </GlobalDataProvider>
+                                            </GlobalDataProvider>
+                                        </UserMenuProvider>
+                                    </MenuProvider>
+                                </NavigationContainer>
+                            </NavigationParamsProvider>
                         </UserDataProvider>
                     </PageUserProvider>
                 </TokenUserProvider>

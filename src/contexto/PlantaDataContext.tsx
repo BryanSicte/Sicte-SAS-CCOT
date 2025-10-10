@@ -8,7 +8,7 @@ type PlantaContextType = {
     planta: Planta | null;
     setPlanta: (planta: Planta | null) => Promise<void>;
     getPlanta: () => Promise<void>;
-    clearPages: () => Promise<void>;
+    clearPlanta: () => Promise<void>;
 };
 
 const PlantaContext = createContext<PlantaContextType | undefined>(undefined);
@@ -37,7 +37,7 @@ export const PlantaDataProvider = ({ children }: { children: React.ReactNode }) 
         setPlantaState(planta);
     };
 
-    const clearPages = async () => {
+    const clearPlanta = async () => {
         await Storage.removeItem("dataPlanta");
         setPlantaState(null);
     };
@@ -47,7 +47,7 @@ export const PlantaDataProvider = ({ children }: { children: React.ReactNode }) 
     }, []);
 
     return (
-        <PlantaContext.Provider value={{ planta, setPlanta, getPlanta, clearPages }}>
+        <PlantaContext.Provider value={{ planta, setPlanta, getPlanta, clearPlanta }}>
             {children}
         </PlantaContext.Provider>
     );

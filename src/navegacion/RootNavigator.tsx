@@ -46,14 +46,13 @@ export default function RootNavigator() {
     const menuWidth = Platform.OS === "web" && !isMobileWeb ? (open ? 250 : 60) : (open ? 250 : 0);
     const [activeMenu, setActiveMenu] = useState<number | null>(null);
     const { user, logout, getUser } = useUserData();
-    const { pages, clearPages } = usePageUserData();
+    const { pages } = usePageUserData();
     const { menuVisibleUser, setMenuVisibleUser } = useUserMenu();
     const { params } = useNavigationParams();
 
     const cerrarSesion = async () => {
         await handleLogout({
             navigation,
-            clearPages,
             logout,
             setMenuVisibleUser,
         });
