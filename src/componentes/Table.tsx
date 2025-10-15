@@ -6,6 +6,7 @@ import { darkColors, lightColors } from "../estilos/Colors";
 import CustomButton from "./Button";
 import CustomInput from "./Input";
 import { useMenu } from "../contexto/MenuContext";
+import Ionicons from "@expo/vector-icons/Ionicons";
 
 interface Props {
     headers: string[];
@@ -20,6 +21,10 @@ export default function CustomTable({ headers, data, itemsPerPage = 5, onRowPres
     const [filters, setFilters] = useState<{ [key: number]: string }>({});
     const { isDark } = useThemeCustom();
     const { open } = useMenu();
+    const [sortConfig, setSortConfig] = useState<{ key: number | null; direction: "asc" | "desc" }>({
+        key: null,
+        direction: "asc",
+    });
 
     const filteredData = useMemo(() => {
         return data.filter((row) =>
@@ -30,12 +35,52 @@ export default function CustomTable({ headers, data, itemsPerPage = 5, onRowPres
         );
     }, [filters, data]);
 
+    const sortedData = useMemo(() => {
+        if (sortConfig.key === null) return filteredData;
+        const sorted = [...filteredData].sort((a, b) => {
+            const valA = a[sortConfig.key] || "";
+            const valB = b[sortConfig.key] || "";
+
+            const dateA = new Date(valA);
+            const dateB = new Date(valB);
+            const isDate = !isNaN(dateA.getTime()) && !isNaN(dateB.getTime());
+
+            if (isDate) {
+                return sortConfig.direction === "asc"
+                    ? dateA.getTime() - dateB.getTime()
+                    : dateB.getTime() - dateA.getTime();
+            }
+
+            const numA = parseFloat(valA);
+            const numB = parseFloat(valB);
+            const isNumber = !isNaN(numA) && !isNaN(numB);
+
+            if (isNumber) {
+                return sortConfig.direction === "asc" ? numA - numB : numB - numA;
+            }
+
+            return sortConfig.direction === "asc"
+                ? valA.localeCompare(valB)
+                : valB.localeCompare(valA);
+        });
+        return sorted;
+    }, [filteredData, sortConfig]);
+
     const totalPages = Math.ceil(filteredData.length / itemsPerPage);
 
     const paginatedData = useMemo(() => {
         const start = (page - 1) * itemsPerPage;
-        return filteredData.slice(start, start + itemsPerPage);
-    }, [page, filteredData, itemsPerPage]);
+        return sortedData.slice(start, start + itemsPerPage);
+    }, [page, sortedData, itemsPerPage]);
+
+    const handleSort = (index: number) => {
+        setSortConfig((prev) => {
+            if (prev.key === index) {
+                return { key: index, direction: prev.direction === "asc" ? "desc" : "asc" };
+            }
+            return { key: index, direction: "asc" };
+        });
+    };
 
     const renderRow = ({ item, index }: { item: string[]; index: number }) => {
         const isEven = index % 2 === 0;
@@ -79,7 +124,19 @@ export default function CustomTable({ headers, data, itemsPerPage = 5, onRowPres
                     <View style={[styles.row, styles.header]}>
                         {headers.map((header, index) => (
                             <View key={index} style={{ alignItems: "center", minHeight: 60, paddingVertical: 4, width: colWidth }}>
-                                <Text style={[styles.cell, styles.headerText]}>{header}</Text>
+                                <TouchableOpacity
+                                    onPress={() => handleSort(index)}
+                                    style={[styles.cell]}
+                                >
+                                    <Text style={[styles.headerText, { marginRight: 4 }]}>{header}</Text>
+                                    {sortConfig.key === index && (
+                                        <Ionicons
+                                            name={sortConfig.direction === "asc" ? "chevron-up-outline" : "chevron-down-outline"}
+                                            size={16}
+                                            color={isDark ? darkColors.texto : lightColors.texto}
+                                        />
+                                    )}
+                                </TouchableOpacity>
                                 <CustomInput
                                     style={styles.input}
                                     placeholderTextColor={darkColors.subTexto}
@@ -166,6 +223,9 @@ const stylesLocal = () => {
         },
         cell: {
             flex: 1,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
             textAlign: "center",
             color: isDark ? darkColors.texto : lightColors.texto,
             fontSize: stylesGlobal.texto.fontSize,

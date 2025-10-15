@@ -47,7 +47,12 @@ export default function ParqueAutomotor({ navigation }: Props) {
                 item.estado,
                 item.nombre,
             ]);
-            setDataTabla(tablaFormateada);
+            const tablaOrdenada = [...tablaFormateada].sort((a, b) => {
+                const fechaA = new Date(a[0]);
+                const fechaB = new Date(b[0]);
+                return fechaB.getTime() - fechaA.getTime();
+            });
+            setDataTabla(tablaOrdenada);
             Toast.show({ type: "success", text1: response.messages.message1, text2: response.messages.message2, position: "top" });
         } catch (error) {
             Toast.show({ type: "error", text1: error.data.messages.message1, text2: error.data.messages.message2, position: "top" });
