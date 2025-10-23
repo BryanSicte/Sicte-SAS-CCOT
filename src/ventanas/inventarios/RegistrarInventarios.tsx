@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, Pressable, ScrollView, Platform, KeyboardAvoidingView } from "react-native";
+import { View, Text, Pressable, ScrollView, Platform, KeyboardAvoidingView, StyleSheet } from "react-native";
 import { useGlobalStyles } from "../../estilos/GlobalStyles";
 import CustomButton from "../../componentes/Button";
 import { Ionicons } from "@expo/vector-icons";
@@ -9,21 +9,26 @@ import LabeledInput from "../../compuestos/Input";
 import LabeledSelect from "../../compuestos/Select";
 import LabeledDatePicker from "../../compuestos/Date";
 import Toast from "react-native-toast-message";
-import { getUsuariosCedulaNombre, setParqueAutomotor } from "../../servicios/Api";
+import { getUsuariosCedulaNombre, getBodegaKgprodOperacionesCodigoDescripUnimed, setParqueAutomotor } from "../../servicios/Api";
 import { usePlantaData } from "../../contexto/PlantaDataContext";
 import { useUserData } from "../../contexto/UserDataContext";
 import { useNavigationParams } from "../../contexto/NavigationParamsContext";
 import { useUserMenu } from "../../contexto/UserMenuContext";
 import { handleLogout } from "../../utilitarios/HandleLogout";
+import CustomTable from "../../componentes/Table";
 import { useIsMobileWeb } from "../../utilitarios/IsMobileWeb";
+import CustomModal from "../../componentes/Modal";
+import CustomInput from "../../componentes/Input";
+import { useMaterialData } from "../../contexto/MaterialDataContext";
 
-export default function RegistrarParqueAutomotor({ navigation }) {
+export default function RegistrarInventarios({ navigation }) {
     const stylesGlobal = useGlobalStyles();
     const { isDark } = useThemeCustom();
     const { setParams } = useNavigationParams();
     const colors = isDark ? darkColors : lightColors;
     const [loading, setLoading] = useState(false);
     const { planta, setPlanta } = usePlantaData();
+    const { material, setMaterial } = useMaterialData();
     const { user, logout, getUser } = useUserData();
     const { setMenuVisibleUser } = useUserMenu();
     const isMobileWeb = useIsMobileWeb();
@@ -31,21 +36,31 @@ export default function RegistrarParqueAutomotor({ navigation }) {
     const createEmptyFormData = (user) => ({
         fecha: new Date(),
         cedulaUsuario: user?.cedula || "Pendiente",
-        usuario: user?.nombre || "Pendiente",
-        sede: "",
-        placa: "",
-        cedula: "",
-        nombre: "",
-        estado: "",
+        nombreusuario: user?.nombre || "Pendiente",
+        cedulaTecnico: "",
+        nombreTecnico: "",
+        inventario: "Inventario Fiscal 2025",
+        materiales: [],
+    });
+
+    const createEmptyNuevoMaterial = (material) => ({
+        codigo: "",
+        descripcion: "",
+        cantidad: "",
+        unidadMedida: "",
     });
 
     const [formData, setFormData] = useState(createEmptyFormData(user));
+    const [nuevoMaterial, setNuevoMaterial] = useState(createEmptyNuevoMaterial(material));
 
     const loadData = async () => {
         try {
-            const data = await getUsuariosCedulaNombre()
-            await setPlanta(data);
-            Toast.show({ type: "success", text1: data.messages.message1, text2: data.messages.message2, position: "top" });
+            const dataUsuarios = await getUsuariosCedulaNombre()
+            await setPlanta(dataUsuarios);
+            Toast.show({ type: "success", text1: dataUsuarios.messages.message1, text2: dataUsuarios.messages.message2, position: "top" });
+            const dataMaterial = await getBodegaKgprodOperacionesCodigoDescripUnimed()
+            await setMaterial(dataMaterial);
+            Toast.show({ type: "success", text1: dataMaterial.messages.message1, text2: dataMaterial.messages.message2, position: "top" });
         } catch (error) {
             Toast.show({ type: "error", text1: error.data.messages.message1, text2: error.data.messages.message2, position: "top" });
         } finally {
@@ -93,15 +108,15 @@ export default function RegistrarParqueAutomotor({ navigation }) {
     };
 
     const handleForm = async () => {
-        if (!formData.sede) { Toast.show({ type: "info", text1: "Falta información", text2: "Por favor ingrese la sede.", position: "top" }); return; }
-        if (!formData.placa) { Toast.show({ type: "info", text1: "Falta información", text2: "Por favor ingrese la placa.", position: "top" }); return; }
-        if (formData.placa.length < 5 || formData.placa.length > 6) { Toast.show({ type: "info", text1: "Placa inválida", text2: "La placa debe tener entre 5 y 6 caracteres.", position: "top" }); return; }
-        const placaPattern = /^[A-Z]{3}[0-9]{2}[A-Z0-9]{1}$/;
-        if (!placaPattern.test(formData.placa)) { Toast.show({ type: "info", text1: "Placa inválida", text2: "La placa debe tener el formato ABC12D o ABC123.", position: "top" }); return; }
-        if (!formData.cedula) { Toast.show({ type: "info", text1: "Falta información", text2: "Por favor ingrese la cedula.", position: "top" }); return; }
-        if (!formData.nombre) { Toast.show({ type: "info", text1: "Falta información", text2: "Por favor ingrese la nombre.", position: "top" }); return; }
-        if (formData.nombre === 'Usuario no encontrado') { Toast.show({ type: "info", text1: "Falta información", text2: "Por favor ingrese una cedula correcta.", position: "top" }); return; }
-        if (!formData.estado) { Toast.show({ type: "info", text1: "Falta información", text2: "Por favor ingrese la estado.", position: "top" }); return; }
+        // if (!formData.sede) { Toast.show({ type: "info", text1: "Falta información", text2: "Por favor ingrese la sede.", position: "top" }); return; }
+        // if (!formData.placa) { Toast.show({ type: "info", text1: "Falta información", text2: "Por favor ingrese la placa.", position: "top" }); return; }
+        // if (formData.placa.length < 5 || formData.placa.length > 6) { Toast.show({ type: "info", text1: "Placa inválida", text2: "La placa debe tener entre 5 y 6 caracteres.", position: "top" }); return; }
+        // const placaPattern = /^[A-Z]{3}[0-9]{2}[A-Z0-9]{1}$/;
+        // if (!placaPattern.test(formData.placa)) { Toast.show({ type: "info", text1: "Placa inválida", text2: "La placa debe tener el formato ABC12D o ABC123.", position: "top" }); return; }
+        // if (!formData.cedula) { Toast.show({ type: "info", text1: "Falta información", text2: "Por favor ingrese la cedula.", position: "top" }); return; }
+        // if (!formData.nombre) { Toast.show({ type: "info", text1: "Falta información", text2: "Por favor ingrese la nombre.", position: "top" }); return; }
+        // if (formData.nombre === 'Usuario no encontrado') { Toast.show({ type: "info", text1: "Falta información", text2: "Por favor ingrese una cedula correcta.", position: "top" }); return; }
+        // if (!formData.estado) { Toast.show({ type: "info", text1: "Falta información", text2: "Por favor ingrese la estado.", position: "top" }); return; }
 
         try {
             setLoading(true);
@@ -120,6 +135,19 @@ export default function RegistrarParqueAutomotor({ navigation }) {
         } finally {
             setLoading(false);
         }
+    };
+
+    const headers = ["Codigo SAP", "Descripcion", "Cantidad", "U.M."];
+    const [dataTabla, setDataTabla] = useState<any[]>([]);
+    const styles = stylesLocal();
+    const [modalVisible, setModalVisible] = useState(false);
+    const [cantidad, setCantidad] = useState("");
+
+    const handleGuardar = () => {
+        console.log("Nuevo material:", nuevoMaterial, cantidad);
+        setModalVisible(false);
+        setNuevoMaterial(createEmptyNuevoMaterial(material));
+        setCantidad("");
     };
 
     return (
@@ -141,8 +169,8 @@ export default function RegistrarParqueAutomotor({ navigation }) {
                     }}>
                         <Pressable
                             onPress={() => {
-                                setParams("ParqueAutomotor", { label: "Parque Automotor" });
-                                navigation.replace("ParqueAutomotor");
+                                setParams("Inventarios", { label: "Inventarios" });
+                                navigation.replace("Inventarios");
                             }}
                             style={({ pressed, hovered }: any) => [
                                 {
@@ -160,7 +188,7 @@ export default function RegistrarParqueAutomotor({ navigation }) {
                             {(state: any) => (
                                 <View style={{ flexDirection: "row", alignItems: "center" }}>
                                     <Ionicons name="arrow-back" size={30} color={state.pressed ? colors.iconoPressed : state.hovered ? colors.iconoHover : colors.icono} style={{}} />
-                                    <Text style={[stylesGlobal.subTitle, { textAlign: "center", marginLeft: 10, marginRight: 5, color: state.pressed ? colors.textoPressed : state.hovered ? colors.textoHover : colors.texto }]}>Registrar Vehiculo</Text>
+                                    <Text style={[stylesGlobal.subTitle, { textAlign: "center", marginLeft: 10, marginRight: 5, color: state.pressed ? colors.textoPressed : state.hovered ? colors.textoHover : colors.texto }]}>Registrar Inventario</Text>
                                 </View>
                             )}
                         </Pressable>
@@ -187,88 +215,105 @@ export default function RegistrarParqueAutomotor({ navigation }) {
                             label="Cedula Usuario"
                             placeholder="Ingrese la cedula"
                             value={formData.cedulaUsuario}
-                            onChangeText={(text) => setFormData({ ...formData, nombre: text })}
                             icon="card-outline"
                             disabled
                         />
                         <LabeledInput
                             label="Nombre Usuario"
                             placeholder="Ingrese el nombre"
-                            value={formData.usuario}
-                            onChangeText={(text) => setFormData({ ...formData, nombre: text })}
+                            value={formData.nombreusuario}
                             icon="person-outline"
                             disabled
                         />
-                        <LabeledSelect
-                            label="Sede"
-                            value={formData.sede}
-                            onValueChange={(value) => setFormData({ ...formData, sede: value })}
-                            icon="business-outline"
-                            items={[
-                                { label: "Armenia", value: "Armenia" },
-                                { label: "Bogota Enel", value: "Bogota Enel" },
-                                { label: "Bogota Ferias", value: "Bogota Ferias" },
-                                { label: "Bogota San Cipriano", value: "Bogota San Cipriano" },
-                                { label: "Manizales", value: "Manizales" },
-                                { label: "Pereira", value: "Pereira" },
-                                { label: "Zipaquira", value: "Zipaquira" },
-                            ]}
-                            placeholder="Selecciona una sede"
-                        />
                         <LabeledInput
-                            label="Placa"
-                            placeholder="Ingrese una placa"
-                            value={formData.placa}
-                            onChangeText={(text) => {
-                                let value = text.toUpperCase();
-                                value = value.replace(/[^A-Z0-9]/g, "");
-                                if (value.length > 6) value = value.slice(0, 6);
-                                const pattern = /^([A-Z]{0,3})([0-9]{0,2})([A-Z0-9]{0,1})$/;
-                                if (pattern.test(value)) {
-                                    setFormData({ ...formData, placa: value });
-                                }
-                            }}
-                            icon="car-outline"
-                            autoCapitalize="characters"
-                        />
-                        <LabeledInput
-                            label="Cedula"
+                            label="Cedula Tecnico"
                             placeholder="Ingrese una cedula"
-                            value={formData.cedula}
+                            value={formData.cedulaTecnico}
                             onChangeText={(text) => {
                                 let value = text.replace(/[^0-9]/g, "");
                                 const persona = planta.data.find((p) => p.nit === value);
-                                setFormData({ ...formData, cedula: value, nombre: persona?.nombre ? persona.nombre : "Usuario no encontrado" });
+                                setFormData({ ...formData, cedulaTecnico: value, nombreTecnico: persona?.nombre ? persona.nombre : "Usuario no encontrado" });
                             }}
                             icon="card-outline"
                         />
                         <LabeledInput
-                            label="Nombre"
+                            label="Nombre Tecnico"
                             placeholder="Ingrese el nombre"
-                            value={formData.nombre}
-                            onChangeText={(text) => setFormData({ ...formData, nombre: text })}
+                            value={formData.nombreTecnico}
                             icon="person-outline"
                             disabled
                         />
-                        <LabeledSelect
-                            label="Estado"
-                            value={formData.estado}
-                            onValueChange={(value) => setFormData({ ...formData, estado: value })}
-                            icon="radio-button-on-outline"
-                            items={[
-                                { label: "Entrada", value: "Entrada" },
-                                { label: "Salida", value: "Salida" },
-                                { label: "No usado", value: "No usado" },
-                            ]}
-                            placeholder="Selecciona un estado"
+                        <LabeledInput
+                            label="Inventario"
+                            value={formData.inventario}
+                            icon="document-text-outline"
+                            disabled
                         />
+                        <View>
+                            <Text style={[stylesGlobal.texto, styles.label]}>Material:</Text>
+                            <View style={{ alignSelf: "flex-end", marginBottom: 10 }}>
+                                <CustomButton label="Agregar" variant="primary" onPress={() => setModalVisible(true)} />
+                            </View>
+                            <CustomTable headers={headers} data={formData.materiales.map((m) => [m.codigo, m.descripcion, m.cantidad, m.unidadMedida])} />
+                        </View>
                     </View>
 
                     <View style={{ alignSelf: "center" }}>
                         <CustomButton label="Enviar" variant="secondary" onPress={() => handleForm()} loading={loading} disabled={loading} />
                     </View>
+
+                    <CustomModal
+                        visible={modalVisible}
+                        title="Agregar Material"
+                        onClose={() => setModalVisible(false)}
+                    >
+                        <LabeledInput
+                            label="Codigo SAP"
+                            placeholder="Ingrese el codigo SAP"
+                            value={nuevoMaterial.codigo}
+                            onChangeText={(text) => setNuevoMaterial({ ...nuevoMaterial, codigo: text })}
+                            icon="card-outline"
+                            data={(material?.data ?? []).map((m) => m.codigo)}
+                            onSelectItem={(item) => setNuevoMaterial({ ...nuevoMaterial, codigo: item })}
+                        />
+                        <LabeledInput
+                            label="Descripcion`"
+                            placeholder="Ingrese la descripcion"
+                            value={nuevoMaterial.descripcion}
+                            onChangeText={(text) => setNuevoMaterial({ ...nuevoMaterial, descripcion: text })}
+                            icon="card-outline"
+                        />
+                        <LabeledInput
+                            label="Cantidad"
+                            placeholder="Ingrese la cantidad"
+                            value={nuevoMaterial.cantidad}
+                            onChangeText={(text) => setNuevoMaterial({ ...nuevoMaterial, cantidad: text })}
+                            icon="card-outline"
+                        />
+                        <LabeledInput
+                            label="Unidad de Medida"
+                            placeholder="Ingrese la unidad de medida"
+                            value={nuevoMaterial.unidadMedida}
+                            onChangeText={(text) => setNuevoMaterial({ ...nuevoMaterial, unidadMedida: text })}
+                            icon="card-outline"
+                            disabled
+                        />
+                        <View style={{ alignSelf: "center" }}>
+                            <CustomButton label="Agregar Material" onPress={handleGuardar} />
+                        </View>
+                    </CustomModal>
+
                 </ScrollView>
             </KeyboardAvoidingView>
         </View >
     );
 }
+
+const stylesLocal = () => {
+
+    return StyleSheet.create({
+        label: {
+            fontWeight: "500",
+        },
+    });
+};

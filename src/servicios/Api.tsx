@@ -66,4 +66,7 @@ export const setParqueAutomotor = (data) =>
 export const getParqueAutomotor = () =>
     request("/parqueAutomotor/registros", "GET");
 
+export const getBodegaKgprodOperacionesCodigoDescripUnimed = () =>
+    request("/bodega/registrosKgprodOperacionesCodigoDescripUnimed", "GET");
+
 export default request;

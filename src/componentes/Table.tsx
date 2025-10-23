@@ -7,6 +7,7 @@ import CustomButton from "./Button";
 import CustomInput from "./Input";
 import { useMenu } from "../contexto/MenuContext";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { useIsMobileWeb } from "../utilitarios/IsMobileWeb";
 
 interface Props {
     headers: string[];
@@ -112,8 +113,9 @@ export default function CustomTable({ headers, data, itemsPerPage = 5, onRowPres
         );
     };
 
+    const isMobileWeb = useIsMobileWeb();
     const screenWidth = Dimensions.get("window").width - (open ? 314 : 124);
-    const minColWidth = Platform.OS === "web" ? 220 : 150;
+    const minColWidth = !isMobileWeb ? 200 : 140;
     const totalMinWidth = headers.length * minColWidth;
     const colWidth = totalMinWidth < screenWidth ? screenWidth / headers.length : minColWidth;
 
@@ -137,15 +139,17 @@ export default function CustomTable({ headers, data, itemsPerPage = 5, onRowPres
                                         />
                                     )}
                                 </TouchableOpacity>
-                                <CustomInput
-                                    style={styles.input}
-                                    placeholderTextColor={darkColors.subTexto}
-                                    value={filters[index] || ""}
-                                    onChangeText={(text) => {
-                                        setPage(1);
-                                        setFilters((prev) => ({ ...prev, [index]: text }));
-                                    }}
-                                />
+                                <View style={{ alignSelf: "center" }}>
+                                    <CustomInput
+                                        style={styles.input}
+                                        placeholderTextColor={darkColors.subTexto}
+                                        value={filters[index] || ""}
+                                        onChangeText={(text) => {
+                                            setPage(1);
+                                            setFilters((prev) => ({ ...prev, [index]: text }));
+                                        }}
+                                    />
+                                </View>
                             </View>
                         ))}
                     </View>
@@ -156,7 +160,7 @@ export default function CustomTable({ headers, data, itemsPerPage = 5, onRowPres
                         keyExtractor={(_, index) => index.toString()}
                         ListEmptyComponent={() => (
                             <View style={[styles.row, { justifyContent: "center", alignItems: "center", paddingVertical: 16 }]}>
-                                <Text style={[styles.cell, { textAlign: "center" }]}>
+                                <Text style={[styles.cell, { textAlign: isMobileWeb ? "left" : "center", marginLeft: isMobileWeb ? 20 : 0 }]}>
                                     Sin información
                                 </Text>
                             </View>
@@ -174,10 +178,12 @@ export default function CustomTable({ headers, data, itemsPerPage = 5, onRowPres
                     style={{ marginRight: 10, marginTop: 10 }}
                 />
 
-                <Text style={styles.pageInfo}>
-                    Página {page} de {totalPages} | Total: {data.length} ítems {"\n"}
-                    Mostrando {paginatedData.length} de {filteredData.length} ítems
-                </Text>
+                {!isMobileWeb && (
+                    <Text style={styles.pageInfo}>
+                        Página {page} de {totalPages} | Total: {data.length} ítems {"\n"}
+                        Mostrando {paginatedData.length} de {filteredData.length} ítems
+                    </Text>
+                )}
 
                 <CustomButton
                     label="Siguiente"
@@ -187,6 +193,13 @@ export default function CustomTable({ headers, data, itemsPerPage = 5, onRowPres
                     style={{ marginLeft: 10, marginTop: 10 }}
                 />
             </View>
+
+            {isMobileWeb && (
+                <Text style={styles.pageInfo}>
+                    Página {page} de {totalPages} | Total: {data.length} ítems {"\n"}
+                    Mostrando {paginatedData.length} de {filteredData.length} ítems
+                </Text>
+            )}
         </View>
     );
 }
@@ -194,11 +207,11 @@ export default function CustomTable({ headers, data, itemsPerPage = 5, onRowPres
 const stylesLocal = () => {
     const { isDark } = useThemeCustom();
     const stylesGlobal = useGlobalStyles();
+    const isMobileWeb = useIsMobileWeb();
 
     return StyleSheet.create({
         contenedor: {
             alignSelf: "stretch",
-            marginHorizontal: 20,
             padding: 10,
             borderWidth: 1,
             borderColor: isDark ? darkColors.linea : lightColors.linea,
@@ -229,7 +242,7 @@ const stylesLocal = () => {
             textAlign: "center",
             color: isDark ? darkColors.texto : lightColors.texto,
             fontSize: stylesGlobal.texto.fontSize,
-            minWidth: Platform.OS === "web" ? 220 : 150,
+            minWidth: !isMobileWeb ? 200 : 140,
         },
         header: {
             backgroundColor: isDark ? darkColors.input : lightColors.input,
@@ -237,7 +250,7 @@ const stylesLocal = () => {
         headerText: {
             fontWeight: "bold",
             color: isDark ? darkColors.texto : lightColors.texto,
-            fontSize: stylesGlobal.subTitle.fontSize - 2,
+            fontSize: stylesGlobal.texto.fontSize,
         },
         paginationContainer: {
             flexDirection: "row",

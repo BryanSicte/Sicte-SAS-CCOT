@@ -32,6 +32,12 @@ export default function Login({ navigation }: Props) {
         if (mensaje === "Parque Automotor") {
             setParams("ParqueAutomotor", { label: "Parque Automotor" });
             navigation.replace("ParqueAutomotor");
+        } else if (mensaje === "Cadena de Suministro") {
+            setParams("CadenaDeSuministro", { label: "Cadena de Suministro" });
+            navigation.replace("CadenaDeSuministro");
+        } else if (mensaje === "Inventarios") {
+            setParams("Inventarios", { label: "Inventarios" });
+            navigation.replace("Inventarios");
         } else {
             navigation.replace("Home");
         }

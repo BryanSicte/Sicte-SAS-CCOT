@@ -15,7 +15,6 @@ type HeaderOptionsParams = {
     showLogo?: boolean;
     canGoBack?: boolean;
     isMobileWeb?: boolean;
-
 };
 
 function UserHeaderButton({ navigation, colors }: any) {

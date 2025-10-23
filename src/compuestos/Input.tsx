@@ -11,15 +11,21 @@ interface Props extends TextInputProps {
     icon?: keyof typeof Ionicons.glyphMap;
     containerStyle?: ViewStyle;
     disabled?: boolean;
+    value: string;
+    onChangeText?: (text: string) => void;
+    data?: string[];
+    onSelectItem?: (item: string) => void;
 }
 
 export default function LabeledInput({
     label,
     icon = "calendar-outline",
     containerStyle,
-    style,
+    value,
+    onChangeText,
     disabled,
-    ...textInputProps
+    data = [],
+    onSelectItem,
 }: Props) {
     const { isDark } = useThemeCustom();
     const colors = isDark ? darkColors : lightColors;
@@ -31,7 +37,7 @@ export default function LabeledInput({
             <Text style={[stylesGlobal.texto, styles.label]}>{label}</Text>
             <View style={[styles.inputWrapper]}>
                 {icon && <Ionicons name={icon} size={22} color={colors.icono} style={styles.icon} />}
-                <CustomInput placeholder="Selecciona la fecha" style={{ flex: 1 }} disabled={disabled} {...textInputProps} />
+                <CustomInput placeholder="Selecciona la fecha" style={{ flex: 1 }} disabled={disabled} value={value} onChangeText={onChangeText} data={data} onSelectItem={onSelectItem}/>
             </View>
         </View>
     );

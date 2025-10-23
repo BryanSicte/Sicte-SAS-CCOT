@@ -9,6 +9,7 @@ type Variant = String;
 interface Props {
     label: string;
     onPress: () => void;
+    children?: any;
     variant?: Variant;
     style?: ViewStyle;
     textStyle?: TextStyle;
@@ -19,6 +20,7 @@ interface Props {
 export default function CustomButton({
     label,
     onPress,
+    children,
     variant = "primary",
     style,
     textStyle,
@@ -42,6 +44,8 @@ export default function CustomButton({
         >
             {loading ? (
                 <ActivityIndicator color="#fff" />
+            ) : children ? (
+                children
             ) : (
                 (state: any) => (
                     <Text style={[styles.label, textStyle, { color: state.pressed ? colors.textoPressed : state.hovered ? colors.textoHover : "#fff" }]}>

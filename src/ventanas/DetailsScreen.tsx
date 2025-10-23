@@ -12,8 +12,7 @@ export default function DetailsScreen({ route, navigation }: Props) {
 
     return (
         <View style={stylesGlobal.container}>
-            <Text style={stylesGlobal.title}>📄 Página de Prueba</Text>
-            <Text style={stylesGlobal.texto}>Mensaje recibido: {route.params?.message}</Text>
+            <Text style={stylesGlobal.title}>📄 Página en Construccion</Text>
             <Button title="Volver" onPress={() => navigation.goBack()} />
         </View>
     );

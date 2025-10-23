@@ -1,8 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createStackNavigator } from "@react-navigation/stack";
-import Inicio from '../ventanas/Inicio';
-import DetailsScreen from '../ventanas/DetailsScreen';
-import PowerBIEmbed from '../ventanas/PowerBIEmbed';
 import { View, Text, Pressable, Platform, Animated, StyleSheet, ScrollView } from 'react-native';
 import { useThemeCustom } from '../contexto/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
@@ -13,23 +10,44 @@ import { useMenu } from "../contexto/MenuContext";
 import { useGlobalStyles } from '../estilos/GlobalStyles';
 import { getHeaderOptions } from './NavigationOptions';
 import { menuConfig } from './MenuConfig';
-import Login from '../ventanas/Login';
 import { useUserMenu } from "../contexto/UserMenuContext";
-import Toast from "react-native-toast-message";
 import { useUserData } from '../contexto/UserDataContext';
 import { usePageUserData } from '../contexto/PageUserDataContext';
-import ParqueAutomotor from '../ventanas/parqueAutomotor/ParqueAutomotor';
-import RegistrarParqueAutomotor from '../ventanas/parqueAutomotor/RegistrarParqueAutomotor';
 import { useNavigationParams } from '../contexto/NavigationParamsContext';
 import { handleLogout } from '../utilitarios/HandleLogout';
 import { useIsMobileWeb } from '../utilitarios/IsMobileWeb';
+import Toast from "react-native-toast-message";
+import Login from '../ventanas/Login';
+import Inicio from '../ventanas/Inicio';
+import PowerBIEmbed from '../ventanas/PowerBIEmbed';
+import ParqueAutomotor from '../ventanas/parqueAutomotor/ParqueAutomotor';
+import RegistrarParqueAutomotor from '../ventanas/parqueAutomotor/RegistrarParqueAutomotor';
+import CadenaDeSuministro from '../ventanas/cadenaDeSuministro/CadenaDeSuministro';
+import ResumenAbastecimiento from '../ventanas/cadenaDeSuministro/ResumenAbastecimiento';
+import SolicitudAbastecimiento from '../ventanas/cadenaDeSuministro/SolicitudAbastecimiento';
+import BodegaAbastecimiento from '../ventanas/cadenaDeSuministro/BodegaAbastecimiento';
+import GestionDeCompraAbastecimiento from '../ventanas/cadenaDeSuministro/GestionDeCompraAbastecimiento';
+import AprobacionesAbastecimiento from '../ventanas/cadenaDeSuministro/AprobacionesAbastecimiento';
+import TesoreriaAbastecimiento from '../ventanas/cadenaDeSuministro/TesoreriaAbastecimiento';
+import DetailsScreen from '../ventanas/DetailsScreen';
+import Inventarios from '../ventanas/inventarios/Inventarios';
+import RegistrarInventarios from '../ventanas/inventarios/RegistrarInventarios';
 
 export type RootStackParamList = {
     Home: undefined;
     Login: { message: string };
-    Details: { message: string };
     ParqueAutomotor: { message?: string, label?: string };
     RegistrarParqueAutomotor: { message?: string, label?: string };
+    CadenaDeSuministro: { message?: string, label?: string };
+    ResumenAbastecimiento: { message?: string, label?: string };
+    SolicitudAbastecimiento: { message?: string, label?: string };
+    BodegaAbastecimiento: { message?: string, label?: string };
+    GestionDeCompraAbastecimiento: { message?: string, label?: string };
+    AprobacionesAbastecimiento: { message?: string, label?: string };
+    TesoreriaAbastecimiento: { message?: string, label?: string };
+    Inventarios: { message?: string, label?: string };
+    RegistrarInventarios: { message?: string, label?: string };
+    Details: { message: string };
 };
 
 const Stack = createStackNavigator();
@@ -91,12 +109,14 @@ export default function RootNavigator() {
     }, []);
 
     const aplicativosConfig = [
+        { key: "aplicativosCadenaDeSuministro", icon: "link-outline", label: "Cadena de Suministro", route: "Login", params: { message: "Cadena de Suministro" } },
         { key: "aplicativosCapacidades", icon: "extension-puzzle-outline", label: "Capacidades", route: "Settings" },
         { key: "aplicativosCarnetizacion", icon: "card-outline", label: "Carnetización", route: "Settings" },
         { key: "aplicativosChatbot", icon: "chatbubble-ellipses-outline", label: "ChatBot", route: "Settings" },
         { key: "aplicativosEncuentas", icon: "clipboard-outline", label: "Encuestas", route: "Settings" },
         { key: "aplicativosSolicitudDeMaterial", icon: "archive-outline", label: "Gestión de Materiales", route: "Settings" },
-        { key: "aplicativosGestionOts", icon: "clipboard-outline", label: "Gestión de OTs", route: "Settings" },
+        { key: "aplicativosGestionOts", icon: "file-tray-full-outline", label: "Gestión de OTs", route: "Settings" },
+        { key: "aplicativosInventarios", icon: "document-text-outline", label: "Inventarios", route: "Login", params: { message: "Inventarios" } },
         { key: "aplicativosParqueAutomotor", icon: "car-outline", label: "Parque Automotor", route: "Login", params: { message: "Parque Automotor" } },
         { key: "aplicativosReporteMaterialFerretero", icon: "construct-outline", label: "Reporte Material Ferretero", route: "Settings" },
         { key: "aplicativosSupervision", icon: "eye-outline", label: "Supervisión", route: "Settings" },
@@ -150,59 +170,6 @@ export default function RootNavigator() {
                 />
 
                 <Stack.Screen
-                    name="Settings"
-                    component={DetailsScreen}
-                    options={({ route }) => {
-                        const params = route.params as { label?: string };
-                        return getHeaderOptions(params?.label ?? "CCOT", {
-                            toggleMenu,
-                            toggleTheme,
-                            isDark,
-                            colors,
-                            navigation,
-                            showLogo: !isMobileWeb,
-                            isMobileWeb: isMobileWeb,
-                        });
-                    }}
-                />
-
-                <Stack.Screen
-                    name="ParqueAutomotor"
-                    component={ParqueAutomotor}
-                    options={() => {
-                        return {
-                            ...getHeaderOptions("Parque Automotor", {
-                                toggleMenu,
-                                toggleTheme,
-                                isDark,
-                                colors,
-                                navigation,
-                                showLogo: !isMobileWeb,
-                                isMobileWeb: isMobileWeb,
-                            }),
-                        };
-                    }}
-                />
-
-                <Stack.Screen
-                    name="RegistrarParqueAutomotor"
-                    component={RegistrarParqueAutomotor}
-                    options={() => {
-                        return {
-                            ...getHeaderOptions("Parque Automotor", {
-                                toggleMenu,
-                                toggleTheme,
-                                isDark,
-                                colors,
-                                navigation,
-                                showLogo: !isMobileWeb,
-                                isMobileWeb: isMobileWeb,
-                            }),
-                        };
-                    }}
-                />
-
-                <Stack.Screen
                     name="Login"
                     component={Login}
                     options={() => {
@@ -243,6 +210,221 @@ export default function RootNavigator() {
                         };
                     }}
                 />
+
+                <Stack.Screen
+                    name="ParqueAutomotor"
+                    component={ParqueAutomotor}
+                    options={() => {
+                        return {
+                            ...getHeaderOptions("Parque Automotor", {
+                                toggleMenu,
+                                toggleTheme,
+                                isDark,
+                                colors,
+                                navigation,
+                                showLogo: !isMobileWeb,
+                                isMobileWeb: isMobileWeb,
+                            }),
+                        };
+                    }}
+                />
+
+                <Stack.Screen
+                    name="RegistrarParqueAutomotor"
+                    component={RegistrarParqueAutomotor}
+                    options={() => {
+                        return {
+                            ...getHeaderOptions("Parque Automotor", {
+                                toggleMenu,
+                                toggleTheme,
+                                isDark,
+                                colors,
+                                navigation,
+                                showLogo: !isMobileWeb,
+                                isMobileWeb: isMobileWeb,
+                            }),
+                        };
+                    }}
+                />
+
+                <Stack.Screen
+                    name="CadenaDeSuministro"
+                    component={CadenaDeSuministro}
+                    options={() => {
+                        return {
+                            ...getHeaderOptions("Cadena de Suministro", {
+                                toggleMenu,
+                                toggleTheme,
+                                isDark,
+                                colors,
+                                navigation,
+                                showLogo: !isMobileWeb,
+                                isMobileWeb: isMobileWeb,
+                            }),
+                        };
+                    }}
+                />
+
+                <Stack.Screen
+                    name="ResumenAbastecimiento"
+                    component={ResumenAbastecimiento}
+                    options={() => {
+                        return {
+                            ...getHeaderOptions("Cadena de Suministro", {
+                                toggleMenu,
+                                toggleTheme,
+                                isDark,
+                                colors,
+                                navigation,
+                                showLogo: !isMobileWeb,
+                                isMobileWeb: isMobileWeb,
+                            }),
+                        };
+                    }}
+                />
+
+                <Stack.Screen
+                    name="SolicitudAbastecimiento"
+                    component={SolicitudAbastecimiento}
+                    options={() => {
+                        return {
+                            ...getHeaderOptions("Cadena de Suministro", {
+                                toggleMenu,
+                                toggleTheme,
+                                isDark,
+                                colors,
+                                navigation,
+                                showLogo: !isMobileWeb,
+                                isMobileWeb: isMobileWeb,
+                            }),
+                        };
+                    }}
+                />
+
+                <Stack.Screen
+                    name="BodegaAbastecimiento"
+                    component={BodegaAbastecimiento}
+                    options={() => {
+                        return {
+                            ...getHeaderOptions("Cadena de Suministro", {
+                                toggleMenu,
+                                toggleTheme,
+                                isDark,
+                                colors,
+                                navigation,
+                                showLogo: !isMobileWeb,
+                                isMobileWeb: isMobileWeb,
+                            }),
+                        };
+                    }}
+                />
+
+                <Stack.Screen
+                    name="GestionDeCompraAbastecimiento"
+                    component={GestionDeCompraAbastecimiento}
+                    options={() => {
+                        return {
+                            ...getHeaderOptions("Cadena de Suministro", {
+                                toggleMenu,
+                                toggleTheme,
+                                isDark,
+                                colors,
+                                navigation,
+                                showLogo: !isMobileWeb,
+                                isMobileWeb: isMobileWeb,
+                            }),
+                        };
+                    }}
+                />
+
+                <Stack.Screen
+                    name="AprobacionesAbastecimiento"
+                    component={AprobacionesAbastecimiento}
+                    options={() => {
+                        return {
+                            ...getHeaderOptions("Cadena de Suministro", {
+                                toggleMenu,
+                                toggleTheme,
+                                isDark,
+                                colors,
+                                navigation,
+                                showLogo: !isMobileWeb,
+                                isMobileWeb: isMobileWeb,
+                            }),
+                        };
+                    }}
+                />
+
+                <Stack.Screen
+                    name="TesoreriaAbastecimiento"
+                    component={TesoreriaAbastecimiento}
+                    options={() => {
+                        return {
+                            ...getHeaderOptions("Cadena de Suministro", {
+                                toggleMenu,
+                                toggleTheme,
+                                isDark,
+                                colors,
+                                navigation,
+                                showLogo: !isMobileWeb,
+                                isMobileWeb: isMobileWeb,
+                            }),
+                        };
+                    }}
+                />
+
+                <Stack.Screen
+                    name="Inventarios"
+                    component={Inventarios}
+                    options={() => {
+                        return {
+                            ...getHeaderOptions("Inventarios", {
+                                toggleMenu,
+                                toggleTheme,
+                                isDark,
+                                colors,
+                                navigation,
+                                showLogo: !isMobileWeb,
+                                isMobileWeb: isMobileWeb,
+                            }),
+                        };
+                    }}
+                />
+
+                <Stack.Screen
+                    name="RegistrarInventarios"
+                    component={RegistrarInventarios}
+                    options={() => {
+                        return {
+                            ...getHeaderOptions("Inventarios", {
+                                toggleMenu,
+                                toggleTheme,
+                                isDark,
+                                colors,
+                                navigation,
+                                showLogo: !isMobileWeb,
+                                isMobileWeb: isMobileWeb,
+                            }),
+                        };
+                    }}
+                />
+
+                <Stack.Screen
+                    name="Settings"
+                    component={DetailsScreen}
+                    options={({ route }) => {
+                        const params = route.params as { label?: string };
+                        return getHeaderOptions(params?.label ?? "CCOT", {
+                            toggleMenu,
+                            toggleTheme,
+                            isDark,
+                            colors,
+                            navigation,
+                            showLogo: !isMobileWeb,
+                            isMobileWeb: isMobileWeb,
+                        });
+                    }}
+                />
             </Stack.Navigator>
 
             {open && isMobileWeb && (
@@ -270,7 +452,7 @@ export default function RootNavigator() {
                         top: headerHeight,
                         width: menuWidth,
                         backgroundColor: colors.backgroundBar,
-                        borderRightWidth: !open && Platform.OS !== "web" ? 0 : 1,
+                        borderRightWidth: !open && isMobileWeb ? 0 : 1,
                         borderRightColor: colors.linea,
                     },
                 ]}
@@ -550,7 +732,7 @@ const MenuItem = ({
                 if (isMobileWeb) {
                     toggleMenu();
                 }
-
+                
                 setParams(route, { ...params, ...(label !== "Inicio" ? { label } : {}) });
                 if (params?.nameBD) {
                     navigation.navigate(route, { reportName: params.nameBD });

@@ -17,7 +17,7 @@ import { handleLogout } from '../../utilitarios/HandleLogout';
 import { useUserMenu } from '../../contexto/UserMenuContext';
 import { useIsMobileWeb } from '../../utilitarios/IsMobileWeb';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'ParqueAutomotor'>;
+type Props = NativeStackScreenProps<RootStackParamList, 'Inventarios'>;
 
 const tabs: TabItem[] = [
     { key: "registros", label: "Registros" },
@@ -25,7 +25,7 @@ const tabs: TabItem[] = [
     // { key: "config", label: "Config" },
 ];
 
-export default function ParqueAutomotor({ navigation }: Props) {
+export default function Inventarios({ navigation }: Props) {
     const stylesGlobal = useGlobalStyles();
     const { isDark } = useThemeCustom();
     const colors = isDark ? darkColors : lightColors;
@@ -89,7 +89,7 @@ export default function ParqueAutomotor({ navigation }: Props) {
         if (data.length === 0) return;
         const headers = Object.keys(data[0]);
         const rows = data.map((obj: any) => headers.map((key) => obj[key] ?? null));
-        exportToExcel("Parque Automotor", rows, headers);
+        exportToExcel("Inventarios", rows, headers);
     };
 
     return (
@@ -125,11 +125,12 @@ export default function ParqueAutomotor({ navigation }: Props) {
                                     label="Nuevo"
                                     variant="primary"
                                     onPress={() => {
-                                        setParams("RegistrarParqueAutomotor", { label: "Parque Automotor" });
-                                        navigation.navigate("RegistrarParqueAutomotor")
+                                        setParams("RegistrarInventarios", { label: "Inventarios" });
+                                        navigation.navigate("RegistrarInventarios")
                                     }}
                                 />
                             </View>
+
                             <View style={{ marginHorizontal: isMobileWeb ? 10 : 20 }}>
                                 <CustomTable headers={headers} data={dataTabla} />
                             </View>
