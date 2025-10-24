@@ -16,6 +16,7 @@ import { useUserData } from '../../contexto/UserDataContext';
 import { handleLogout } from '../../utilitarios/HandleLogout';
 import { useUserMenu } from '../../contexto/UserMenuContext';
 import { useIsMobileWeb } from '../../utilitarios/IsMobileWeb';
+import Loader from '../../componentes/Loader';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Inventarios'>;
 
@@ -36,6 +37,7 @@ export default function Inventarios({ navigation }: Props) {
     const { getUser, logout } = useUserData();
     const { setMenuVisibleUser } = useUserMenu();
     const isMobileWeb = useIsMobileWeb();
+    const [loading, setLoading] = useState(true);
 
     const loadData = async () => {
         try {
@@ -58,6 +60,8 @@ export default function Inventarios({ navigation }: Props) {
             Toast.show({ type: "success", text1: response.messages.message1, text2: response.messages.message2, position: "top" });
         } catch (error) {
             Toast.show({ type: "error", text1: error.data.messages.message1, text2: error.data.messages.message2, position: "top" });
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -84,13 +88,16 @@ export default function Inventarios({ navigation }: Props) {
         "registros"
     );
 
-
     const handleDownloadXLSX = () => {
         if (data.length === 0) return;
         const headers = Object.keys(data[0]);
         const rows = data.map((obj: any) => headers.map((key) => obj[key] ?? null));
         exportToExcel("Inventarios", rows, headers);
     };
+
+    if (loading) {
+        return <Loader visible={loading} />;
+    }
 
     return (
         <View style={stylesGlobal.container}>

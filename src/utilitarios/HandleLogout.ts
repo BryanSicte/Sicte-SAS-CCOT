@@ -15,7 +15,7 @@ export const handleLogout = async ({
     try {
         await Storage.removeItem("dataPageUser");
         await Storage.removeItem("dataTokenUser");
-        await Storage.removeItem("dataPlanta");
+        await Storage.removeItem("formInventario");
         const result = await logout();
         setMenuVisibleUser?.(false);
         

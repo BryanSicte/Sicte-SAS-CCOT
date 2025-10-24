@@ -1,5 +1,5 @@
-import React from "react";
-import { View, Text, TextInput, StyleSheet, TextInputProps, ViewStyle } from "react-native";
+import React, { useState } from "react";
+import { View, Text, TextInput, StyleSheet, TextInputProps, ViewStyle, FlatList, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useThemeCustom } from "../contexto/ThemeContext";
 import { darkColors, lightColors } from "../estilos/Colors";
@@ -13,8 +13,7 @@ interface Props extends TextInputProps {
     disabled?: boolean;
     value: string;
     onChangeText?: (text: string) => void;
-    data?: string[];
-    onSelectItem?: (item: string) => void;
+    placeholder?: string;
 }
 
 export default function LabeledInput({
@@ -24,8 +23,7 @@ export default function LabeledInput({
     value,
     onChangeText,
     disabled,
-    data = [],
-    onSelectItem,
+    placeholder,
 }: Props) {
     const { isDark } = useThemeCustom();
     const colors = isDark ? darkColors : lightColors;
@@ -37,7 +35,7 @@ export default function LabeledInput({
             <Text style={[stylesGlobal.texto, styles.label]}>{label}</Text>
             <View style={[styles.inputWrapper]}>
                 {icon && <Ionicons name={icon} size={22} color={colors.icono} style={styles.icon} />}
-                <CustomInput placeholder="Selecciona la fecha" style={{ flex: 1 }} disabled={disabled} value={value} onChangeText={onChangeText} data={data} onSelectItem={onSelectItem}/>
+                <CustomInput placeholder={placeholder} style={{ flex: 1 }} disabled={disabled} value={value} onChangeText={onChangeText} />
             </View>
         </View>
     );
@@ -51,6 +49,7 @@ const stylesLocal = () => {
     return StyleSheet.create({
         container: {
             marginBottom: 15,
+            position: "relative",
         },
         label: {
             marginBottom: 5,

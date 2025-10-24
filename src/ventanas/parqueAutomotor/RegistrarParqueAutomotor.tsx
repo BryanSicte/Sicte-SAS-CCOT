@@ -16,13 +16,14 @@ import { useNavigationParams } from "../../contexto/NavigationParamsContext";
 import { useUserMenu } from "../../contexto/UserMenuContext";
 import { handleLogout } from "../../utilitarios/HandleLogout";
 import { useIsMobileWeb } from "../../utilitarios/IsMobileWeb";
+import Loader from "../../componentes/Loader";
 
 export default function RegistrarParqueAutomotor({ navigation }) {
     const stylesGlobal = useGlobalStyles();
     const { isDark } = useThemeCustom();
     const { setParams } = useNavigationParams();
     const colors = isDark ? darkColors : lightColors;
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const { planta, setPlanta } = usePlantaData();
     const { user, logout, getUser } = useUserData();
     const { setMenuVisibleUser } = useUserMenu();
@@ -121,6 +122,10 @@ export default function RegistrarParqueAutomotor({ navigation }) {
             setLoading(false);
         }
     };
+
+    if (loading) {
+        return <Loader visible={loading} />;
+    }
 
     return (
         <View style={[stylesGlobal.container]} >

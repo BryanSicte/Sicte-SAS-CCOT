@@ -1,12 +1,14 @@
-import React, { useState } from "react";
-import { TextInput, StyleSheet, Text, View, TouchableOpacity, Platform, TouchableWithoutFeedback, FlatList } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { TextInput, StyleSheet, Text, View, TouchableOpacity, Platform, TouchableWithoutFeedback, FlatList, Pressable } from "react-native";
 import { useThemeCustom } from "../contexto/ThemeContext";
 import { darkColors, lightColors } from "../estilos/Colors";
 import { Eye, EyeOff } from "lucide-react-native";
 import { useGlobalStyles } from "../estilos/GlobalStyles";
+import { Ionicons } from "@expo/vector-icons";
 
 interface Props {
     label?: string;
+    icon?: string;
     disabled?: boolean;
     secureTextEntry?: boolean;
     data?: string[];
@@ -19,6 +21,7 @@ interface Props {
 
 export default function CustomInput({
     label,
+    icon,
     style,
     secureTextEntry,
     disabled,
@@ -34,6 +37,26 @@ export default function CustomInput({
     const [showPassword, setShowPassword] = useState(false);
     const [filteredData, setFilteredData] = useState<string[]>([]);
     const [showList, setShowList] = useState(false);
+    const colors = isDark ? darkColors : lightColors;
+    const containerRef = useRef<View>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (Platform.OS !== "web") return;
+
+            if (containerRef.current && !containerRef.current.contains?.(event.target)) {
+                setShowList(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        document.addEventListener("touchstart", handleClickOutside);
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+            document.removeEventListener("touchstart", handleClickOutside);
+        };
+    }, []);
 
     const handleChange = (text: string) => {
         onChangeText(text);
@@ -57,6 +80,15 @@ export default function CustomInput({
     return (
         <>
             <View style={[styles.container, style, disabled && { opacity: 0.6 }]}>
+                {label && (
+                    <>
+                        <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 10, paddingVertical: 5 }}>
+                            {icon && <Ionicons name={icon} size={22} color={colors.icono} style={styles.icon} />}
+                            <Text style={{ fontSize: 14, color: colors.texto }}>{label}</Text>
+                        </View>
+                        <View style={{ height: 1, backgroundColor: colors.linea, width: "100%", }}></View>
+                    </>
+                )}
                 <TextInput
                     placeholder={placeholder}
                     placeholderTextColor={isDark ? darkColors.texto : lightColors.texto}
@@ -85,28 +117,32 @@ export default function CustomInput({
                     </TouchableOpacity>
                 )}
             </View>
+
             {showList && filteredData.length > 0 && (
-                <View style={styles.dropdown}>
+                <View style={styles.dropdown} ref={containerRef}>
                     <FlatList
                         keyboardShouldPersistTaps="handled"
-                        contentContainerStyle={{ overflow: "visible", zIndex: 1 }}
                         data={filteredData}
                         keyExtractor={(item, index) => index.toString()}
                         renderItem={({ item }) => (
-                            <TouchableOpacity
-                                style={styles.item}
+                            <Pressable
                                 onPress={() => handleSelect(item)}
+                                style={({ pressed, hovered }: any) => [
+                                    styles.item,
+                                    hovered && { backgroundColor: colors.backgroundHover },
+                                    pressed && { backgroundColor: colors.backgroundPressed },
+                                ]}
                             >
-                                <Text
-                                    style={{
-                                        color: isDark
-                                            ? darkColors.texto
-                                            : lightColors.texto,
-                                    }}
-                                >
-                                    {item}
-                                </Text>
-                            </TouchableOpacity>
+                                {(state: any) => (
+                                    <>
+                                        <Text
+                                            style={{ color: state.pressed ? colors.textoPressed : state.hovered ? colors.textoHover : colors.texto }}
+                                        >
+                                            {item}
+                                        </Text>
+                                    </>
+                                )}
+                            </Pressable>
                         )}
                     />
                 </View>
@@ -122,13 +158,16 @@ const stylesLocal = () => {
 
     return StyleSheet.create({
         container: {
-            flexDirection: "row",
-            alignItems: "center",
+            flexDirection: "column",
+            alignItems: "baseline",
             borderWidth: 1,
             borderColor: colors.linea,
             borderRadius: 5,
-            marginVertical: 10,
+            marginVertical: 5,
             backgroundColor: colors.backgroundBar,
+        },
+        icon: {
+            marginRight: 8,
         },
         input: {
             flex: 1,
@@ -144,7 +183,7 @@ const stylesLocal = () => {
         },
         dropdown: {
             position: "absolute",
-            top: 55,
+            top: 75,
             left: 0,
             right: 0,
             backgroundColor: colors.backgroundBar,
