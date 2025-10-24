@@ -1,6 +1,6 @@
 import React, { useRef, useState } from "react";
 import { Platform, View, Text, Button } from "react-native";
-import SignaturePad from "react-native-signature-canvas";
+import SignaturePad from "../componentes/SignaturePad";
 import ReactSignatureCanvas from "react-signature-canvas";
 
 export default function FirmaUniversal({ onFirmaChange }: { onFirmaChange?: (uri: string) => void }) {
