@@ -38,9 +38,6 @@ export default function RegistrarInventarios({ navigation }) {
     const headers = ["Codigo SAP", "Descripcion", "Cantidad", "U.M."];
     const styles = stylesLocal();
     const [loadingForm, setLoadingForm] = useState(true);
-    const [firmaMateriales, setFirmaMateriales] = useState<string | null>(null);
-    const [firmaTecnico, setFirmaTecnico] = useState<string | null>(null);
-    const [firmaEquipos, setFirmaEquipos] = useState<string | null>(null);
 
     const createEmptyFormData = (user) => ({
         fecha: new Date(),
@@ -50,6 +47,9 @@ export default function RegistrarInventarios({ navigation }) {
         nombreTecnico: "",
         inventario: "Inventario Fiscal 2025",
         materiales: [],
+        firmaMateriales: null,
+        firmaTecnico: null,
+        firmaEquipos: null,
     });
 
     const createEmptyNuevoMaterial = () => ({
@@ -127,6 +127,9 @@ export default function RegistrarInventarios({ navigation }) {
                 nombreTecnico: parsed.nombreTecnico,
                 inventario: parsed.inventario,
                 materiales: parsed.materiales,
+                firmaMateriales: parsed.firmaMateriales,
+                firmaTecnico: parsed.firmaTecnico,
+                firmaEquipos: parsed.firmaEquipos,
             };
             setFormData(data);
             setLoadingForm(false);
@@ -158,23 +161,23 @@ export default function RegistrarInventarios({ navigation }) {
         // if (formData.nombre === 'Usuario no encontrado') { Toast.show({ type: "info", text1: "Falta información", text2: "Por favor ingrese una cedula correcta.", position: "top" }); return; }
         // if (!formData.estado) { Toast.show({ type: "info", text1: "Falta información", text2: "Por favor ingrese la estado.", position: "top" }); return; }
 
-        try {
-            setLoading(true);
-            const dataEnviar = {
-                ...formData,
-                fecha: formatearFecha(formData.fecha),
-            };
-            const response = await setParqueAutomotor(dataEnviar);
-            Toast.show({ type: "success", text1: response.messages.message1, text2: response.messages.message2, position: "top" });
-            setTimeout(() => {
-                setFormData(createEmptyFormData(user));
-                navigation.replace("ParqueAutomotor", { label: "Parque Automotor" });
-            }, 2000);
-        } catch (error) {
-            Toast.show({ type: "error", text1: error.data.messages.message1, text2: error.data.messages.message2, position: "top" });
-        } finally {
-            setLoading(false);
-        }
+        // try {
+        //     setLoading(true);
+        //     const dataEnviar = {
+        //         ...formData,
+        //         fecha: formatearFecha(formData.fecha),
+        //     };
+        //     const response = await setParqueAutomotor(dataEnviar);
+        //     Toast.show({ type: "success", text1: response.messages.message1, text2: response.messages.message2, position: "top" });
+        //     setTimeout(() => {
+        //         setFormData(createEmptyFormData(user));
+        //         navigation.replace("ParqueAutomotor", { label: "Parque Automotor" });
+        //     }, 2000);
+        // } catch (error) {
+        //     Toast.show({ type: "error", text1: error.data.messages.message1, text2: error.data.messages.message2, position: "top" });
+        // } finally {
+        //     setLoading(false);
+        // }
     };
 
     const handleGuardar = () => {
@@ -361,19 +364,19 @@ export default function RegistrarInventarios({ navigation }) {
                         <View style={{ flex: 1, paddingTop: 20 }}>
                             <Text style={[stylesGlobal.texto, styles.label, { marginBottom: 10 }]}>Firma del Conteo Materiales:</Text>
 
-                            <FirmaUniversal onFirmaChange={(uri) => setFirmaMateriales(uri)} />
+                            <FirmaUniversal onFirmaChange={(uri) => formData.firmaMateriales(uri)} />
                         </View>
 
                         <View style={{ flex: 1, paddingTop: 10 }}>
                             <Text style={[stylesGlobal.texto, styles.label, { marginBottom: 10 }]}>Firma del Tecnico:</Text>
 
-                            <FirmaUniversal onFirmaChange={(uri) => setFirmaTecnico(uri)} />
+                            <FirmaUniversal onFirmaChange={(uri) => formData.firmaTecnico(uri)} />
                         </View>
 
                         <View style={{ flex: 1, paddingTop: 10 }}>
                             <Text style={[stylesGlobal.texto, styles.label, { marginBottom: 10 }]}>Firma del Conteo Equipos:</Text>
 
-                            <FirmaUniversal onFirmaChange={(uri) => setFirmaEquipos(uri)} />
+                            <FirmaUniversal onFirmaChange={(uri) => formData.firmaEquipos(uri)} />
                         </View>
                     </View>
 
