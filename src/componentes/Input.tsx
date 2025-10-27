@@ -80,15 +80,6 @@ export default function CustomInput({
     return (
         <>
             <View style={[styles.container, style, disabled && { opacity: 0.6 }]}>
-                {label && (
-                    <>
-                        <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 10, paddingVertical: 5 }}>
-                            {icon && <Ionicons name={icon} size={22} color={colors.icono} style={styles.icon} />}
-                            <Text style={{ fontSize: 14, color: colors.texto }}>{label}</Text>
-                        </View>
-                        <View style={{ height: 1, backgroundColor: colors.linea, width: "100%", }}></View>
-                    </>
-                )}
                 <TextInput
                     placeholder={placeholder}
                     placeholderTextColor={isDark ? darkColors.texto : lightColors.texto}
@@ -158,8 +149,9 @@ const stylesLocal = () => {
 
     return StyleSheet.create({
         container: {
-            flexDirection: "column",
-            alignItems: "baseline",
+            flexDirection: "row",
+            justifyContent: "center",
+            alignItems: "center",
             borderWidth: 1,
             borderColor: colors.linea,
             borderRadius: 5,
@@ -183,7 +175,7 @@ const stylesLocal = () => {
         },
         dropdown: {
             position: "absolute",
-            top: 75,
+            top: 55,
             left: 0,
             right: 0,
             backgroundColor: colors.backgroundBar,

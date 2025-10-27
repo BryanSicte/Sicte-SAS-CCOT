@@ -38,7 +38,9 @@ export default function RegistrarInventarios({ navigation }) {
     const headers = ["Codigo SAP", "Descripcion", "Cantidad", "U.M."];
     const styles = stylesLocal();
     const [loadingForm, setLoadingForm] = useState(true);
-    const [firma, setFirma] = useState<string | null>(null);
+    const [firmaMateriales, setFirmaMateriales] = useState<string | null>(null);
+    const [firmaTecnico, setFirmaTecnico] = useState<string | null>(null);
+    const [firmaEquipos, setFirmaEquipos] = useState<string | null>(null);
 
     const createEmptyFormData = (user) => ({
         fecha: new Date(),
@@ -296,11 +298,11 @@ export default function RegistrarInventarios({ navigation }) {
                             <Text style={[stylesGlobal.texto, styles.label]}>Materiales:</Text>
                             <Text style={[stylesGlobal.texto, styles.label, { alignSelf: "flex-end" }]}>Agregar Material</Text>
                             <View style={{ position: "relative", zIndex: 4 }}>
-                                <CustomInput
-                                    icon="pricetag-outline"
+                                <LabeledInput
                                     label="Codigo SAP"
-                                    placeholder="Ingrese el codigo SAP"
                                     value={nuevoMaterial.codigo}
+                                    icon="pricetag-outline"
+                                    placeholder="Ingrese el codigo SAP"
                                     onChangeText={(value) => {
                                         const materialItem = material.data.find((p) => p.codigo === value);
                                         setNuevoMaterial({ ...nuevoMaterial, codigo: value, descripcion: materialItem?.descrip ? materialItem.descrip : "Material no encontrado", unidadMedida: materialItem?.unimed ? materialItem.unimed : "Material no encontrado" });
@@ -313,11 +315,11 @@ export default function RegistrarInventarios({ navigation }) {
                                 />
                             </View>
                             <View style={{ position: "relative", zIndex: 3 }}>
-                                <CustomInput
-                                    icon="document-text-outline"
+                                <LabeledInput
                                     label="Descripcion"
-                                    placeholder="Ingrese la descripcion"
                                     value={nuevoMaterial.descripcion}
+                                    icon="document-text-outline"
+                                    placeholder="Ingrese la descripcion"
                                     onChangeText={(value) => {
                                         const materialItem = material.data.find((p) => p.descrip === value);
                                         setNuevoMaterial({ ...nuevoMaterial, descripcion: value, codigo: materialItem?.codigo ? materialItem.codigo : "Material no encontrado", unidadMedida: materialItem?.unimed ? materialItem.unimed : "Material no encontrado" });
@@ -330,7 +332,7 @@ export default function RegistrarInventarios({ navigation }) {
                                 />
                             </View>
                             <View style={{ position: "relative", zIndex: 2 }}>
-                                <CustomInput
+                                <LabeledInput
                                     icon="calculator-outline"
                                     label="Cantidad"
                                     placeholder="Ingrese la cantidad"
@@ -339,7 +341,7 @@ export default function RegistrarInventarios({ navigation }) {
                                 />
                             </View>
                             <View style={{ position: "relative", zIndex: 1 }}>
-                                <CustomInput
+                                <LabeledInput
                                     icon="scale-outline"
                                     label="Unidad de medida"
                                     placeholder="Ingrese la unidad de medida"
@@ -356,14 +358,22 @@ export default function RegistrarInventarios({ navigation }) {
                         <Text style={[stylesGlobal.texto, styles.label, { alignSelf: "flex-end", marginBottom: 10 }]}>Materiales Ingresados</Text>
                         <CustomTable headers={headers} data={formData.materiales.map((m) => [m.codigo, m.descripcion, m.cantidad, m.unidadMedida])} />
 
-                        <View style={{ flex: 1, padding: 20 }}>
-                            <Text style={{ marginBottom: 10, fontSize: 16 }}>Firma del responsable:</Text>
+                        <View style={{ flex: 1, paddingTop: 20 }}>
+                            <Text style={[stylesGlobal.texto, styles.label, { marginBottom: 10 }]}>Firma del Conteo Materiales:</Text>
 
-                            <FirmaUniversal onFirmaChange={(uri) => setFirma(uri)} />
+                            <FirmaUniversal onFirmaChange={(uri) => setFirmaMateriales(uri)} />
+                        </View>
 
-                            {firma && (
-                                <Image source={{ uri: firma }} style={{ width: "100%", height: 200 }} resizeMode="contain" />
-                            )}
+                        <View style={{ flex: 1, paddingTop: 10 }}>
+                            <Text style={[stylesGlobal.texto, styles.label, { marginBottom: 10 }]}>Firma del Tecnico:</Text>
+
+                            <FirmaUniversal onFirmaChange={(uri) => setFirmaTecnico(uri)} />
+                        </View>
+
+                        <View style={{ flex: 1, paddingTop: 10 }}>
+                            <Text style={[stylesGlobal.texto, styles.label, { marginBottom: 10 }]}>Firma del Conteo Equipos:</Text>
+
+                            <FirmaUniversal onFirmaChange={(uri) => setFirmaEquipos(uri)} />
                         </View>
                     </View>
 

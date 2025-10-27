@@ -14,6 +14,8 @@ interface Props extends TextInputProps {
     value: string;
     onChangeText?: (text: string) => void;
     placeholder?: string;
+    data?: string[];
+    onSelectItem?: (item: string) => void;
 }
 
 export default function LabeledInput({
@@ -24,6 +26,8 @@ export default function LabeledInput({
     onChangeText,
     disabled,
     placeholder,
+    data = [],
+    onSelectItem,
 }: Props) {
     const { isDark } = useThemeCustom();
     const colors = isDark ? darkColors : lightColors;
@@ -35,7 +39,7 @@ export default function LabeledInput({
             <Text style={[stylesGlobal.texto, styles.label]}>{label}</Text>
             <View style={[styles.inputWrapper]}>
                 {icon && <Ionicons name={icon} size={22} color={colors.icono} style={styles.icon} />}
-                <CustomInput placeholder={placeholder} style={{ flex: 1 }} disabled={disabled} value={value} onChangeText={onChangeText} />
+                <CustomInput placeholder={placeholder} style={{ flex: 1 }} disabled={disabled} value={value} onChangeText={onChangeText} data={data} onSelectItem={onSelectItem}/>
             </View>
         </View>
     );

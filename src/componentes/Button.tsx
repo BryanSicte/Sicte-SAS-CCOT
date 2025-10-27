@@ -37,8 +37,8 @@ export default function CustomButton({
             style={({ pressed, hovered }: any) => [
                 styles.base,
                 style,
-                hovered && { backgroundColor: colors.backgroundHover },
-                pressed && { backgroundColor: colors.backgroundPressed },
+                !disabled && hovered && { backgroundColor: colors.backgroundHover },
+                !disabled && pressed && { backgroundColor: colors.backgroundPressed },
             ]}
             disabled={disabled || loading}
         >
@@ -48,7 +48,7 @@ export default function CustomButton({
                 children
             ) : (
                 (state: any) => (
-                    <Text style={[styles.label, textStyle, { color: state.pressed ? colors.textoPressed : state.hovered ? colors.textoHover : "#fff" }]}>
+                    <Text style={[styles.label, textStyle, disabled && { color: "#b0b0b0" }, { color: state.pressed ? colors.textoPressed : state.hovered ? colors.textoHover : "#fff" }]}>
                         {label}
                     </Text>
                 )
@@ -61,6 +61,19 @@ const stylesLocal = (variant, disabled) => {
     const { isDark } = useThemeCustom();
     const stylesGlobal = useGlobalStyles();
 
+    const colorBase =
+        variant === "primary"
+            ? "#09238E"
+            : variant === "secondary"
+                ? "#098E12"
+                : variant === "danger"
+                    ? "#E63946"
+                    : variant === "gris"
+                        ? "#868686"
+                        : null;
+
+    const colorDisabled = isDark ? "#444" : "#ccc";
+
     return StyleSheet.create({
         base: {
             paddingVertical: 10,
@@ -68,11 +81,7 @@ const stylesLocal = (variant, disabled) => {
             borderRadius: 8,
             alignItems: "center",
             opacity: disabled ? 0.8 : 1,
-            backgroundColor:
-                variant === "primary" ? '#09238eff' :
-                    variant === "secondary" ? '#098e12ff' :
-                        variant === "danger" ? "#e63946" :
-                            variant === "gris" ? "#868686ff" : null,
+            backgroundColor: disabled ? colorDisabled : colorBase,
         },
         label: {
             fontSize: stylesGlobal.texto.fontSize,
