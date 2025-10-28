@@ -33,6 +33,11 @@ const Loader: React.FC<LoaderProps> = ({
                 source={humanCharacters}
                 autoPlay
                 loop
+                style={{
+                    flexDirection: "column",
+                    justifyContent: "center",
+                    alignItems: "center",
+                }}
             />
             <Text style={[styles.texto]}>{text}</Text>
         </View>
@@ -45,12 +50,13 @@ const stylesLocal = () => {
 
     return StyleSheet.create({
         container: {
-            flex: 1,
+            flexDirection: "column",
             justifyContent: "center",
             alignItems: "center",
-            paddingTop: 50,
-            paddingBottom: 200,
-
+            marginLeft: "10%",
+            marginTop: 20,
+            width: "80%",
+            height: "80%",
             backgroundColor: colors.backgroundContainer,
         },
         texto: {

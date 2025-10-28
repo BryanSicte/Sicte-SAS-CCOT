@@ -13,10 +13,25 @@ interface Props {
     headers: string[];
     data: (string[])[];
     itemsPerPage?: number;
-    onRowPress?: (row: string[]) => void;
+    leer?: boolean;
+    onLeer?: (row: string[]) => void;
+    editar?: boolean;
+    onEditar?: (row: string[]) => void;
+    eliminar?: boolean;
+    onEliminar?: (row: string[]) => void;
 }
 
-export default function CustomTable({ headers, data, itemsPerPage = 5, onRowPress }: Props) {
+export default function CustomTable({
+    headers,
+    data,
+    itemsPerPage = 5,
+    leer = false,
+    onLeer,
+    editar = false,
+    onEditar,
+    eliminar = false,
+    onEliminar,
+}: Props) {
     const styles = stylesLocal();
     const [page, setPage] = useState(1);
     const [filters, setFilters] = useState<{ [key: number]: string }>({});
@@ -83,13 +98,24 @@ export default function CustomTable({ headers, data, itemsPerPage = 5, onRowPres
         });
     };
 
+    const handleLeer = (item) => {
+        onLeer(item);
+    };
+
+    const handleEditar = (item) => {
+        onEditar(item);
+    };
+
+    const handleEliminar = (item) => {
+        onEliminar(item);
+    };
+
     const renderRow = ({ item, index }: { item: string[]; index: number }) => {
         const isEven = index % 2 === 0;
         const isLast = index === paginatedData.length - 1;
 
         return (
             <Pressable
-                onPress={() => onRowPress?.(item)}
                 style={({ hovered, pressed }) => [
                     styles.row,
                     {
@@ -104,19 +130,50 @@ export default function CustomTable({ headers, data, itemsPerPage = 5, onRowPres
                     },
                 ]}
             >
-                {item.map((cell, colIndex) => (
-                    <Text key={colIndex} style={[styles.cell, { width: colWidth }]} numberOfLines={0}>
-                        {cell}
-                    </Text>
-                ))}
+                {item.map((cell, colIndex) =>(
+                        <Pressable
+                            key={colIndex}
+                            onPress={() => {
+                                if (leer) {
+                                    handleLeer?.(item);
+                                }
+                            }}
+                            android_ripple={{ color: isDark ? darkColors.backgroundRowTablePressed : lightColors.backgroundRowTablePressed }}
+                            style={({ pressed }) => [
+                                { width: colWidth, justifyContent: "center", paddingVertical: 8 },
+                                pressed && { opacity: 0.7 },
+                            ]}
+                            disabled={!leer}
+                        >
+                            <Text style={[styles.cell, { width: colWidth }]} numberOfLines={0}>
+                                {cell}
+                            </Text>
+                        </Pressable>
+                    )
+                )}
+
+                {(editar === true || eliminar === true) && (
+                    <View style={{ width: colWidth, flexDirection: "row", justifyContent: "center", gap: 20 }}>
+                        {editar === true && (
+                            <Pressable onPress={() => handleEditar(item)}>
+                                <Ionicons name="create-outline" size={25} color="#000" />
+                            </Pressable>
+                        )}
+                        {eliminar === true && (
+                            <TouchableOpacity onPress={() => handleEliminar(item)}>
+                                <Ionicons name="trash-outline" size={25} color="red" />
+                            </TouchableOpacity>
+                        )}
+                    </View>
+                )}
             </Pressable>
         );
     };
-
+    
     const isMobileWeb = useIsMobileWeb();
-    const screenWidth = Dimensions.get("window").width - (open ? 314 : 124);
-    const minColWidth = !isMobileWeb ? 200 : 140;
-    const totalMinWidth = headers.length * minColWidth;
+    const screenWidth = Dimensions.get("window").width - (open ? (editar || eliminar) ? 558 : 313 : (editar || eliminar) ? 406 : 124);
+    const minColWidth = !isMobileWeb ? 140 : 140;
+    const totalMinWidth = (editar || eliminar) ? (headers.length + 1) * minColWidth : headers.length * minColWidth;
     const colWidth = totalMinWidth < screenWidth ? screenWidth / headers.length : minColWidth;
 
     return (
@@ -152,6 +209,11 @@ export default function CustomTable({ headers, data, itemsPerPage = 5, onRowPres
                                 </View>
                             </View>
                         ))}
+                        {(editar === true || eliminar === true) && (
+                            <View style={{ alignItems: "center", justifyContent: "center", width: colWidth }}>
+                                <Text style={[styles.headerText]}>Acciones</Text>
+                            </View>
+                        )}
                     </View>
 
                     <FlatList
@@ -242,7 +304,7 @@ const stylesLocal = () => {
             textAlign: "center",
             color: isDark ? darkColors.texto : lightColors.texto,
             fontSize: stylesGlobal.texto.fontSize,
-            minWidth: !isMobileWeb ? 200 : 140,
+            minWidth: !isMobileWeb ? 140 : 140,
         },
         header: {
             backgroundColor: isDark ? darkColors.input : lightColors.input,

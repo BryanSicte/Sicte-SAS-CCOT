@@ -69,4 +69,7 @@ export const getParqueAutomotor = () =>
 export const getBodegaKgprodOperacionesCodigoDescripUnimed = () =>
     request("/bodega/registrosKgprodOperacionesCodigoDescripUnimed", "GET");
 
+export const setInventarios = (data) =>
+    request("/inventarios/crearRegistro", "POST", data);
+
 export default request;
