@@ -1,23 +1,27 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Platform, View, Text, Button } from "react-native";
+import { Platform, View, Image } from "react-native";
 import SignaturePad from "../componentes/SignaturePad";
 import ReactSignatureCanvas from "react-signature-canvas";
 import CustomButton from "../componentes/Button";
 import { useThemeCustom } from "../contexto/ThemeContext";
 import { darkColors, lightColors } from "../estilos/Colors";
+import { useIsMobileWeb } from "../utilitarios/IsMobileWeb";
 
 export default function FirmaUniversal({
     onFirmaChange,
-    firmaInicial
+    firmaInicial,
+    editable = true,
 }: {
     onFirmaChange?: (uri: string) => void;
     firmaInicial?: string | null;
+    editable?: boolean;
 }) {
     const [firma, setFirma] = useState<string | null>(null);
     const [hayTrazo, setHayTrazo] = useState(false);
     const sigRef = useRef<any>(null);
     const { isDark } = useThemeCustom();
     const colors = isDark ? darkColors : lightColors;
+    const isMobileWeb = useIsMobileWeb();
 
     const handleSave = () => {
         const uri = sigRef.current.getCanvas().toDataURL("image/png");
@@ -34,31 +38,63 @@ export default function FirmaUniversal({
     };
 
     useEffect(() => {
-        if (Platform.OS === "web" && firmaInicial && sigRef.current) {
+        if (Platform.OS === "web" && firmaInicial && sigRef.current && editable) {
             try {
-                sigRef.current.getCanvas().fromDataURL(firmaInicial);
+                const canvas = sigRef.current.getCanvas();
+                const ctx = canvas.getContext("2d");
+                const image = new Image();
+                image.src = firmaInicial;
+                image.onload = () => {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+                };
                 setFirma(firmaInicial);
             } catch (error) {
                 console.warn("Error cargando firma:", error);
             }
         }
-    }, [firmaInicial]);
+    }, [firmaInicial, editable]);
 
     if (Platform.OS === "web") {
         return (
             <View style={{ alignItems: "center" }}>
-                <ReactSignatureCanvas
-                    key={isDark ? "dark" : "light"}
-                    ref={sigRef}
-                    penColor={isDark ? "white" : "black"}
-                    backgroundColor={colors.backgroundContainer}
-                    canvasProps={{ width: 400, height: 200, className: "sigCanvas" }}
-                    onEnd={() => setHayTrazo(true)}
-                />
-                <View style={{ marginTop: 10, flexDirection: "row", gap: 10 }}>
-                    <CustomButton label="Limpiar" variant="gris" onPress={handleClear} />
-                    <CustomButton label="Guardar" onPress={handleSave} disabled={!hayTrazo} />
+                <View
+                    style={{
+                        borderWidth: 2,
+                        borderColor: colors.linea,
+                        borderRadius: 10,
+                        padding: 5,
+                        backgroundColor: "#fff",
+                    }}
+                >
+                    {editable ? (
+                        <ReactSignatureCanvas
+                            key={isDark ? "dark" : "light"}
+                            ref={sigRef}
+                            penColor={"black"}
+                            backgroundColor="#fff"
+                            canvasProps={{ width: isMobileWeb ? 300 : 400, height: 200, className: "sigCanvas" }}
+                            onEnd={() => setHayTrazo(true)}
+                        />
+                    ) : (
+                        <Image
+                            source={{ uri: firmaInicial || firma }}
+                            style={{
+                                width: isMobileWeb ? 300 : 400,
+                                height: 200,
+                                resizeMode: "contain",
+                                backgroundColor: "#fff",
+                                borderRadius: 8,
+                            }}
+                        />
+                    )}
                 </View>
+                {editable && (
+                    <View style={{ marginTop: 10, flexDirection: "row", gap: 10 }}>
+                        <CustomButton label="Limpiar" variant="gris" onPress={handleClear} />
+                        <CustomButton label="Guardar" onPress={handleSave} disabled={!hayTrazo} />
+                    </View>
+                )}
             </View>
         );
     }

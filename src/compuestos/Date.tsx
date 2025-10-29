@@ -67,6 +67,7 @@ const stylesLocal = () => {
             alignItems: "center",
             borderWidth: 1,
             borderColor: colors.linea,
+            backgroundColor: colors.backgroundBar,
             borderRadius: 8,
             paddingHorizontal: 10,
             minHeight: 55,

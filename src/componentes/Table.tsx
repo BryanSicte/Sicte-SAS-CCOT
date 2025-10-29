@@ -110,6 +110,12 @@ export default function CustomTable({
         onEliminar(item);
     };
 
+    const isMobileWeb = useIsMobileWeb();
+    const screenWidth = Dimensions.get("window").width - (open ? (249+20+20+10+10+5) : (59+20+20+10+10+5));
+    const minColWidth = !isMobileWeb ? 160 : 150;
+    const totalMinWidth = (editar || eliminar) ? (headers.length + 1) * minColWidth : headers.length * minColWidth;
+    const colWidth = totalMinWidth < screenWidth ? screenWidth / ((editar || eliminar) ? (headers.length + 1) : headers.length) : minColWidth;
+
     const renderRow = ({ item, index }: { item: string[]; index: number }) => {
         const isEven = index % 2 === 0;
         const isLast = index === paginatedData.length - 1;
@@ -130,30 +136,29 @@ export default function CustomTable({
                     },
                 ]}
             >
-                {item.map((cell, colIndex) =>(
-                        <Pressable
-                            key={colIndex}
-                            onPress={() => {
-                                if (leer) {
-                                    handleLeer?.(item);
-                                }
-                            }}
-                            android_ripple={{ color: isDark ? darkColors.backgroundRowTablePressed : lightColors.backgroundRowTablePressed }}
-                            style={({ pressed }) => [
-                                { width: colWidth, justifyContent: "center", paddingVertical: 8 },
-                                pressed && { opacity: 0.7 },
-                            ]}
-                            disabled={!leer}
-                        >
-                            <Text style={[styles.cell, { width: colWidth }]} numberOfLines={0}>
-                                {cell}
-                            </Text>
-                        </Pressable>
-                    )
-                )}
+                {item.map((cell, colIndex) => (
+                    <Pressable
+                        key={colIndex}
+                        onPress={() => {
+                            if (leer) {
+                                handleLeer?.(item);
+                            }
+                        }}
+                        android_ripple={{ color: isDark ? darkColors.backgroundRowTablePressed : lightColors.backgroundRowTablePressed }}
+                        style={({ pressed }) => [
+                            { justifyContent: "center", paddingVertical: 8, width: colWidth || 150 },
+                            pressed && { opacity: 0.7 },
+                        ]}
+                        disabled={!leer}
+                    >
+                        <Text style={[styles.cell]} numberOfLines={0}>
+                            {cell}
+                        </Text>
+                    </Pressable>
+                ))}
 
                 {(editar === true || eliminar === true) && (
-                    <View style={{ width: colWidth, flexDirection: "row", justifyContent: "center", gap: 20 }}>
+                    <View style={{ flexDirection: "row", justifyContent: "center", gap: 20, width: colWidth || 150 }}>
                         {editar === true && (
                             <Pressable onPress={() => handleEditar(item)}>
                                 <Ionicons name="create-outline" size={25} color="#000" />
@@ -169,12 +174,6 @@ export default function CustomTable({
             </Pressable>
         );
     };
-    
-    const isMobileWeb = useIsMobileWeb();
-    const screenWidth = Dimensions.get("window").width - (open ? (editar || eliminar) ? 558 : 313 : (editar || eliminar) ? 406 : 124);
-    const minColWidth = !isMobileWeb ? 140 : 140;
-    const totalMinWidth = (editar || eliminar) ? (headers.length + 1) * minColWidth : headers.length * minColWidth;
-    const colWidth = totalMinWidth < screenWidth ? screenWidth / headers.length : minColWidth;
 
     return (
         <View style={styles.contenedor}>
@@ -182,7 +181,7 @@ export default function CustomTable({
                 <View style={[styles.table]}>
                     <View style={[styles.row, styles.header]}>
                         {headers.map((header, index) => (
-                            <View key={index} style={{ alignItems: "center", minHeight: 60, paddingVertical: 4, width: colWidth }}>
+                            <View key={index} style={{ alignItems: "center", minHeight: 60, paddingVertical: 4, paddingHorizontal: 4, width: colWidth || 150 }}>
                                 <TouchableOpacity
                                     onPress={() => handleSort(index)}
                                     style={[styles.cell]}
@@ -198,7 +197,7 @@ export default function CustomTable({
                                 </TouchableOpacity>
                                 <View style={{ alignSelf: "center" }}>
                                     <CustomInput
-                                        style={styles.input}
+                                        style={[styles.input]}
                                         placeholderTextColor={darkColors.subTexto}
                                         value={filters[index] || ""}
                                         onChangeText={(text) => {
@@ -210,7 +209,7 @@ export default function CustomTable({
                             </View>
                         ))}
                         {(editar === true || eliminar === true) && (
-                            <View style={{ alignItems: "center", justifyContent: "center", width: colWidth }}>
+                            <View style={{ alignItems: "center", justifyContent: "center", width: colWidth || 150 }}>
                                 <Text style={[styles.headerText]}>Acciones</Text>
                             </View>
                         )}
@@ -287,6 +286,7 @@ const stylesLocal = () => {
             borderColor: isDark ? darkColors.linea : lightColors.linea,
             borderRadius: 5,
             overflow: "hidden",
+            width: "100%",
         },
         row: {
             flexDirection: "row",
@@ -330,6 +330,7 @@ const stylesLocal = () => {
             marginHorizontal: 10,
             marginVertical: 0,
             marginTop: 5,
+            minWidth: !isMobileWeb ? 140 : 140,
         }
     });
 };

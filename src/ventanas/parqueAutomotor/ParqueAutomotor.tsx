@@ -90,9 +90,9 @@ export default function ParqueAutomotor({ navigation }: Props) {
 
 
     const handleDownloadXLSX = () => {
-        if (data.length === 0) return;
-        const headers = Object.keys(data[0]);
-        const rows = data.map((obj: any) => headers.map((key) => obj[key] ?? null));
+        if (data.data.length === 0) return;
+        const headers = Object.keys(data.data[0]);
+        const rows = data.data.map((obj: any) => headers.map((key) => obj[key] ?? null));
         exportToExcel("Parque Automotor", rows, headers);
     };
 

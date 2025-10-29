@@ -13,6 +13,7 @@ import { useUserData } from '../contexto/UserDataContext';
 import { usePageUserData } from '../contexto/PageUserDataContext';
 import { useNavigationParams } from '../contexto/NavigationParamsContext';
 import { useTokenUserData } from '../contexto/TokenUserContext';
+import Storage from "../utilitarios/Storage";
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
@@ -28,7 +29,7 @@ export default function Login({ navigation }: Props) {
     const { setTokenUser } = useTokenUserData();
     const [loading, setLoading] = useState(false);
 
-    const redireccion = () => {
+    const redireccion = async () => {
         if (mensaje === "Parque Automotor") {
             setParams("ParqueAutomotor", { label: "Parque Automotor" });
             navigation.replace("ParqueAutomotor");
@@ -36,6 +37,8 @@ export default function Login({ navigation }: Props) {
             setParams("CadenaDeSuministro", { label: "Cadena de Suministro" });
             navigation.replace("CadenaDeSuministro");
         } else if (mensaje === "Inventarios") {
+            await Storage.removeItem("formInventarioAccion");
+            await Storage.removeItem("formInventario");
             setParams("Inventarios", { label: "Inventarios" });
             navigation.replace("Inventarios");
         } else {

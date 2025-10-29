@@ -168,6 +168,7 @@ const stylesLocal = () => {
             borderRadius: 5,
             color: colors.texto,
             fontSize: stylesGlobal.texto.fontSize,
+            backgroundColor: colors.backgroundContainer,
             width: "100%",
         },
         iconContainer: {

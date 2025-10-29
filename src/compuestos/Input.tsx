@@ -63,6 +63,7 @@ const stylesLocal = () => {
             flexDirection: "row",
             alignItems: "center",
             borderWidth: 1,
+            backgroundColor: colors.backgroundBar,
             borderColor: colors.linea,
             borderRadius: 8,
             paddingHorizontal: 10,

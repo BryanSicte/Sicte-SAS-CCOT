@@ -1,6 +1,6 @@
 export const lightColors = {
     backgroundBar: '#ffffff',
-    backgroundContainer: '#f0f0f0ff',
+    backgroundContainer: '#E6E6E6',
     backgroundPressed: '#1f2937',
     backgroundHover: '#1f2937',
     texto: '#000000',

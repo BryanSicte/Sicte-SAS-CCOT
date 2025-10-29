@@ -8,7 +8,7 @@ import { useThemeCustom } from "../../contexto/ThemeContext";
 import LabeledInput from "../../compuestos/Input";
 import LabeledDatePicker from "../../compuestos/Date";
 import Toast from "react-native-toast-message";
-import { getUsuariosCedulaNombre, getBodegaKgprodOperacionesCodigoDescripUnimed, setInventarios } from "../../servicios/Api";
+import { getUsuariosCedulaNombre, getBodegaKgprodOperacionesCodigoDescripUnimed, setInventarios, getInventariosCedulasTecnico } from "../../servicios/Api";
 import { usePlantaData } from "../../contexto/PlantaDataContext";
 import { useUserData } from "../../contexto/UserDataContext";
 import { useNavigationParams } from "../../contexto/NavigationParamsContext";
@@ -30,6 +30,7 @@ export default function RegistrarInventarios({ navigation }) {
     const [loading, setLoading] = useState(true);
     const { planta, setPlanta } = usePlantaData();
     const { material, setMaterial } = useMaterialData();
+    const [inventariosCedulasTecnico, setInventariosCedulasTecnico] = useState('');
     const { user, logout, getUser } = useUserData();
     const { setMenuVisibleUser } = useUserMenu();
     const isMobileWeb = useIsMobileWeb();
@@ -37,6 +38,7 @@ export default function RegistrarInventarios({ navigation }) {
     const styles = stylesLocal();
     const [loadingForm, setLoadingForm] = useState(true);
     const { open } = useMenu();
+    const [formAccion, setFormAccion] = useState("");
 
     const createEmptyFormData = (user) => ({
         fecha: new Date(),
@@ -63,12 +65,17 @@ export default function RegistrarInventarios({ navigation }) {
 
     const loadData = async () => {
         try {
+            const accionTemp = await Storage.getItem("formInventarioAccion");
+            setFormAccion(accionTemp?.replace(/['"]+/g, '').trim());
             const dataUsuarios = await getUsuariosCedulaNombre()
             await setPlanta(dataUsuarios);
             Toast.show({ type: "success", text1: dataUsuarios.messages.message1, text2: dataUsuarios.messages.message2, position: "top" });
             const dataMaterial = await getBodegaKgprodOperacionesCodigoDescripUnimed()
             await setMaterial(dataMaterial);
             Toast.show({ type: "success", text1: dataMaterial.messages.message1, text2: dataMaterial.messages.message2, position: "top" });
+            const dataInventariosCedulasTecnico = await getInventariosCedulasTecnico()
+            setInventariosCedulasTecnico(dataInventariosCedulasTecnico);
+            Toast.show({ type: "success", text1: dataInventariosCedulasTecnico.messages.message1, text2: dataInventariosCedulasTecnico.messages.message2, position: "top" });
         } catch (error) {
             Toast.show({ type: "error", text1: error.data.messages.message1, text2: error.data.messages.message2, position: "top" });
         } finally {
@@ -156,12 +163,17 @@ export default function RegistrarInventarios({ navigation }) {
         if (formData.nombreusuario === 'Pendiente') { Toast.show({ type: "info", text1: "Falta información", text2: "Por favor cierre sesion y vuelva a ingresar.", position: "top" }); return; }
         if (!formData.cedulaTecnico) { Toast.show({ type: "info", text1: "Falta información", text2: "Por favor ingrese la cedula del tecnico.", position: "top" }); return; }
         if (formData.cedulaTecnico === 'Usuario no encontrado') { Toast.show({ type: "info", text1: "Falta información", text2: "Por favor ingrese una cedula correcta.", position: "top" }); return; }
+        const existeCedula = inventariosCedulasTecnico.data.some(
+            (item) =>
+                item.cedulaTecnico === formData.cedulaTecnico &&
+                item.inventario === formData.inventario
+        );
+        if (existeCedula) { Toast.show({ type: "error", text1: "Registro duplicado", text2: "Esta cédula ya está registrada en este inventario.", position: "top" }); return; }
         if (!formData.nombreTecnico) { Toast.show({ type: "info", text1: "Falta información", text2: "Por favor ingrese la cedula del tecnico.", position: "top" }); return; }
         if (formData.nombreTecnico === 'Usuario no encontrado') { Toast.show({ type: "info", text1: "Falta información", text2: "Por favor ingrese una cedula correcta.", position: "top" }); return; }
         if (!formData.materiales || formData.materiales.length === 0) { Toast.show({ type: "info", text1: "Falta información", text2: "Debe agregar al menos un material antes de continuar.", position: "top" }); return; }
         if (!formData.firmaMateriales) { Toast.show({ type: "info", text1: "Falta firma", text2: "Por favor firme el conteo de materiales.", position: "top" }); return; }
         if (!formData.firmaTecnico) { Toast.show({ type: "info", text1: "Falta firma", text2: "Por favor firme el técnico responsable.", position: "top" }); return; }
-        if (!formData.firmaEquipos) { Toast.show({ type: "info", text1: "Falta firma", text2: "Por favor firme el conteo de equipos.", position: "top" }); return; }
 
         try {
             setLoading(true);
@@ -171,8 +183,9 @@ export default function RegistrarInventarios({ navigation }) {
             };
             const response = await setInventarios(dataEnviar);
             Toast.show({ type: "success", text1: response.messages.message1, text2: response.messages.message2, position: "top" });
+            setFormData(createEmptyFormData(user));
+            await Storage.removeItem("formInventario");
             setTimeout(() => {
-                setFormData(createEmptyFormData(user));
                 navigation.replace("Inventarios");
             }, 2000);
         } catch (error) {
@@ -211,7 +224,7 @@ export default function RegistrarInventarios({ navigation }) {
                 keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
             >
                 <ScrollView
-                    contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 30 }}
+                    contentContainerStyle={{ paddingBottom: 30 }}
                     showsVerticalScrollIndicator={false}
                     keyboardShouldPersistTaps="handled"
                 >
@@ -247,146 +260,159 @@ export default function RegistrarInventarios({ navigation }) {
                         </Pressable>
                     </View>
 
-                    <LabeledDatePicker
-                        label="Fecha"
-                        date={formData.fecha}
-                        onChange={(value) => setFormData({ ...formData, fecha: value })}
-                        mode="datetime"
-                        showSeconds
-                        disabled
-                    />
-                    <LabeledInput
-                        label="Cedula Usuario"
-                        placeholder="Ingrese la cedula del usuario"
-                        value={formData.cedulaUsuario}
-                        icon="card-outline"
-                        disabled
-                    />
-                    <LabeledInput
-                        label="Nombre Usuario"
-                        placeholder="Ingrese el nombre del usuario"
-                        value={formData.nombreusuario}
-                        icon="person-outline"
-                        disabled
-                    />
-                    <LabeledInput
-                        label="Cedula Tecnico"
-                        placeholder="Ingrese la cedula del tecnico"
-                        value={formData.cedulaTecnico}
-                        onChangeText={(text) => {
-                            let value = text.replace(/[^0-9]/g, "");
-                            const persona = planta.data.find((p) => p.nit === value);
-                            setFormData({ ...formData, cedulaTecnico: value, nombreTecnico: persona?.nombre ? persona.nombre : "Usuario no encontrado" });
-                        }}
-                        icon="card-outline"
-                    />
-                    <LabeledInput
-                        label="Nombre Tecnico"
-                        placeholder="Ingrese el nombre del tecnico"
-                        value={formData.nombreTecnico}
-                        icon="person-outline"
-                        disabled
-                    />
-                    <LabeledInput
-                        label="Inventario"
-                        value={formData.inventario}
-                        icon="document-text-outline"
-                        disabled
-                    />
-                    <View>
-                        <Text style={[stylesGlobal.texto, styles.label]}>Materiales:</Text>
-                        <Text style={[stylesGlobal.texto, styles.label, { alignSelf: "flex-end" }]}>Agregar Material</Text>
-                        <View style={{ position: "relative", zIndex: 4 }}>
-                            <LabeledInput
-                                label="Codigo SAP"
-                                value={nuevoMaterial.codigo}
-                                icon="pricetag-outline"
-                                placeholder="Ingrese el codigo SAP"
-                                onChangeText={(value) => {
-                                    const materialItem = material.data.find((p) => p.codigo === value);
-                                    setNuevoMaterial({ ...nuevoMaterial, codigo: value, descripcion: materialItem?.descrip ? materialItem.descrip : "Material no encontrado", unidadMedida: materialItem?.unimed ? materialItem.unimed : "Material no encontrado" });
-                                }}
-                                data={(material?.data ?? []).map((m) => m.codigo)}
-                                onSelectItem={(value) => {
-                                    const materialItem = material.data.find((p) => p.codigo === value);
-                                    setNuevoMaterial({ ...nuevoMaterial, codigo: value, descripcion: materialItem?.descrip ? materialItem.descrip : "Material no encontrado", unidadMedida: materialItem?.unimed ? materialItem.unimed : "Material no encontrado" });
-                                }}
-                            />
+                    <View style={{
+                        borderRadius: 5,
+                        marginVertical: isMobileWeb ? 5 : 10,
+                        marginHorizontal: isMobileWeb ? 10 : 20,
+                        alignSelf: "stretch",
+                    }}>
+                        <LabeledDatePicker
+                            label="Fecha"
+                            date={formData.fecha}
+                            onChange={(value) => setFormData({ ...formData, fecha: value })}
+                            mode="datetime"
+                            showSeconds
+                            disabled
+                        />
+                        <LabeledInput
+                            label="Cedula Usuario"
+                            placeholder="Ingrese la cedula del usuario"
+                            value={formData.cedulaUsuario}
+                            icon="card-outline"
+                            disabled
+                        />
+                        <LabeledInput
+                            label="Nombre Usuario"
+                            placeholder="Ingrese el nombre del usuario"
+                            value={formData.nombreusuario}
+                            icon="person-outline"
+                            disabled
+                        />
+                        <LabeledInput
+                            label="Cedula Tecnico"
+                            placeholder="Ingrese la cedula del tecnico"
+                            value={formData.cedulaTecnico}
+                            onChangeText={(text) => {
+                                let value = text.replace(/[^0-9]/g, "");
+                                const persona = planta.data.find((p) => p.nit === value);
+                                setFormData({ ...formData, cedulaTecnico: value, nombreTecnico: persona?.nombre ? persona.nombre : "Usuario no encontrado" });
+                            }}
+                            icon="card-outline"
+                            disabled={formAccion === "Editar"}
+                        />
+                        <LabeledInput
+                            label="Nombre Tecnico"
+                            placeholder="Ingrese el nombre del tecnico"
+                            value={formData.nombreTecnico}
+                            icon="person-outline"
+                            disabled
+                        />
+                        <LabeledInput
+                            label="Inventario"
+                            value={formData.inventario}
+                            icon="document-text-outline"
+                            disabled
+                        />
+                        <View>
+                            <Text style={[stylesGlobal.texto, styles.label]}>Materiales:</Text>
+                            <Text style={[stylesGlobal.texto, styles.label, { alignSelf: "flex-end" }]}>Agregar Material</Text>
+                            <View style={{ position: "relative", zIndex: 4 }}>
+                                <LabeledInput
+                                    label="Codigo SAP"
+                                    value={nuevoMaterial.codigo}
+                                    icon="pricetag-outline"
+                                    placeholder="Ingrese el codigo SAP"
+                                    onChangeText={(value) => {
+                                        const materialItem = material.data.find((p) => p.codigo === value);
+                                        setNuevoMaterial({ ...nuevoMaterial, codigo: value, descripcion: materialItem?.descrip ? materialItem.descrip : "Material no encontrado", unidadMedida: materialItem?.unimed ? materialItem.unimed : "Material no encontrado" });
+                                    }}
+                                    data={(material?.data ?? []).map((m) => m.codigo)}
+                                    onSelectItem={(value) => {
+                                        const materialItem = material.data.find((p) => p.codigo === value);
+                                        setNuevoMaterial({ ...nuevoMaterial, codigo: value, descripcion: materialItem?.descrip ? materialItem.descrip : "Material no encontrado", unidadMedida: materialItem?.unimed ? materialItem.unimed : "Material no encontrado" });
+                                    }}
+                                    disabled={formAccion === "Editar"}
+                                />
+                            </View>
+                            <View style={{ position: "relative", zIndex: 3 }}>
+                                <LabeledInput
+                                    label="Descripcion"
+                                    value={nuevoMaterial.descripcion}
+                                    icon="document-text-outline"
+                                    placeholder="Ingrese la descripcion"
+                                    onChangeText={(value) => {
+                                        const materialItem = material.data.find((p) => p.descrip === value);
+                                        setNuevoMaterial({ ...nuevoMaterial, descripcion: value, codigo: materialItem?.codigo ? materialItem.codigo : "Material no encontrado", unidadMedida: materialItem?.unimed ? materialItem.unimed : "Material no encontrado" });
+                                    }}
+                                    data={(material?.data ?? []).map((m) => m.descrip)}
+                                    onSelectItem={(value) => {
+                                        const materialItem = material.data.find((p) => p.descrip === value);
+                                        setNuevoMaterial({ ...nuevoMaterial, descripcion: value, codigo: materialItem?.codigo ? materialItem.codigo : "Material no encontrado", unidadMedida: materialItem?.unimed ? materialItem.unimed : "Material no encontrado" });
+                                    }}
+                                    disabled={formAccion === "Editar"}
+                                />
+                            </View>
+                            <View style={{ position: "relative", zIndex: 2 }}>
+                                <LabeledInput
+                                    icon="calculator-outline"
+                                    label="Cantidad"
+                                    placeholder="Ingrese la cantidad"
+                                    value={nuevoMaterial.cantidad}
+                                    onChangeText={(text) => setNuevoMaterial({ ...nuevoMaterial, cantidad: text })}
+                                    disabled={formAccion === "Editar"}
+                                />
+                            </View>
+                            <View style={{ position: "relative", zIndex: 1 }}>
+                                <LabeledInput
+                                    icon="scale-outline"
+                                    label="Unidad de medida"
+                                    placeholder="Ingrese la unidad de medida"
+                                    value={nuevoMaterial.unidadMedida}
+                                    onChangeText={(text) => setNuevoMaterial({ ...nuevoMaterial, unidadMedida: text })}
+                                    disabled
+                                />
+                            </View>
+                            <View style={{ alignSelf: "flex-start", marginTop: 5 }}>
+                                <CustomButton label="Agregar" onPress={handleGuardar} disabled={formAccion === "Editar"} />
+                            </View>
                         </View>
-                        <View style={{ position: "relative", zIndex: 3 }}>
-                            <LabeledInput
-                                label="Descripcion"
-                                value={nuevoMaterial.descripcion}
-                                icon="document-text-outline"
-                                placeholder="Ingrese la descripcion"
-                                onChangeText={(value) => {
-                                    const materialItem = material.data.find((p) => p.descrip === value);
-                                    setNuevoMaterial({ ...nuevoMaterial, descripcion: value, codigo: materialItem?.codigo ? materialItem.codigo : "Material no encontrado", unidadMedida: materialItem?.unimed ? materialItem.unimed : "Material no encontrado" });
-                                }}
-                                data={(material?.data ?? []).map((m) => m.descrip)}
-                                onSelectItem={(value) => {
-                                    const materialItem = material.data.find((p) => p.descrip === value);
-                                    setNuevoMaterial({ ...nuevoMaterial, descripcion: value, codigo: materialItem?.codigo ? materialItem.codigo : "Material no encontrado", unidadMedida: materialItem?.unimed ? materialItem.unimed : "Material no encontrado" });
-                                }}
-                            />
+
+                        <Text style={[stylesGlobal.texto, styles.label, { alignSelf: "flex-end", marginBottom: 10 }]}>Materiales Ingresados</Text>
+                        <CustomTable
+                            headers={headers}
+                            data={formData.materiales.map((m) => [m.codigo, m.descripcion, m.cantidad, m.unidadMedida])}
+                            eliminar={formAccion !== "Editar"}
+                            onEliminar={(item) => {
+                                setFormData((prev) => ({
+                                    ...prev,
+                                    materiales: prev.materiales.filter((m) => m.codigo !== item[0]),
+                                }));
+                            }}
+                        />
+
+                        <View style={{ flex: 1, paddingTop: 20 }}>
+                            <Text style={[stylesGlobal.texto, styles.label, { marginBottom: 10 }]}>Firma del Conteo Materiales:</Text>
+
+                            <FirmaUniversal editable={!(formAccion === "Editar")} firmaInicial={formData.firmaMateriales} onFirmaChange={(uri) => setFormData({ ...formData, firmaMateriales: uri })} />
                         </View>
-                        <View style={{ position: "relative", zIndex: 2 }}>
-                            <LabeledInput
-                                icon="calculator-outline"
-                                label="Cantidad"
-                                placeholder="Ingrese la cantidad"
-                                value={nuevoMaterial.cantidad}
-                                onChangeText={(text) => setNuevoMaterial({ ...nuevoMaterial, cantidad: text })}
-                            />
+
+                        <View style={{ flex: 1, paddingTop: 10 }}>
+                            <Text style={[stylesGlobal.texto, styles.label, { marginBottom: 10 }]}>Firma del Tecnico:</Text>
+
+                            <FirmaUniversal editable={!(formAccion === "Editar")} firmaInicial={formData.firmaTecnico} onFirmaChange={(uri) => setFormData({ ...formData, firmaTecnico: uri })} />
                         </View>
-                        <View style={{ position: "relative", zIndex: 1 }}>
-                            <LabeledInput
-                                icon="scale-outline"
-                                label="Unidad de medida"
-                                placeholder="Ingrese la unidad de medida"
-                                value={nuevoMaterial.unidadMedida}
-                                onChangeText={(text) => setNuevoMaterial({ ...nuevoMaterial, unidadMedida: text })}
-                                disabled
-                            />
-                        </View>
-                        <View style={{ alignSelf: "flex-start", marginTop: 5 }}>
-                            <CustomButton label="Agregar" onPress={handleGuardar} />
-                        </View>
+
+                        {formAccion === "Editar" && (
+                            <View style={{ flex: 1, paddingTop: 10, paddingBottom: 30 }}>
+                                <Text style={[stylesGlobal.texto, styles.label, { marginBottom: 10 }]}>Firma del Conteo Equipos:</Text>
+
+                                <FirmaUniversal editable={!formData.firmaEquipos} firmaInicial={formData.firmaEquipos} onFirmaChange={(uri) => setFormData({ ...formData, firmaEquipos: uri })} />
+                            </View>
+                        )}
                     </View>
 
-                    <Text style={[stylesGlobal.texto, styles.label, { alignSelf: "flex-end", marginBottom: 10 }]}>Materiales Ingresados</Text>
-                    <CustomTable
-                        headers={headers}
-                        data={formData.materiales.map((m) => [m.codigo, m.descripcion, m.cantidad, m.unidadMedida])}
-                        eliminar={true}
-                        onEliminar={(item) => {
-                            setFormData((prev) => ({
-                                ...prev,
-                                materiales: prev.materiales.filter((m) => m.codigo !== item[0]),
-                            }));
-                        }}
-                    />
-
-                    <View style={{ flex: 1, paddingTop: 20 }}>
-                        <Text style={[stylesGlobal.texto, styles.label, { marginBottom: 10 }]}>Firma del Conteo Materiales:</Text>
-
-                        <FirmaUniversal firmaInicial={formData.firmaMateriales} onFirmaChange={(uri) => setFormData({ ...formData, firmaMateriales: uri })} />
-                    </View>
-
-                    <View style={{ flex: 1, paddingTop: 10 }}>
-                        <Text style={[stylesGlobal.texto, styles.label, { marginBottom: 10 }]}>Firma del Tecnico:</Text>
-
-                        <FirmaUniversal firmaInicial={formData.firmaTecnico} onFirmaChange={(uri) => setFormData({ ...formData, firmaTecnico: uri })} />
-                    </View>
-
-                    <View style={{ flex: 1, paddingTop: 10 }}>
-                        <Text style={[stylesGlobal.texto, styles.label, { marginBottom: 10 }]}>Firma del Conteo Equipos:</Text>
-
-                        <FirmaUniversal firmaInicial={formData.firmaEquipos} onFirmaChange={(uri) => setFormData({ ...formData, firmaEquipos: uri })} />
-                    </View>
-
-                    <View style={{ alignSelf: "center" }}>
-                        <CustomButton label="Enviar" variant="secondary" onPress={() => handleForm()} loading={loading} disabled={loading} />
+                    <View style={{ alignSelf: "center", marginTop: 15 }}>
+                        <CustomButton label="Enviar Formulario" variant="secondary" onPress={() => handleForm()} loading={loading} disabled={loading} />
                     </View>
                 </ScrollView>
             </KeyboardAvoidingView>

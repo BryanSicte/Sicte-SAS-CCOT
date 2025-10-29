@@ -172,12 +172,9 @@ export default function RegistrarParqueAutomotor({ navigation }) {
                     </View>
 
                     <View style={{
-                        backgroundColor: colors.backgroundBar,
-                        paddingVertical: 20,
-                        paddingHorizontal: isMobileWeb ? 10 : 20,
                         borderRadius: 5,
                         marginVertical: isMobileWeb ? 5 : 10,
-                        marginHorizontal: isMobileWeb ? 0 : 20,
+                        marginHorizontal: isMobileWeb ? 10 : 20,
                         alignSelf: "stretch",
                     }}>
                         <LabeledDatePicker

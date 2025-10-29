@@ -71,6 +71,7 @@ const stylesLocal = () => {
             borderRadius: 8,
             paddingHorizontal: 10,
             minHeight: 55,
+            backgroundColor: colors.backgroundBar,
         },
         icon: {
             marginRight: 8,

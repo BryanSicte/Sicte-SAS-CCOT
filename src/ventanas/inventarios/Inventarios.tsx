@@ -8,7 +8,7 @@ import CustomTable from '../../componentes/Table';
 import CustomTabs, { TabItem } from '../../componentes/Tabs';
 import { useThemeCustom } from '../../contexto/ThemeContext';
 import { darkColors, lightColors } from '../../estilos/Colors';
-import { getParqueAutomotor } from '../../servicios/Api';
+import { getInventarios, getInventariosImagen } from '../../servicios/Api';
 import Toast from 'react-native-toast-message';
 import { exportToExcel } from '../../utilitarios/ExportToExcel';
 import { useNavigationParams } from '../../contexto/NavigationParamsContext';
@@ -16,6 +16,7 @@ import { useUserData } from '../../contexto/UserDataContext';
 import { handleLogout } from '../../utilitarios/HandleLogout';
 import { useUserMenu } from '../../contexto/UserMenuContext';
 import { useIsMobileWeb } from '../../utilitarios/IsMobileWeb';
+import Storage from "../../utilitarios/Storage";
 import Loader from '../../componentes/Loader';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Inventarios'>;
@@ -31,7 +32,7 @@ export default function Inventarios({ navigation }: Props) {
     const { isDark } = useThemeCustom();
     const colors = isDark ? darkColors : lightColors;
     const { setParams } = useNavigationParams();
-    const headers = ["Fecha", "Usuario", "Sede", "Placa", "Estado", "Nombre"];
+    const headers = ["Fecha", "Inventario", "Usuario", "Cedula Tecnico", "Nombre Tecnico"];
     const [data, setData] = useState<any[]>([]);
     const [dataTabla, setDataTabla] = useState<any[]>([]);
     const { getUser, logout } = useUserData();
@@ -41,15 +42,19 @@ export default function Inventarios({ navigation }: Props) {
 
     const loadData = async () => {
         try {
-            const response = await getParqueAutomotor();
+            const response = await getInventarios();
             setData(response);
-            const tablaFormateada = response.data.map((item: any) => [
+            const unicos = response.data.filter((item, index, self) =>
+                index === self.findIndex(
+                    (t) => t.inventario === item.inventario && t.cedulaTecnico === item.cedulaTecnico
+                )
+            );
+            const tablaFormateada = unicos.map((item: any) => [
                 item.fecha,
-                item.usuario,
-                item.sede,
-                item.placa,
-                item.estado,
-                item.nombre,
+                item.inventario,
+                item.nombreusuario,
+                item.cedulaTecnico,
+                item.nombreTecnico,
             ]);
             const tablaOrdenada = [...tablaFormateada].sort((a, b) => {
                 const fechaA = new Date(a[0]);
@@ -89,9 +94,9 @@ export default function Inventarios({ navigation }: Props) {
     );
 
     const handleDownloadXLSX = () => {
-        if (data.length === 0) return;
-        const headers = Object.keys(data[0]);
-        const rows = data.map((obj: any) => headers.map((key) => obj[key] ?? null));
+        if (data.data.length === 0) return;
+        const headers = Object.keys(data.data[0]);
+        const rows = data.data.map((obj: any) => headers.map((key) => obj[key] ?? null));
         exportToExcel("Inventarios", rows, headers);
     };
 
@@ -131,7 +136,9 @@ export default function Inventarios({ navigation }: Props) {
                                 <CustomButton
                                     label="Nuevo"
                                     variant="primary"
-                                    onPress={() => {
+                                    onPress={async () => {
+                                        await Storage.setItem("formInventarioAccion", "Nuevo");
+                                        await Storage.removeItem("formInventario");
                                         setParams("RegistrarInventarios", { label: "Inventarios" });
                                         navigation.navigate("RegistrarInventarios")
                                     }}
@@ -139,7 +146,83 @@ export default function Inventarios({ navigation }: Props) {
                             </View>
 
                             <View style={{ marginHorizontal: isMobileWeb ? 10 : 20 }}>
-                                <CustomTable headers={headers} data={dataTabla} />
+                                <CustomTable headers={headers} data={dataTabla} leer={true} editar={true}
+                                    onEditar={async (item) => {
+                                        setLoading(true);
+                                        try {
+                                            const fechaSeleccionada = item[0];
+                                            const cedulaSeleccionada = item[3];
+                                            const inventarioSeleccionado = item[1];
+
+                                            const registrosRelacionados = data.data.filter(
+                                                (d) =>
+                                                    d.cedulaTecnico === cedulaSeleccionada &&
+                                                    d.inventario === inventarioSeleccionado &&
+                                                    d.fecha === fechaSeleccionada
+                                            );
+
+                                            if (registrosRelacionados.length === 0) {
+                                                Toast.show({ type: "info", text1: "Sin resultados", text2: "No se encontraron registros asociados al formulario seleccionado.", position: "top" });
+                                                return;
+                                            }
+
+                                            const base = registrosRelacionados[0];
+
+                                            const materiales = registrosRelacionados.map((r) => ({
+                                                codigo: r.codigo,
+                                                descripcion: r.descripcion,
+                                                cantidad: r.cantidad,
+                                                unidadMedida: r.unidadMedida,
+                                            }));
+
+                                            const datosEditar = {
+                                                fecha: base.fecha,
+                                                cedulaUsuario: base.cedulaUsuario,
+                                                nombreusuario: base.nombreusuario,
+                                                inventario: base.inventario,
+                                                cedulaTecnico: base.cedulaTecnico,
+                                                nombreTecnico: base.nombreTecnico,
+                                                firmaEquipos: base.firmaEquipos || null,
+                                                firmaMateriales: base.firmaMateriales || null,
+                                                firmaTecnico: base.firmaTecnico || null,
+                                                materiales: materiales,
+                                            };
+
+                                            await Storage.setItem("formInventarioAccion", "Editar");
+
+                                            // const responseEquipos = await getInventariosImagen(datosEditar.firmaEquipos);
+                                            // if (responseEquipos?.success && responseEquipos.data?.base64) {
+                                            //     datosEditar.firmaEquipos = responseEquipos.data.base64;
+                                            // } else {
+                                            //     Toast.show({ type: "info", text1: "Sin resultados", text2: "No se encontró la firma asociada a equipos.", position: "top" });
+                                            // }
+
+                                            const responseMateriales = await getInventariosImagen(datosEditar.firmaMateriales);
+                                            if (responseMateriales?.success && responseMateriales.data?.base64) {
+                                                datosEditar.firmaMateriales = responseMateriales.data.base64;
+                                            } else {
+                                                Toast.show({ type: "info", text1: "Sin resultados", text2: "No se encontró la firma asociada a materiales.", position: "top" });
+                                            }
+
+                                            const responseTecnico = await getInventariosImagen(datosEditar.firmaTecnico);
+                                            if (responseTecnico?.success && responseTecnico.data?.base64) {
+                                                datosEditar.firmaTecnico = responseTecnico.data.base64;
+                                            } else {
+                                                Toast.show({ type: "info", text1: "Sin resultados", text2: "No se encontró la firma asociada al técnico.", position: "top" });
+                                            }
+
+                                            await Storage.setItem("formInventario", datosEditar);
+                                            setParams("RegistrarInventarios", { label: "Inventarios" });
+                                            navigation.navigate("RegistrarInventarios")
+                                        } catch (error) {
+                                            Toast.show({
+                                                type: "error", text1: "Ocurrió un error inesperado", text2: "Por favor, inténtalo nuevamente.", position: "top"
+                                            });
+                                        } finally {
+                                            setLoading(false);
+                                        }
+                                    }}
+                                />
                             </View>
                         </ScrollView>
                     </KeyboardAvoidingView>

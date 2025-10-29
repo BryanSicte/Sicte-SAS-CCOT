@@ -6,7 +6,7 @@ const API_URL = Constants.expoConfig?.extra?.apiUrl;
 const request = async (endpoint, method = "GET", body = null, headers = {}) => {
     try {
         let token = null;
-
+        
         if (!endpoint.includes("/usuarios/loginV2")) {
             const storedTokenUser = await Storage.getItem("dataTokenUser");
             if (storedTokenUser) {
@@ -44,9 +44,14 @@ const request = async (endpoint, method = "GET", body = null, headers = {}) => {
             throw error;
         }
 
+        const message =
+            error?.data?.message ||
+            error?.message ||
+            "Error de red o respuesta inválida del servidor.";
+
         throw {
-            status: 0,
-            message: error.data.message || "Error de red",
+            status: error?.status || 0,
+            message,
         };
     }
 };
@@ -71,5 +76,14 @@ export const getBodegaKgprodOperacionesCodigoDescripUnimed = () =>
 
 export const setInventarios = (data) =>
     request("/inventarios/crearRegistro", "POST", data);
+
+export const getInventarios = () =>
+    request("/inventarios/registros", "GET");
+
+export const getInventariosCedulasTecnico = () =>
+    request("/inventarios/registrosCedulasTecnico", "GET");
+
+export const getInventariosImagen = (data) =>
+    request(`/inventarios/descargarImagen?filename=${encodeURIComponent(data)}`, "GET");
 
 export default request;
