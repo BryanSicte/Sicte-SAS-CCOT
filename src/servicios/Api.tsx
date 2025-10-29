@@ -65,7 +65,7 @@ export const getUsuarios = () =>
 export const getUsuariosCedulaNombre = () =>
     request("/usuarios/plantaEnLineaCedulaNombreV2", "GET");
 
-export const setParqueAutomotor = (data) =>
+export const postParqueAutomotor = (data) =>
     request("/parqueAutomotor/crearRegistro", "POST", data);
 
 export const getParqueAutomotor = () =>
@@ -74,8 +74,11 @@ export const getParqueAutomotor = () =>
 export const getBodegaKgprodOperacionesCodigoDescripUnimed = () =>
     request("/bodega/registrosKgprodOperacionesCodigoDescripUnimed", "GET");
 
-export const setInventarios = (data) =>
+export const postInventarios = (data) =>
     request("/inventarios/crearRegistro", "POST", data);
+
+export const putInventariosFirmaEquipos = (data) =>
+    request("/inventarios/actualizarFirmaEquipos", "PUT", data);
 
 export const getInventarios = () =>
     request("/inventarios/registros", "GET");

@@ -76,6 +76,7 @@ const stylesLocal = (variant, disabled) => {
 
     return StyleSheet.create({
         base: {
+            cursor: disabled ? "not-allowed" : "pointer",
             paddingVertical: 10,
             paddingHorizontal: 15,
             borderRadius: 8,

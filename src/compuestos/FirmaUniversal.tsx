@@ -22,6 +22,7 @@ export default function FirmaUniversal({
     const { isDark } = useThemeCustom();
     const colors = isDark ? darkColors : lightColors;
     const isMobileWeb = useIsMobileWeb();
+    const [recarga, setRecarga] = useState(true);
 
     const handleSave = () => {
         const uri = sigRef.current.getCanvas().toDataURL("image/png");
@@ -38,22 +39,28 @@ export default function FirmaUniversal({
     };
 
     useEffect(() => {
-        if (Platform.OS === "web" && firmaInicial && sigRef.current && editable) {
+        if (Platform.OS === "web" && firmaInicial && sigRef.current) {
             try {
-                const canvas = sigRef.current.getCanvas();
-                const ctx = canvas.getContext("2d");
-                const image = new Image();
-                image.src = firmaInicial;
-                image.onload = () => {
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
-                };
+                if (recarga === false) {
+                    const canvas = sigRef.current.getCanvas();
+                    const ctx = canvas.getContext("2d");
+                    const image = new Image();
+                    image.src = firmaInicial;
+                    image.onload = () => {
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+                    };
+                } else {
+                    sigRef.current.clear();
+                    sigRef.current.fromDataURL(firmaInicial);
+                    setRecarga(false);
+                }
                 setFirma(firmaInicial);
             } catch (error) {
                 console.warn("Error cargando firma:", error);
             }
         }
-    }, [firmaInicial, editable]);
+    }, [firmaInicial]);
 
     if (Platform.OS === "web") {
         return (
@@ -73,7 +80,7 @@ export default function FirmaUniversal({
                             ref={sigRef}
                             penColor={"black"}
                             backgroundColor="#fff"
-                            canvasProps={{ width: isMobileWeb ? 300 : 400, height: 200, className: "sigCanvas" }}
+                            canvasProps={{ width: isMobileWeb ? 300 : 400, height: 200, className: "sigCanvas", style: { width: "100%", height: "100%" } }}
                             onEnd={() => setHayTrazo(true)}
                         />
                     ) : (

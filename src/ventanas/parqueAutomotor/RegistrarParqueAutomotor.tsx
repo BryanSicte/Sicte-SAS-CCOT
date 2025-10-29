@@ -9,7 +9,7 @@ import LabeledInput from "../../compuestos/Input";
 import LabeledSelect from "../../compuestos/Select";
 import LabeledDatePicker from "../../compuestos/Date";
 import Toast from "react-native-toast-message";
-import { getUsuariosCedulaNombre, setParqueAutomotor } from "../../servicios/Api";
+import { getUsuariosCedulaNombre, postParqueAutomotor } from "../../servicios/Api";
 import { usePlantaData } from "../../contexto/PlantaDataContext";
 import { useUserData } from "../../contexto/UserDataContext";
 import { useNavigationParams } from "../../contexto/NavigationParamsContext";
@@ -110,7 +110,7 @@ export default function RegistrarParqueAutomotor({ navigation }) {
                 ...formData,
                 fecha: formatearFecha(formData.fecha),
             };
-            const response = await setParqueAutomotor(dataEnviar);
+            const response = await postParqueAutomotor(dataEnviar);
             Toast.show({ type: "success", text1: response.messages.message1, text2: response.messages.message2, position: "top" });
             setTimeout(() => {
                 setFormData(createEmptyFormData(user));

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { View, Text, Pressable, ScrollView, Platform, KeyboardAvoidingView, StyleSheet } from "react-native";
 import { useGlobalStyles } from "../../estilos/GlobalStyles";
 import CustomButton from "../../componentes/Button";
@@ -8,7 +8,7 @@ import { useThemeCustom } from "../../contexto/ThemeContext";
 import LabeledInput from "../../compuestos/Input";
 import LabeledDatePicker from "../../compuestos/Date";
 import Toast from "react-native-toast-message";
-import { getUsuariosCedulaNombre, getBodegaKgprodOperacionesCodigoDescripUnimed, setInventarios, getInventariosCedulasTecnico } from "../../servicios/Api";
+import { getUsuariosCedulaNombre, getBodegaKgprodOperacionesCodigoDescripUnimed, postInventarios, getInventariosCedulasTecnico, putInventariosFirmaEquipos } from "../../servicios/Api";
 import { usePlantaData } from "../../contexto/PlantaDataContext";
 import { useUserData } from "../../contexto/UserDataContext";
 import { useNavigationParams } from "../../contexto/NavigationParamsContext";
@@ -39,6 +39,7 @@ export default function RegistrarInventarios({ navigation }) {
     const [loadingForm, setLoadingForm] = useState(true);
     const { open } = useMenu();
     const [formAccion, setFormAccion] = useState("");
+    const initialFormDataRef = useRef(null);
 
     const createEmptyFormData = (user) => ({
         fecha: new Date(),
@@ -120,6 +121,7 @@ export default function RegistrarInventarios({ navigation }) {
             const savedData = await Storage.getItem("formInventario");
             if (savedData === null) {
                 setFormData(createEmptyFormData(user));
+                initialFormDataRef.current = {};
                 setLoadingForm(false);
                 return;
             }
@@ -137,6 +139,7 @@ export default function RegistrarInventarios({ navigation }) {
                 firmaEquipos: parsed.firmaEquipos,
             };
             setFormData(data);
+            initialFormDataRef.current = data;
             setLoadingForm(false);
         };
         loadForm();
@@ -181,7 +184,7 @@ export default function RegistrarInventarios({ navigation }) {
                 ...formData,
                 fecha: formatearFecha(formData.fecha),
             };
-            const response = await setInventarios(dataEnviar);
+            const response = await postInventarios(dataEnviar);
             Toast.show({ type: "success", text1: response.messages.message1, text2: response.messages.message2, position: "top" });
             setFormData(createEmptyFormData(user));
             await Storage.removeItem("formInventario");
@@ -190,7 +193,30 @@ export default function RegistrarInventarios({ navigation }) {
             }, 2000);
         } catch (error) {
             Toast.show({ type: "error", text1: error.data.messages.message1, text2: error.data.messages.message2, position: "top" });
-        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleFormUpdate = async () => {
+        if (!formData.firmaEquipos) { Toast.show({ type: "info", text1: "Falta firma", text2: "Por favor firme el conteo de equipos.", position: "top" }); return; }
+
+        try {
+            setLoading(true);
+            const dataEnviar = {
+                fecha: formatearFecha(formData.fecha),
+                cedulaTecnico: formData.cedulaTecnico,
+                inventario: formData.inventario,
+                firmaEquipos: formData.firmaEquipos,
+            };
+            const response = await putInventariosFirmaEquipos(dataEnviar);
+            Toast.show({ type: "success", text1: response.messages.message1, text2: response.messages.message2, position: "top" });
+            setFormData(createEmptyFormData(user));
+            await Storage.removeItem("formInventario");
+            setTimeout(() => {
+                navigation.replace("Inventarios");
+            }, 2000);
+        } catch (error) {
+            Toast.show({ type: "error", text1: error.data.messages.message1, text2: error.data.messages.message2, position: "top" });
             setLoading(false);
         }
     };
@@ -406,13 +432,17 @@ export default function RegistrarInventarios({ navigation }) {
                             <View style={{ flex: 1, paddingTop: 10, paddingBottom: 30 }}>
                                 <Text style={[stylesGlobal.texto, styles.label, { marginBottom: 10 }]}>Firma del Conteo Equipos:</Text>
 
-                                <FirmaUniversal editable={!formData.firmaEquipos} firmaInicial={formData.firmaEquipos} onFirmaChange={(uri) => setFormData({ ...formData, firmaEquipos: uri })} />
+                                <FirmaUniversal editable={!initialFormDataRef.current.firmaEquipos} firmaInicial={formData.firmaEquipos} onFirmaChange={(uri) => setFormData({ ...formData, firmaEquipos: uri })} />
                             </View>
                         )}
                     </View>
 
                     <View style={{ alignSelf: "center", marginTop: 15 }}>
-                        <CustomButton label="Enviar Formulario" variant="secondary" onPress={() => handleForm()} loading={loading} disabled={loading} />
+                        {formAccion === "Editar" ? (
+                            <CustomButton label="Actualizar Formulario" variant="secondary" onPress={() => handleFormUpdate()} loading={loading} disabled={loading || !formData.firmaEquipos || initialFormDataRef.current.firmaEquipos} />
+                        ) : (
+                            <CustomButton label="Enviar Formulario" variant="secondary" onPress={() => handleForm()} loading={loading} disabled={loading} />
+                        )}
                     </View>
                 </ScrollView>
             </KeyboardAvoidingView>

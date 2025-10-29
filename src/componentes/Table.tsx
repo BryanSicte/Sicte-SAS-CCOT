@@ -36,6 +36,7 @@ export default function CustomTable({
     const [page, setPage] = useState(1);
     const [filters, setFilters] = useState<{ [key: number]: string }>({});
     const { isDark } = useThemeCustom();
+    const colors = isDark ? darkColors : lightColors;
     const { open } = useMenu();
     const [sortConfig, setSortConfig] = useState<{ key: number | null; direction: "asc" | "desc" }>({
         key: null,
@@ -161,7 +162,7 @@ export default function CustomTable({
                     <View style={{ flexDirection: "row", justifyContent: "center", gap: 20, width: colWidth || 150 }}>
                         {editar === true && (
                             <Pressable onPress={() => handleEditar(item)}>
-                                <Ionicons name="create-outline" size={25} color="#000" />
+                                <Ionicons name="create-outline" size={25} color={colors.icono} />
                             </Pressable>
                         )}
                         {eliminar === true && (

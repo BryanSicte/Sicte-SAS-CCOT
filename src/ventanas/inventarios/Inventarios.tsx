@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, ScrollView, KeyboardAvoidingView, Platform, Modal, Image, Pressable } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navegacion/RootNavigator';
 import { useGlobalStyles } from '../../estilos/GlobalStyles';
@@ -18,6 +18,14 @@ import { useUserMenu } from '../../contexto/UserMenuContext';
 import { useIsMobileWeb } from '../../utilitarios/IsMobileWeb';
 import Storage from "../../utilitarios/Storage";
 import Loader from '../../componentes/Loader';
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
+import { Ionicons } from '@expo/vector-icons';
+
+let html2pdf: any;
+if (Platform.OS !== "web") {
+    html2pdf = require("react-native-html-to-pdf");
+}
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Inventarios'>;
 
@@ -39,6 +47,8 @@ export default function Inventarios({ navigation }: Props) {
     const { setMenuVisibleUser } = useUserMenu();
     const isMobileWeb = useIsMobileWeb();
     const [loading, setLoading] = useState(true);
+    const [modalVisible, setModalVisible] = useState(false);
+    const [datosModal, setDatosModal] = useState<any>(null);
 
     const loadData = async () => {
         try {
@@ -100,6 +110,86 @@ export default function Inventarios({ navigation }: Props) {
         exportToExcel("Inventarios", rows, headers);
     };
 
+    const cargarFormularioInventario = async (item: any, modo: "Editar" | "Leer") => {
+
+        const fechaSeleccionada = item[0];
+        const cedulaSeleccionada = item[3];
+        const inventarioSeleccionado = item[1];
+
+        const registrosRelacionados = data.data.filter(
+            (d) =>
+                d.cedulaTecnico === cedulaSeleccionada &&
+                d.inventario === inventarioSeleccionado &&
+                d.fecha === fechaSeleccionada
+        );
+
+        if (registrosRelacionados.length === 0) {
+            Toast.show({ type: "info", text1: "Sin resultados", text2: "No se encontraron registros asociados al formulario seleccionado.", position: "top" });
+            return;
+        }
+
+        const base = registrosRelacionados[0];
+
+        const materiales = registrosRelacionados.map((r) => ({
+            codigo: r.codigo,
+            descripcion: r.descripcion,
+            cantidad: r.cantidad,
+            unidadMedida: r.unidadMedida,
+        }));
+
+        const datosEditar = {
+            fecha: base.fecha,
+            cedulaUsuario: base.cedulaUsuario,
+            nombreusuario: base.nombreusuario,
+            inventario: base.inventario,
+            cedulaTecnico: base.cedulaTecnico,
+            nombreTecnico: base.nombreTecnico,
+            firmaEquipos: base.firmaEquipos || null,
+            firmaMateriales: base.firmaMateriales || null,
+            firmaTecnico: base.firmaTecnico || null,
+            materiales: materiales,
+        };
+
+        await Storage.setItem("formInventarioAccion", modo);
+
+        const cargarFirma = async (firmaKey: string | null, nombre: string) => {
+            if (!firmaKey) return null;
+            try {
+                const response = await getInventariosImagen(firmaKey);
+                if (response?.success && response.data?.base64) return response.data.base64;
+                Toast.show({ type: "info", text1: "Sin resultados", text2: `No se encontró la firma asociada a ${nombre}.`, position: "top" });
+                return null;
+            } catch (error) {
+                Toast.show({ type: "info", text1: "Sin resultados", text2: `No se encontró la firma asociada a ${nombre}.`, position: "top" });
+                return null;
+            }
+        };
+
+        datosEditar.firmaEquipos = await cargarFirma(datosEditar.firmaEquipos, "equipos");
+        datosEditar.firmaMateriales = await cargarFirma(datosEditar.firmaMateriales, "materiales");
+        datosEditar.firmaTecnico = await cargarFirma(datosEditar.firmaTecnico, "técnico");
+
+        await Storage.setItem("formInventario", datosEditar);
+
+        return datosEditar;
+    };
+
+    const generarPDFWeb = async () => {
+        const element = document.getElementById("modalLeerInventario");
+        if (!element) return;
+
+        const canvas = await html2canvas(element);
+        const imgData = canvas.toDataURL("image/png");
+
+        const pdf = new jsPDF("p", "mm", "a4");
+        const imgProps = pdf.getImageProperties(imgData);
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+        pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+        pdf.save(`inventario_${Date.now()}.pdf`);
+    };
+
     if (loading) {
         return <Loader visible={loading} />;
     }
@@ -147,83 +237,300 @@ export default function Inventarios({ navigation }: Props) {
 
                             <View style={{ marginHorizontal: isMobileWeb ? 10 : 20 }}>
                                 <CustomTable headers={headers} data={dataTabla} leer={true} editar={true}
+                                    onLeer={async (item) => {
+                                        setLoading(true);
+                                        try {
+                                            const datosLeer = await cargarFormularioInventario(item, "Leer");
+                                            const firmasFaltantes = [];
+                                            if (!datosLeer.firmaTecnico) firmasFaltantes.push("técnico");
+                                            if (!datosLeer.firmaMateriales) firmasFaltantes.push("materiales");
+                                            if (!datosLeer.firmaEquipos) firmasFaltantes.push("equipos");
+                                            if (firmasFaltantes.length > 0) {
+                                                Toast.show({ type: "info", text1: "Vista no disponible", text2: `No se puede abrir la vista porque faltan las firmas de: ${firmasFaltantes.join(", ")}.`, position: "top" });
+                                                return
+                                            }
+
+                                            setDatosModal(datosLeer)
+                                            setModalVisible(true);
+                                        } finally {
+                                            setLoading(false);
+                                        }
+                                    }}
                                     onEditar={async (item) => {
                                         setLoading(true);
                                         try {
-                                            const fechaSeleccionada = item[0];
-                                            const cedulaSeleccionada = item[3];
-                                            const inventarioSeleccionado = item[1];
+                                            const datosEditar = await cargarFormularioInventario(item, "Editar");
+                                            if (!datosEditar) return;
 
-                                            const registrosRelacionados = data.data.filter(
-                                                (d) =>
-                                                    d.cedulaTecnico === cedulaSeleccionada &&
-                                                    d.inventario === inventarioSeleccionado &&
-                                                    d.fecha === fechaSeleccionada
-                                            );
-
-                                            if (registrosRelacionados.length === 0) {
-                                                Toast.show({ type: "info", text1: "Sin resultados", text2: "No se encontraron registros asociados al formulario seleccionado.", position: "top" });
-                                                return;
-                                            }
-
-                                            const base = registrosRelacionados[0];
-
-                                            const materiales = registrosRelacionados.map((r) => ({
-                                                codigo: r.codigo,
-                                                descripcion: r.descripcion,
-                                                cantidad: r.cantidad,
-                                                unidadMedida: r.unidadMedida,
-                                            }));
-
-                                            const datosEditar = {
-                                                fecha: base.fecha,
-                                                cedulaUsuario: base.cedulaUsuario,
-                                                nombreusuario: base.nombreusuario,
-                                                inventario: base.inventario,
-                                                cedulaTecnico: base.cedulaTecnico,
-                                                nombreTecnico: base.nombreTecnico,
-                                                firmaEquipos: base.firmaEquipos || null,
-                                                firmaMateriales: base.firmaMateriales || null,
-                                                firmaTecnico: base.firmaTecnico || null,
-                                                materiales: materiales,
-                                            };
-
-                                            await Storage.setItem("formInventarioAccion", "Editar");
-
-                                            // const responseEquipos = await getInventariosImagen(datosEditar.firmaEquipos);
-                                            // if (responseEquipos?.success && responseEquipos.data?.base64) {
-                                            //     datosEditar.firmaEquipos = responseEquipos.data.base64;
-                                            // } else {
-                                            //     Toast.show({ type: "info", text1: "Sin resultados", text2: "No se encontró la firma asociada a equipos.", position: "top" });
-                                            // }
-
-                                            const responseMateriales = await getInventariosImagen(datosEditar.firmaMateriales);
-                                            if (responseMateriales?.success && responseMateriales.data?.base64) {
-                                                datosEditar.firmaMateriales = responseMateriales.data.base64;
-                                            } else {
-                                                Toast.show({ type: "info", text1: "Sin resultados", text2: "No se encontró la firma asociada a materiales.", position: "top" });
-                                            }
-
-                                            const responseTecnico = await getInventariosImagen(datosEditar.firmaTecnico);
-                                            if (responseTecnico?.success && responseTecnico.data?.base64) {
-                                                datosEditar.firmaTecnico = responseTecnico.data.base64;
-                                            } else {
-                                                Toast.show({ type: "info", text1: "Sin resultados", text2: "No se encontró la firma asociada al técnico.", position: "top" });
-                                            }
-
-                                            await Storage.setItem("formInventario", datosEditar);
                                             setParams("RegistrarInventarios", { label: "Inventarios" });
-                                            navigation.navigate("RegistrarInventarios")
-                                        } catch (error) {
-                                            Toast.show({
-                                                type: "error", text1: "Ocurrió un error inesperado", text2: "Por favor, inténtalo nuevamente.", position: "top"
-                                            });
+                                            navigation.navigate("RegistrarInventarios");
                                         } finally {
                                             setLoading(false);
                                         }
                                     }}
                                 />
                             </View>
+
+                            <Modal
+                                visible={modalVisible}
+                                animationType="fade"
+                                transparent={true}
+                                onRequestClose={() => setModalVisible(false)}
+                            >
+                                <Pressable
+                                    onPress={() => setModalVisible(false)}
+                                    style={{
+                                        flex: 1,
+                                        justifyContent: "center",
+                                        alignItems: "center",
+                                        backgroundColor: "rgba(0,0,0,0.5)",
+                                    }}
+                                >
+                                    <Pressable
+                                        onPress={(e) => e.stopPropagation()}
+                                        style={{
+                                            width: "80%",
+                                            maxHeight: "90%",
+                                            backgroundColor: "#fff",
+                                            borderRadius: 10,
+                                            padding: 20,
+                                        }}
+                                    >
+                                        <View style={{ flexDirection: "row", alignSelf: "flex-end", marginBottom: 10, }}>
+                                            <View
+                                                style={{
+
+                                                }}
+                                            >
+                                                <CustomButton
+                                                    label="Generar PDF"
+                                                    onPress={async () => {
+                                                        if (Platform.OS === "web") {
+                                                            const element = document.getElementById("modalLeerInventario");
+                                                            if (!element) return;
+
+                                                            const captureWidthPx = 1000;
+                                                            const captureScale = 3;
+
+                                                            const clone = element.cloneNode(true) as HTMLElement;
+
+                                                            const wrapper = document.createElement("div");
+                                                            wrapper.setAttribute("id", "modal-capture-wrapper");
+                                                            wrapper.style.position = "absolute";
+                                                            wrapper.style.left = "-99999px";
+                                                            wrapper.style.top = "0";
+                                                            wrapper.style.width = `${captureWidthPx}px`;
+                                                            wrapper.style.overflow = "visible";
+                                                            wrapper.style.zIndex = "99999";
+                                                            wrapper.appendChild(clone);
+                                                            document.body.appendChild(wrapper);
+
+                                                            try {
+                                                                clone.style.width = `${captureWidthPx}px`;
+                                                                clone.style.height = "auto";
+                                                                clone.style.overflow = "visible";
+
+                                                                const imgs = Array.from(clone.getElementsByTagName("img")) as HTMLImageElement[];
+                                                                imgs.forEach((img) => {
+                                                                    if (!img.src.startsWith("data:") && !img.crossOrigin) {
+                                                                        try {
+                                                                            img.crossOrigin = "anonymous";
+                                                                        } catch (e) {
+                                                                        }
+                                                                    }
+                                                                });
+
+                                                                await Promise.all(
+                                                                    imgs.map(
+                                                                        (img) =>
+                                                                            new Promise<void>((resolve) => {
+                                                                                if (img.complete && img.naturalWidth !== 0) resolve();
+                                                                                else {
+                                                                                    img.onload = () => resolve();
+                                                                                    img.onerror = () => resolve();
+                                                                                }
+                                                                            })
+                                                                    )
+                                                                );
+
+                                                                const canvas = await html2canvas(clone, {
+                                                                    scale: captureScale,
+                                                                    useCORS: true,
+                                                                    allowTaint: true,
+                                                                    backgroundColor: "#ffffff",
+                                                                    logging: false,
+                                                                });
+
+                                                                const imgData = canvas.toDataURL("image/png");
+
+                                                                const pdf = new jsPDF({
+                                                                    orientation: "portrait",
+                                                                    unit: "mm",
+                                                                    format: "letter",
+                                                                });
+
+                                                                const pdfWidth = pdf.internal.pageSize.getWidth();
+                                                                const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+                                                                let heightLeft = pdfHeight;
+                                                                let position = 0;
+
+                                                                pdf.addImage(imgData, "PNG", 0, position, pdfWidth, pdfHeight);
+                                                                heightLeft -= pdf.internal.pageSize.getHeight();
+
+                                                                while (heightLeft > 0) {
+                                                                    position = heightLeft - pdfHeight;
+                                                                    pdf.addPage();
+                                                                    pdf.addImage(imgData, "PNG", 0, position, pdfWidth, pdfHeight);
+                                                                    heightLeft -= pdf.internal.pageSize.getHeight();
+                                                                }
+
+                                                                pdf.save(`Inventario_${datosModal?.inventario}.pdf`);
+
+                                                                Toast.show({
+                                                                    type: "success",
+                                                                    text1: "PDF generado correctamente",
+                                                                    text2: "Incluye logo y firmas.",
+                                                                    position: "top",
+                                                                });
+                                                            } catch (err) {
+                                                                console.error("Error generando PDF desde clon:", err);
+                                                                Toast.show({ type: "error", text1: "Error", text2: "No se pudo generar el PDF." });
+                                                            } finally {
+                                                                const existing = document.getElementById("modal-capture-wrapper");
+                                                                if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
+                                                            }
+                                                        } else {
+                                                            const htmlContent = `
+                                                            <h1>Inventario</h1>
+                                                            <p>Fecha: ${datosModal?.fecha}</p>
+                                                            <p>Técnico: ${datosModal?.nombreTecnico} (${datosModal?.cedulaTecnico})</p>
+                                                            <p>Inventario: ${datosModal?.inventario}</p>
+                                                            <h2>Materiales</h2>
+                                                            <ul>
+                                                                ${datosModal?.materiales.map(m => `<li>${m.codigo} - ${m.descripcion} - ${m.cantidad} ${m.unidadMedida}</li>`).join("")}
+                                                            </ul>
+                                                            <h2>Firmas</h2>
+                                                            ${datosModal?.firmaEquipos ? `<img src="${datosModal.firmaEquipos}" width="300" />` : ""}
+                                                            ${datosModal?.firmaMateriales ? `<img src="${datosModal.firmaMateriales}" width="300" />` : ""}
+                                                            ${datosModal?.firmaTecnico ? `<img src="${datosModal.firmaTecnico}" width="300" />` : ""}
+                                                        `;
+                                                            const options = {
+                                                                html: htmlContent,
+                                                                fileName: `inventario_${datosModal?.inventario}`,
+                                                                directory: "Documents",
+                                                            };
+                                                            const pdf = await html2pdf.convert(options);
+                                                            Toast.show({ type: "success", text1: "PDF generado", text2: pdf.filePath });
+                                                        }
+                                                    }}
+                                                />
+                                            </View>
+                                            <Pressable
+                                                onPress={() => setModalVisible(false)}
+                                                style={{
+                                                    alignItems: "center",
+                                                    justifyContent: "center",
+                                                    marginRight: 30,
+                                                    marginLeft: 60,
+                                                }}
+                                            >
+                                                <Ionicons name="close" size={22} color="#333" />
+                                            </Pressable>
+                                        </View>
+
+                                        <View style={{ height: 1, backgroundColor: "#000" }}></View>
+
+                                        <ScrollView
+                                            style={{ paddingHorizontal: 40, paddingVertical: 30 }}
+                                            {...(Platform.OS === "web" ? { id: "modalLeerInventario" } : {})}
+                                        >
+                                            <View style={{ alignItems: "flex-start" }}>
+                                                <Image
+                                                    source={{ uri: "https://res.cloudinary.com/dcozwbcpi/image/upload/v1753297342/Logo_Original_homvl9.png" }}
+                                                    style={{ width: 200, height: 100, resizeMode: "contain" }}
+                                                />
+                                            </View>
+                                            <Text style={{ fontSize: 28, fontWeight: "bold", textAlign: "center", marginBottom: 20 }}>
+                                                {datosModal?.inventario}
+                                            </Text>
+                                            <Text style={{ marginBottom: 5 }}>
+                                                <Text style={{ fontWeight: "bold" }}>Fecha: </Text>
+                                                {datosModal?.fecha}
+                                            </Text>
+                                            <Text style={{ marginBottom: 5 }}>
+                                                <Text style={{ fontWeight: "bold" }}>Operador de inventario materiales: </Text>
+                                                {datosModal?.nombreusuario}
+                                            </Text>
+                                            <Text style={{ marginBottom: 5 }}>
+                                                <Text style={{ fontWeight: "bold" }}>Cédula técnico: </Text>
+                                                {datosModal?.cedulaTecnico}
+                                            </Text>
+                                            <Text style={{ marginBottom: 5 }}>
+                                                <Text style={{ fontWeight: "bold" }}>Nombre técnico: </Text>
+                                                {datosModal?.nombreTecnico?.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase())}
+                                            </Text>
+
+                                            <Text style={{ marginTop: 20, fontWeight: "bold" }}>Materiales:</Text>
+                                            <View style={{ marginVertical: 20, marginHorizontal: 20 }}>
+                                                <View style={{ flexDirection: "row", marginTop: 5, borderBottomWidth: 1, borderBottomColor: "#000", paddingBottom: 5 }}>
+                                                    <Text style={{ flex: 1, fontWeight: "bold" }}>Código</Text>
+                                                    <Text style={{ flex: 2, fontWeight: "bold" }}>Descripción</Text>
+                                                    <Text style={{ flex: 1, fontWeight: "bold", textAlign: "center" }}>Cantidad</Text>
+                                                    <Text style={{ flex: 1, fontWeight: "bold", textAlign: "center" }}>U.M.</Text>
+                                                </View>
+                                                {datosModal?.materiales?.map((m, i) => (
+                                                    <View
+                                                        key={i}
+                                                        style={{
+                                                            flexDirection: "row",
+                                                            paddingVertical: 5,
+                                                            borderBottomWidth: 0.5,
+                                                            borderBottomColor: "#ccc",
+                                                        }}
+                                                    >
+                                                        <Text style={{ flex: 1 }}>{m.codigo}</Text>
+                                                        <Text style={{ flex: 2 }}>{m.descripcion}</Text>
+                                                        <Text style={{ flex: 1, textAlign: "center" }}>{m.cantidad}</Text>
+                                                        <Text style={{ flex: 1, textAlign: "center" }}>{m.unidadMedida}</Text>
+                                                    </View>
+                                                ))}
+                                            </View>
+
+                                            <Text style={{ marginTop: 10, fontWeight: "bold" }}>Firmas:</Text>
+                                            <View style={{ flexDirection: "row" }}>
+                                                {datosModal?.firmaMateriales && (
+                                                    <View style={{ flexDirection: "column", marginHorizontal: 20, marginVertical: 20 }}>
+                                                        <Image source={{ uri: datosModal.firmaMateriales }} style={{ width: 200, height: 100 }} />
+                                                        <View style={{ height: 1, backgroundColor: "#000" }}></View>
+                                                        <Text>Operador de inventario materiales</Text>
+                                                        <Text>{datosModal?.nombreusuario}</Text>
+                                                        <Text>CC: {datosModal?.cedulaUsuario}</Text>
+                                                    </View>
+                                                )}
+                                                {datosModal?.firmaTecnico && (
+                                                    <View style={{ flexDirection: "column", marginHorizontal: 20, marginVertical: 20 }}>
+                                                        <Image source={{ uri: datosModal.firmaTecnico }} style={{ width: 200, height: 100 }} />
+                                                        <View style={{ height: 1, backgroundColor: "#000" }}></View>
+                                                        <Text>Técnico</Text>
+                                                        <Text>{datosModal?.nombreTecnico?.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase())}</Text>
+                                                        <Text>CC: {datosModal?.cedulaTecnico}</Text>
+                                                    </View>
+                                                )}
+                                                {datosModal?.firmaEquipos && (
+                                                    <View style={{ flexDirection: "column", marginHorizontal: 20, marginVertical: 20 }}>
+                                                        <Image source={{ uri: datosModal.firmaEquipos }} style={{ width: 200, height: 100 }} />
+                                                        <View style={{ height: 1, backgroundColor: "#000" }}></View>
+                                                        <Text>Operador de inventario equipos</Text>
+                                                        <Text>Segura Avila Duvan Yamid</Text>
+                                                        <Text>CC: 1054780199</Text>
+                                                    </View>
+                                                )}
+                                            </View>
+                                        </ScrollView>
+                                    </Pressable>
+                                </Pressable>
+                            </Modal>
                         </ScrollView>
                     </KeyboardAvoidingView>
                 </>
