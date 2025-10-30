@@ -13,7 +13,7 @@ export default function ResumenAbastecimiento({ navigation }: Props) {
     const colors = isDark ? darkColors : lightColors;
 
     return (
-        <CadenaDeSuministro navigation={navigation}>
+        <CadenaDeSuministro navigation={navigation} defaultPage="Resumen">
             <View>
                 <Text style={{ color: colors.texto, fontSize: 18 }}>Resumen</Text>
             </View>

@@ -13,7 +13,7 @@ export default function AprobacionesAbastecimiento({ navigation }: Props) {
     const colors = isDark ? darkColors : lightColors;
 
     return (
-        <CadenaDeSuministro navigation={navigation}>
+        <CadenaDeSuministro navigation={navigation} defaultPage="Aprobaciones">
             <View>
                 <Text style={{ color: colors.texto, fontSize: 18 }}>Aprobaciones</Text>
             </View>

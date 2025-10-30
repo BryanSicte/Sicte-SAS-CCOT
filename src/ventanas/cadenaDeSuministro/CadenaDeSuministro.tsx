@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import { useGlobalStyles } from '../../estilos/GlobalStyles';
 import DropdownMenuButton from '../../compuestos/DropdownMenuButton';
@@ -8,9 +8,15 @@ interface Props {
     children: React.ReactNode;
 }
 
-export default function CadenaDeSuministro({ navigation, children }: Props) {
+export default function CadenaDeSuministro({ 
+    navigation, 
+    children, 
+    defaultPage
+}: Props & { 
+    defaultPage: string
+}) {
     const stylesGlobal = useGlobalStyles();
-    const [pageSelect, setPageSelect] = useState('Resumen');
+    const [pageSelect, setPageSelect] = useState(defaultPage);
 
     const menuOptions = [
         { label: "Resumen", screen: "ResumenAbastecimiento" },
@@ -21,7 +27,12 @@ export default function CadenaDeSuministro({ navigation, children }: Props) {
         { label: "Tesoreria", screen: "TesoreriaAbastecimiento" },
     ];
 
-    console.log(pageSelect)
+    useEffect(() => {
+        const currentRoute = navigation.getState().routes[navigation.getState().index].name;
+        if (currentRoute === "CadenaDeSuministro") {
+            navigation.navigate("ResumenAbastecimiento");
+        }
+    }, []);
 
     const handleSelect = (option: any) => {
         setPageSelect(option.label);
@@ -34,7 +45,7 @@ export default function CadenaDeSuministro({ navigation, children }: Props) {
                 <DropdownMenuButton options={menuOptions} onSelect={handleSelect} pageSelect={pageSelect} />
             </View>
             <ScrollView
-                contentContainerStyle={{ paddingTop: 20, paddingLeft: 20, paddingBottom: 20 }}
+                contentContainerStyle={{ paddingTop: 20, paddingHorizontal: 20, paddingBottom: 20 }}
                 showsVerticalScrollIndicator={false}
             >
                 {children}

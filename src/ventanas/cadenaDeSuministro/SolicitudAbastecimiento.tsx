@@ -13,7 +13,7 @@ export default function SolicitudAbastecimiento({ navigation }: Props) {
     const colors = isDark ? darkColors : lightColors;
 
     return (
-        <CadenaDeSuministro navigation={navigation}>
+        <CadenaDeSuministro navigation={navigation} defaultPage="Solicitud de Abastecimiento">
             <View>
                 <Text style={{ color: colors.texto, fontSize: 18 }}>Contenido del Parque Automotor</Text>
             </View>

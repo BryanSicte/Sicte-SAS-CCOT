@@ -13,7 +13,7 @@ export default function BodegaAbastecimiento({ navigation }: Props) {
     const colors = isDark ? darkColors : lightColors;
 
     return (
-        <CadenaDeSuministro navigation={navigation}>
+        <CadenaDeSuministro navigation={navigation} defaultPage="Bodega">
             <View>
                 <Text style={{ color: colors.texto, fontSize: 18 }}>Bodega</Text>
             </View>

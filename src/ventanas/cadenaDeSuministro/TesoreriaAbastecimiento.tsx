@@ -13,7 +13,7 @@ export default function TesoreriaAbastecimiento({ navigation }: Props) {
     const colors = isDark ? darkColors : lightColors;
 
     return (
-        <CadenaDeSuministro navigation={navigation}>
+        <CadenaDeSuministro navigation={navigation} defaultPage="Tesoreria">
             <View>
                 <Text style={{ color: colors.texto, fontSize: 18 }}>Tesoreria</Text>
             </View>

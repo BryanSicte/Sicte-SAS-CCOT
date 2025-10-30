@@ -13,7 +13,7 @@ export default function GestionDeCompraAbastecimiento({ navigation }: Props) {
     const colors = isDark ? darkColors : lightColors;
 
     return (
-        <CadenaDeSuministro navigation={navigation}>
+        <CadenaDeSuministro navigation={navigation} defaultPage="Gestion de Compra">
             <View>
                 <Text style={{ color: colors.texto, fontSize: 18 }}>Gestion De Compra</Text>
             </View>
