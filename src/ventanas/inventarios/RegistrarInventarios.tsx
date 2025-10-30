@@ -250,7 +250,7 @@ export default function RegistrarInventarios({ navigation }) {
                 keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
             >
                 <ScrollView
-                    contentContainerStyle={{ paddingBottom: 30 }}
+                    contentContainerStyle={{ paddingBottom: 60 }}
                     showsVerticalScrollIndicator={false}
                     keyboardShouldPersistTaps="handled"
                 >

@@ -100,8 +100,9 @@ export default function RegistrarParqueAutomotor({ navigation }) {
         const placaPattern = /^[A-Z]{3}[0-9]{2}[A-Z0-9]{1}$/;
         if (!placaPattern.test(formData.placa)) { Toast.show({ type: "info", text1: "Placa inválida", text2: "La placa debe tener el formato ABC12D o ABC123.", position: "top" }); return; }
         if (!formData.cedula) { Toast.show({ type: "info", text1: "Falta información", text2: "Por favor ingrese la cedula.", position: "top" }); return; }
+        if (formData.cedula === 'Usuario no encontrado') { Toast.show({ type: "info", text1: "Falta información", text2: "Por favor ingrese un usuario correcto.", position: "top" }); return; }
         if (!formData.nombre) { Toast.show({ type: "info", text1: "Falta información", text2: "Por favor ingrese la nombre.", position: "top" }); return; }
-        if (formData.nombre === 'Usuario no encontrado') { Toast.show({ type: "info", text1: "Falta información", text2: "Por favor ingrese una cedula correcta.", position: "top" }); return; }
+        if (formData.nombre === 'Usuario no encontrado') { Toast.show({ type: "info", text1: "Falta información", text2: "Por favor ingrese un usuario correcto.", position: "top" }); return; }
         if (!formData.estado) { Toast.show({ type: "info", text1: "Falta información", text2: "Por favor ingrese la estado.", position: "top" }); return; }
 
         try {
@@ -135,7 +136,7 @@ export default function RegistrarParqueAutomotor({ navigation }) {
                 keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
             >
                 <ScrollView
-                    contentContainerStyle={{ paddingBottom: 30 }}
+                    contentContainerStyle={{ paddingBottom: 60 }}
                     showsVerticalScrollIndicator={false}
                     keyboardShouldPersistTaps="handled"
                 >
@@ -233,33 +234,48 @@ export default function RegistrarParqueAutomotor({ navigation }) {
                             icon="car-outline"
                             autoCapitalize="characters"
                         />
-                        <LabeledInput
-                            label="Cedula"
-                            placeholder="Ingrese una cedula"
-                            value={formData.cedula}
-                            onChangeText={(text) => {
-                                let value = text.replace(/[^0-9]/g, "");
-                                const persona = planta.data.find((p) => p.nit === value);
-                                setFormData({ ...formData, cedula: value, nombre: persona?.nombre ? persona.nombre : "Usuario no encontrado" });
-                            }}
-                            icon="card-outline"
-                        />
-                        <LabeledInput
-                            label="Nombre"
-                            placeholder="Ingrese el nombre"
-                            value={formData.nombre}
-                            onChangeText={(text) => setFormData({ ...formData, nombre: text })}
-                            icon="person-outline"
-                            disabled
-                        />
+                        <View style={{ position: "relative", zIndex: 4 }}>
+                            <LabeledInput
+                                label="Cedula Conductor"
+                                value={formData.cedula}
+                                icon="card-outline"
+                                placeholder="Ingrese la cedula del conductor"
+                                onChangeText={(value) => {
+                                    const plantaItem = planta.data.find((p) => p.nit === value);
+                                    setFormData({ ...formData, cedula: value, nombre: plantaItem?.nombre ? plantaItem.nombre : "Usuario no encontrado" });
+                                }}
+                                data={(planta?.data ?? []).map((m) => m.nit)}
+                                onSelectItem={(value) => {
+                                    const plantaItem = planta.data.find((p) => p.nit === value);
+                                    setFormData({ ...formData, cedula: value, nombre: plantaItem?.nombre ? plantaItem.nombre : "Usuario no encontrado" });
+                                }}
+                            />
+                        </View>
+                        <View style={{ position: "relative", zIndex: 3 }}>
+                            <LabeledInput
+                                label="Nombre Conductor"
+                                value={formData.nombre}
+                                icon="person-outline"
+                                placeholder="Ingrese el nombre del conductor"
+                                onChangeText={(value) => {
+                                    const plantaItem = planta.data.find((p) => p.nombre === value);
+                                    setFormData({ ...formData, nombre: value, cedula: plantaItem?.nit ? plantaItem.nit : "Usuario no encontrado" });
+                                }}
+                                data={(planta?.data ?? []).map((m) => m.nombre)}
+                                onSelectItem={(value) => {
+                                    const plantaItem = planta.data.find((p) => p.nombre === value);
+                                    setFormData({ ...formData, nombre: value, cedula: plantaItem?.nit ? plantaItem.nit : "Usuario no encontrado" });
+                                }}
+                            />
+                        </View>
                         <LabeledSelect
                             label="Estado"
                             value={formData.estado}
                             onValueChange={(value) => setFormData({ ...formData, estado: value })}
                             icon="radio-button-on-outline"
                             items={[
-                                { label: "Entrada", value: "Entrada" },
-                                { label: "Salida", value: "Salida" },
+                                { label: "Entrada de vehiculo a la sede", value: "Entrada de vehiculo a la sede" },
+                                { label: "Salida de vehiculo de la sede", value: "Salida de vehiculo de la sede" },
                                 { label: "No usado", value: "No usado" },
                             ]}
                             placeholder="Selecciona un estado"

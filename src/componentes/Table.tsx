@@ -112,7 +112,7 @@ export default function CustomTable({
     };
 
     const isMobileWeb = useIsMobileWeb();
-    const screenWidth = Dimensions.get("window").width - (open ? (249+20+20+10+10+5) : (59+20+20+10+10+5));
+    const screenWidth = Dimensions.get("window").width - (open ? (249 + 20 + 20 + 10 + 10 + 5) : (59 + 20 + 20 + 10 + 10 + 5));
     const minColWidth = !isMobileWeb ? 160 : 150;
     const totalMinWidth = (editar || eliminar) ? (headers.length + 1) * minColWidth : headers.length * minColWidth;
     const colWidth = totalMinWidth < screenWidth ? screenWidth / ((editar || eliminar) ? (headers.length + 1) : headers.length) : minColWidth;
@@ -243,7 +243,8 @@ export default function CustomTable({
                 {!isMobileWeb && (
                     <Text style={styles.pageInfo}>
                         Página {page} de {totalPages} | Total: {data.length} ítems {"\n"}
-                        Mostrando {paginatedData.length} de {filteredData.length} ítems
+                        Mostrando del{" "}{Math.min((page - 1) * itemsPerPage + 1, filteredData.length)}{" "}al{" "}
+                        {Math.min(page * itemsPerPage, filteredData.length)}{" "}de {filteredData.length} ítems
                     </Text>
                 )}
 
@@ -259,7 +260,8 @@ export default function CustomTable({
             {isMobileWeb && (
                 <Text style={styles.pageInfo}>
                     Página {page} de {totalPages} | Total: {data.length} ítems {"\n"}
-                    Mostrando {paginatedData.length} de {filteredData.length} ítems
+                    Mostrando del{" "}{Math.min((page - 1) * itemsPerPage + 1, filteredData.length)}{" "}al{" "}
+                    {Math.min(page * itemsPerPage, filteredData.length)}{" "}de {filteredData.length} ítems
                 </Text>
             )}
         </View>
