@@ -431,7 +431,7 @@ export default function RegistrarInventarios({ navigation }) {
                             <View style={{ flex: 1, paddingTop: 10, paddingBottom: 30 }}>
                                 <Text style={[stylesGlobal.texto, styles.label, { marginBottom: 10 }]}>Firma del Conteo Equipos:</Text>
 
-                                <FirmaUniversal editable={!initialFormDataRef.current.firmaEquipos && (user.rol === "admin" || user.cedula === "1054780199" ) } firmaInicial={formData.firmaEquipos} onFirmaChange={(uri) => setFormData({ ...formData, firmaEquipos: uri })} />
+                                <FirmaUniversal editable={!initialFormDataRef.current.firmaEquipos && (user.rol === "admin" || user.cedula === "1054780199" || user.cedula === "1072699606" || user.cedula === "80163972" ) } firmaInicial={formData.firmaEquipos} onFirmaChange={(uri) => setFormData({ ...formData, firmaEquipos: uri })} />
                             </View>
                         )}
                     </View>
