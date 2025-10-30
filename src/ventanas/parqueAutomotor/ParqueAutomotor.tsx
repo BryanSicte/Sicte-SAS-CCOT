@@ -71,7 +71,6 @@ export default function ParqueAutomotor({ navigation }: Props) {
                 const userTemp = await getUser();
                 if (userTemp === null) {
                     await handleLogout({
-                        navigation,
                         logout,
                         setMenuVisibleUser,
                     });

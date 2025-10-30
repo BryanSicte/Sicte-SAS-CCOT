@@ -7,7 +7,6 @@ import { handleLogout } from "../utilitarios/HandleLogout";
 type Props = {
     expiryDate: string;
     floating?: boolean;
-    navigation: any;
     logout: () => void;
     setMenuVisibleUser: (v: boolean) => void;
 };
@@ -15,7 +14,6 @@ type Props = {
 const TokenCountdown = ({ 
     expiryDate, 
     floating = false,
-    navigation,
     logout,
     setMenuVisibleUser,
 }: Props) => {
@@ -34,7 +32,6 @@ const TokenCountdown = ({
                 setTimeLeft("Expirado");
                 clearInterval(interval);
                 await handleLogout({
-                    navigation,
                     logout,
                     setMenuVisibleUser,
                 });

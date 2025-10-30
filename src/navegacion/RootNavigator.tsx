@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createStackNavigator } from "@react-navigation/stack";
+import { createNavigationContainerRef } from "@react-navigation/native";
 import { View, Text, Pressable, Platform, Animated, StyleSheet, ScrollView } from 'react-native';
 import { useThemeCustom } from '../contexto/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
@@ -32,6 +33,25 @@ import TesoreriaAbastecimiento from '../ventanas/cadenaDeSuministro/TesoreriaAba
 import DetailsScreen from '../ventanas/DetailsScreen';
 import Inventarios from '../ventanas/inventarios/Inventarios';
 import RegistrarInventarios from '../ventanas/inventarios/RegistrarInventarios';
+
+export const navigationRef = createNavigationContainerRef();
+
+export function navigate(name: string, params?: any) {
+    if (navigationRef.isReady()) {
+        navigationRef.navigate(name as never, params as never);
+    }
+}
+
+export function resetToHome() {
+    if (navigationRef.isReady()) {
+        navigationRef.reset({
+            index: 0,
+            routes: [{ name: "Home" as never }],
+        });
+    } else {
+        console.warn("navigationRef aún no está listo para resetear");
+    }
+}
 
 export type RootStackParamList = {
     Home: undefined;
@@ -70,7 +90,6 @@ export default function RootNavigator() {
 
     const cerrarSesion = async () => {
         await handleLogout({
-            navigation,
             logout,
             setMenuVisibleUser,
         });
@@ -732,7 +751,7 @@ const MenuItem = ({
                 if (isMobileWeb) {
                     toggleMenu();
                 }
-                
+
                 setParams(route, { ...params, ...(label !== "Inicio" ? { label } : {}) });
                 if (params?.nameBD) {
                     navigation.navigate(route, { reportName: params.nameBD });

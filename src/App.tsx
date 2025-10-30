@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import RootNavigator from './navegacion/RootNavigator';
+import RootNavigator, { navigationRef } from './navegacion/RootNavigator';
 import { ThemeProvider, useThemeCustom } from './contexto/ThemeContext';
 import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
 import { MenuProvider } from './contexto/MenuContext';
@@ -29,6 +29,13 @@ export default function App() {
     const [fontsLoaded] = useFonts({
         TiltWarp: TiltWarp_400Regular,
     });
+
+    useEffect(() => {
+        const htmlEl = document.documentElement;
+        htmlEl.setAttribute("translate", "no");
+        document.querySelector("meta[name='google']") ||
+            document.head.insertAdjacentHTML("beforeend", `<meta name="google" content="notranslate">`);
+    }, []);
 
     const ensureLatestVersion = useCallback(async () => {
         try {
@@ -102,7 +109,7 @@ export default function App() {
                     <PageUserProvider>
                         <UserDataProvider>
                             <NavigationParamsProvider>
-                                <NavigationContainer linking={linking}>
+                                <NavigationContainer linking={linking} ref={navigationRef}>
                                     <MenuProvider>
                                         <UserMenuProvider>
                                             <GlobalDataProvider>

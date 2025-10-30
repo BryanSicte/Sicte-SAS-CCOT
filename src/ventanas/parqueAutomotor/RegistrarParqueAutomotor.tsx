@@ -60,7 +60,6 @@ export default function RegistrarParqueAutomotor({ navigation }) {
                 const userTemp = await getUser();
                 if (userTemp === null) {
                     await handleLogout({
-                        navigation,
                         logout,
                         setMenuVisibleUser,
                     });

@@ -49,6 +49,8 @@ export default function Inventarios({ navigation }: Props) {
     const [loading, setLoading] = useState(true);
     const [modalVisible, setModalVisible] = useState(false);
     const [datosModal, setDatosModal] = useState<any>(null);
+    const [forceDesktopMode, setForceDesktopMode] = useState(false);
+    const isMobile = !forceDesktopMode && isMobileWeb;
 
     const loadData = async () => {
         try {
@@ -86,7 +88,6 @@ export default function Inventarios({ navigation }: Props) {
                 const userTemp = await getUser();
                 if (userTemp === null) {
                     await handleLogout({
-                        navigation,
                         logout,
                         setMenuVisibleUser,
                     });
@@ -289,11 +290,11 @@ export default function Inventarios({ navigation }: Props) {
                                     <Pressable
                                         onPress={(e) => e.stopPropagation()}
                                         style={{
-                                            width: "80%",
-                                            maxHeight: "90%",
+                                            width: isMobile ? "95%" : "80%",
+                                            maxHeight: isMobile ? "95%" : "90%",
                                             backgroundColor: "#fff",
                                             borderRadius: 10,
-                                            padding: 20,
+                                            padding: isMobile ? 10 : 20,
                                         }}
                                     >
                                         <View style={{ flexDirection: "row", alignSelf: "flex-end", marginBottom: 10, }}>
@@ -306,8 +307,12 @@ export default function Inventarios({ navigation }: Props) {
                                                     label="Generar PDF"
                                                     onPress={async () => {
                                                         if (Platform.OS === "web") {
+                                                            setForceDesktopMode(true);
+                                                            await new Promise((resolve) => setTimeout(resolve, 200));
                                                             const element = document.getElementById("modalLeerInventario");
                                                             if (!element) return;
+
+                                                            setForceDesktopMode(false);
 
                                                             const captureWidthPx = 1000;
                                                             const captureScale = 3;
@@ -442,7 +447,7 @@ export default function Inventarios({ navigation }: Props) {
                                         <View style={{ height: 1, backgroundColor: "#000" }}></View>
 
                                         <ScrollView
-                                            style={{ paddingHorizontal: 40, paddingVertical: 30 }}
+                                            style={{ paddingHorizontal: isMobile ? 10 : 40, paddingVertical: isMobile ? 10 : 30 }}
                                             {...(Platform.OS === "web" ? { id: "modalLeerInventario" } : {})}
                                         >
                                             <View style={{ alignItems: "flex-start" }}>
@@ -454,25 +459,25 @@ export default function Inventarios({ navigation }: Props) {
                                             <Text style={{ fontSize: 28, fontWeight: "bold", textAlign: "center", marginBottom: 20 }}>
                                                 {datosModal?.inventario}
                                             </Text>
-                                            <Text style={{ marginBottom: 5 }}>
+                                            <View style={{ marginBottom: 5, flexDirection: isMobile ? "column" : "row" }}>
                                                 <Text style={{ fontWeight: "bold" }}>Fecha: </Text>
-                                                {datosModal?.fecha}
-                                            </Text>
-                                            <Text style={{ marginBottom: 5 }}>
+                                                <Text>{datosModal?.fecha}</Text>
+                                            </View>
+                                            <View style={{ marginBottom: 5, flexDirection: isMobile ? "column" : "row" }}>
                                                 <Text style={{ fontWeight: "bold" }}>Operador de inventario materiales: </Text>
-                                                {datosModal?.nombreusuario}
-                                            </Text>
-                                            <Text style={{ marginBottom: 5 }}>
+                                                <Text>{datosModal?.nombreusuario}</Text>
+                                            </View>
+                                            <View style={{ marginBottom: 5, flexDirection: isMobile ? "column" : "row" }}>
                                                 <Text style={{ fontWeight: "bold" }}>Cédula técnico: </Text>
-                                                {datosModal?.cedulaTecnico}
-                                            </Text>
-                                            <Text style={{ marginBottom: 5 }}>
+                                                <Text>{datosModal?.cedulaTecnico}</Text>
+                                            </View>
+                                            <View style={{ marginBottom: 5, flexDirection: isMobile ? "column" : "row" }}>
                                                 <Text style={{ fontWeight: "bold" }}>Nombre técnico: </Text>
-                                                {datosModal?.nombreTecnico?.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase())}
-                                            </Text>
+                                                <Text>{datosModal?.nombreTecnico?.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase())}</Text>
+                                            </View>
 
                                             <Text style={{ marginTop: 20, fontWeight: "bold" }}>Materiales:</Text>
-                                            <View style={{ marginVertical: 20, marginHorizontal: 20 }}>
+                                            <View style={{ marginVertical: 20, marginHorizontal: isMobile ? 0 : 20 }}>
                                                 <View style={{ flexDirection: "row", marginTop: 5, borderBottomWidth: 1, borderBottomColor: "#000", paddingBottom: 5 }}>
                                                     <Text style={{ flex: 1, fontWeight: "bold" }}>Código</Text>
                                                     <Text style={{ flex: 2, fontWeight: "bold" }}>Descripción</Text>
@@ -498,7 +503,7 @@ export default function Inventarios({ navigation }: Props) {
                                             </View>
 
                                             <Text style={{ marginTop: 10, fontWeight: "bold" }}>Firmas:</Text>
-                                            <View style={{ flexDirection: "row" }}>
+                                            <View style={{ flexDirection: isMobile ? "column" : "row" }}>
                                                 {datosModal?.firmaMateriales && (
                                                     <View style={{ flexDirection: "column", marginHorizontal: 20, marginVertical: 20 }}>
                                                         <Image source={{ uri: datosModal.firmaMateriales }} style={{ width: 200, height: 100 }} />
