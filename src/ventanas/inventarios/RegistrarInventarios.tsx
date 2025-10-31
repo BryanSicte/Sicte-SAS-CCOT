@@ -43,8 +43,8 @@ export default function RegistrarInventarios({ navigation }) {
 
     const createEmptyFormData = (user) => ({
         fecha: new Date(),
-        cedulaUsuario: user?.cedula || "Pendiente",
-        nombreusuario: user?.nombre || "Pendiente",
+        cedulaUsuario: user.cedula || "Pendiente",
+        nombreusuario: user.nombre || "Pendiente",
         cedulaTecnico: "",
         nombreTecnico: "",
         inventario: "Inventario Fiscal 2025",
@@ -127,8 +127,8 @@ export default function RegistrarInventarios({ navigation }) {
             const parsed = typeof savedData === "string" ? JSON.parse(savedData) : savedData;
             const data = {
                 fecha: new Date(parsed.fecha),
-                cedulaUsuario: user?.cedula,
-                nombreusuario: user?.nombre,
+                cedulaUsuario: parsed.cedulaUsuario || "Pendiente",
+                nombreusuario: parsed.nombreusuario || "Pendiente",
                 cedulaTecnico: parsed.cedulaTecnico,
                 nombreTecnico: parsed.nombreTecnico,
                 inventario: parsed.inventario,
@@ -174,8 +174,6 @@ export default function RegistrarInventarios({ navigation }) {
         if (!formData.nombreTecnico) { Toast.show({ type: "info", text1: "Falta información", text2: "Por favor ingrese la cedula del tecnico.", position: "top" }); return; }
         if (formData.nombreTecnico === 'Usuario no encontrado') { Toast.show({ type: "info", text1: "Falta información", text2: "Por favor ingrese una cedula correcta.", position: "top" }); return; }
         if (!formData.materiales || formData.materiales.length === 0) { Toast.show({ type: "info", text1: "Falta información", text2: "Debe agregar al menos un material antes de continuar.", position: "top" }); return; }
-        if (!formData.firmaMateriales) { Toast.show({ type: "info", text1: "Falta firma", text2: "Por favor firme el conteo de materiales.", position: "top" }); return; }
-        if (!formData.firmaTecnico) { Toast.show({ type: "info", text1: "Falta firma", text2: "Por favor firme el técnico responsable.", position: "top" }); return; }
 
         try {
             setLoading(true);
@@ -197,7 +195,7 @@ export default function RegistrarInventarios({ navigation }) {
     };
 
     const handleFormUpdate = async () => {
-        if (!formData.firmaEquipos) { Toast.show({ type: "info", text1: "Falta firma", text2: "Por favor firme el conteo de equipos.", position: "top" }); return; }
+        if (!formData.materiales || formData.materiales.length === 0) { Toast.show({ type: "info", text1: "Falta información", text2: "Debe agregar al menos un material antes de continuar.", position: "top" }); return; }
 
         try {
             setLoading(true);
@@ -205,7 +203,10 @@ export default function RegistrarInventarios({ navigation }) {
                 fecha: formatearFecha(formData.fecha),
                 cedulaTecnico: formData.cedulaTecnico,
                 inventario: formData.inventario,
-                firmaEquipos: formData.firmaEquipos,
+                materiales: formData.materiales,
+                firmaMateriales: formData.firmaMateriales || null,
+                firmaTecnico: formData.firmaTecnico || null,
+                firmaEquipos: formData.firmaEquipos || null,
             };
             const response = await putInventariosFirmaEquipos(dataEnviar);
             Toast.show({ type: "success", text1: response.messages.message1, text2: response.messages.message2, position: "top" });
@@ -356,7 +357,6 @@ export default function RegistrarInventarios({ navigation }) {
                                         const materialItem = material.data.find((p) => p.codigo === value);
                                         setNuevoMaterial({ ...nuevoMaterial, codigo: value, descripcion: materialItem?.descrip ? materialItem.descrip : "Material no encontrado", unidadMedida: materialItem?.unimed ? materialItem.unimed : "Material no encontrado" });
                                     }}
-                                    disabled={formAccion === "Editar"}
                                 />
                             </View>
                             <View style={{ position: "relative", zIndex: 3 }}>
@@ -374,7 +374,6 @@ export default function RegistrarInventarios({ navigation }) {
                                         const materialItem = material.data.find((p) => p.descrip === value);
                                         setNuevoMaterial({ ...nuevoMaterial, descripcion: value, codigo: materialItem?.codigo ? materialItem.codigo : "Material no encontrado", unidadMedida: materialItem?.unimed ? materialItem.unimed : "Material no encontrado" });
                                     }}
-                                    disabled={formAccion === "Editar"}
                                 />
                             </View>
                             <View style={{ position: "relative", zIndex: 2 }}>
@@ -384,7 +383,6 @@ export default function RegistrarInventarios({ navigation }) {
                                     placeholder="Ingrese la cantidad"
                                     value={nuevoMaterial.cantidad}
                                     onChangeText={(text) => setNuevoMaterial({ ...nuevoMaterial, cantidad: text })}
-                                    disabled={formAccion === "Editar"}
                                 />
                             </View>
                             <View style={{ position: "relative", zIndex: 1 }}>
@@ -398,7 +396,7 @@ export default function RegistrarInventarios({ navigation }) {
                                 />
                             </View>
                             <View style={{ alignSelf: "flex-start", marginTop: 5 }}>
-                                <CustomButton label="Agregar" onPress={handleGuardar} disabled={formAccion === "Editar"} />
+                                <CustomButton label="Agregar" onPress={handleGuardar} />
                             </View>
                         </View>
 
@@ -406,7 +404,7 @@ export default function RegistrarInventarios({ navigation }) {
                         <CustomTable
                             headers={headers}
                             data={formData.materiales.map((m) => [m.codigo, m.descripcion, m.cantidad, m.unidadMedida])}
-                            eliminar={formAccion !== "Editar"}
+                            eliminar={true}
                             onEliminar={(item) => {
                                 setFormData((prev) => ({
                                     ...prev,
@@ -415,30 +413,32 @@ export default function RegistrarInventarios({ navigation }) {
                             }}
                         />
 
-                        <View style={{ flex: 1, paddingTop: 20 }}>
-                            <Text style={[stylesGlobal.texto, styles.label, { marginBottom: 10 }]}>Firma del Conteo Materiales:</Text>
-
-                            <FirmaUniversal editable={!(formAccion === "Editar")} firmaInicial={formData.firmaMateriales} onFirmaChange={(uri) => setFormData({ ...formData, firmaMateriales: uri })} />
-                        </View>
-
-                        <View style={{ flex: 1, paddingTop: 10 }}>
-                            <Text style={[stylesGlobal.texto, styles.label, { marginBottom: 10 }]}>Firma del Tecnico:</Text>
-
-                            <FirmaUniversal editable={!(formAccion === "Editar")} firmaInicial={formData.firmaTecnico} onFirmaChange={(uri) => setFormData({ ...formData, firmaTecnico: uri })} />
-                        </View>
-
                         {formAccion === "Editar" && (
-                            <View style={{ flex: 1, paddingTop: 10, paddingBottom: 30 }}>
-                                <Text style={[stylesGlobal.texto, styles.label, { marginBottom: 10 }]}>Firma del Conteo Equipos:</Text>
+                            <>
+                                <View style={{ flex: 1, paddingTop: 20 }}>
+                                    <Text style={[stylesGlobal.texto, styles.label, { marginBottom: 10 }]}>Firma del Conteo Materiales:</Text>
 
-                                <FirmaUniversal editable={!initialFormDataRef.current.firmaEquipos && (user.rol === "admin" || user.cedula === "1054780199" || user.cedula === "1072699606" || user.cedula === "80163972" ) } firmaInicial={formData.firmaEquipos} onFirmaChange={(uri) => setFormData({ ...formData, firmaEquipos: uri })} />
-                            </View>
+                                    <FirmaUniversal editable={true} firmaInicial={formData.firmaMateriales} onFirmaChange={(uri) => setFormData({ ...formData, firmaMateriales: uri })} />
+                                </View>
+
+                                <View style={{ flex: 1, paddingTop: 10 }}>
+                                    <Text style={[stylesGlobal.texto, styles.label, { marginBottom: 10 }]}>Firma del Tecnico:</Text>
+
+                                    <FirmaUniversal editable={true} firmaInicial={formData.firmaTecnico} onFirmaChange={(uri) => setFormData({ ...formData, firmaTecnico: uri })} />
+                                </View>
+
+                                <View style={{ flex: 1, paddingTop: 10, paddingBottom: 30 }}>
+                                    <Text style={[stylesGlobal.texto, styles.label, { marginBottom: 10 }]}>Firma del Conteo Equipos:</Text>
+
+                                    <FirmaUniversal editable={!initialFormDataRef.current.firmaEquipos && (user.rol === "admin" || user.cedula === "1054780199" || user.cedula === "1072699606" || user.cedula === "80163972")} firmaInicial={formData.firmaEquipos} onFirmaChange={(uri) => setFormData({ ...formData, firmaEquipos: uri })} />
+                                </View>
+                            </>
                         )}
                     </View>
 
                     <View style={{ alignSelf: "center", marginTop: 15 }}>
                         {formAccion === "Editar" ? (
-                            <CustomButton label="Actualizar Formulario" variant="secondary" onPress={() => handleFormUpdate()} loading={loading} disabled={loading || !formData.firmaEquipos || initialFormDataRef.current.firmaEquipos} />
+                            <CustomButton label="Actualizar Formulario" variant="secondary" onPress={() => handleFormUpdate()} loading={loading} disabled={loading} />
                         ) : (
                             <CustomButton label="Enviar Formulario" variant="secondary" onPress={() => handleForm()} loading={loading} disabled={loading} />
                         )}

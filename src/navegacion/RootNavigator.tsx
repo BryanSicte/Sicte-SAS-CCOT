@@ -26,8 +26,9 @@ import RegistrarParqueAutomotor from '../ventanas/parqueAutomotor/RegistrarParqu
 import CadenaDeSuministro from '../ventanas/cadenaDeSuministro/CadenaDeSuministro';
 import ResumenAbastecimiento from '../ventanas/cadenaDeSuministro/ResumenAbastecimiento';
 import SolicitudAbastecimiento from '../ventanas/cadenaDeSuministro/SolicitudAbastecimiento';
-import BodegaAbastecimiento from '../ventanas/cadenaDeSuministro/BodegaAbastecimiento';
-import GestionDeCompraAbastecimiento from '../ventanas/cadenaDeSuministro/GestionDeCompraAbastecimiento';
+import SolicitudAbastecimientoNuevo from '../ventanas/cadenaDeSuministro/SolicitudAbastecimientoNuevo';
+import LogisticaAbastecimiento from '../ventanas/cadenaDeSuministro/LogisticaAbastecimiento';
+import ComprasAbastecimiento from '../ventanas/cadenaDeSuministro/ComprasAbastecimiento';
 import AprobacionesAbastecimiento from '../ventanas/cadenaDeSuministro/AprobacionesAbastecimiento';
 import TesoreriaAbastecimiento from '../ventanas/cadenaDeSuministro/TesoreriaAbastecimiento';
 import DetailsScreen from '../ventanas/DetailsScreen';
@@ -60,9 +61,10 @@ export type RootStackParamList = {
     RegistrarParqueAutomotor: { message?: string, label?: string };
     CadenaDeSuministro: { message?: string, label?: string };
     ResumenAbastecimiento: { message?: string, label?: string };
+    SolicitudAbastecimientoNuevo: { message?: string, label?: string };
     SolicitudAbastecimiento: { message?: string, label?: string };
-    BodegaAbastecimiento: { message?: string, label?: string };
-    GestionDeCompraAbastecimiento: { message?: string, label?: string };
+    LogisticaAbastecimiento: { message?: string, label?: string };
+    ComprasAbastecimiento: { message?: string, label?: string };
     AprobacionesAbastecimiento: { message?: string, label?: string };
     TesoreriaAbastecimiento: { message?: string, label?: string };
     Inventarios: { message?: string, label?: string };
@@ -321,8 +323,8 @@ export default function RootNavigator() {
                 />
 
                 <Stack.Screen
-                    name="BodegaAbastecimiento"
-                    component={BodegaAbastecimiento}
+                    name="SolicitudAbastecimientoNuevo"
+                    component={SolicitudAbastecimientoNuevo}
                     options={() => {
                         return {
                             ...getHeaderOptions("Cadena de Suministro", {
@@ -339,8 +341,26 @@ export default function RootNavigator() {
                 />
 
                 <Stack.Screen
-                    name="GestionDeCompraAbastecimiento"
-                    component={GestionDeCompraAbastecimiento}
+                    name="LogisticaAbastecimiento"
+                    component={LogisticaAbastecimiento}
+                    options={() => {
+                        return {
+                            ...getHeaderOptions("Cadena de Suministro", {
+                                toggleMenu,
+                                toggleTheme,
+                                isDark,
+                                colors,
+                                navigation,
+                                showLogo: !isMobileWeb,
+                                isMobileWeb: isMobileWeb,
+                            }),
+                        };
+                    }}
+                />
+
+                <Stack.Screen
+                    name="ComprasAbastecimiento"
+                    component={ComprasAbastecimiento}
                     options={() => {
                         return {
                             ...getHeaderOptions("Cadena de Suministro", {

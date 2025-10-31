@@ -6,16 +6,16 @@ import CadenaDeSuministro from "./CadenaDeSuministro";
 import { useThemeCustom } from "../../contexto/ThemeContext";
 import { darkColors, lightColors } from "../../estilos/Colors";
 
-type Props = NativeStackScreenProps<RootStackParamList, "GestionDeCompraAbastecimiento">;
+type Props = NativeStackScreenProps<RootStackParamList, "LogisticaAbastecimiento">;
 
-export default function GestionDeCompraAbastecimiento({ navigation }: Props) {
+export default function LogisticaAbastecimiento({ navigation }: Props) {
     const { isDark } = useThemeCustom();
     const colors = isDark ? darkColors : lightColors;
 
     return (
-        <CadenaDeSuministro navigation={navigation} defaultPage="Gestion de Compra">
+        <CadenaDeSuministro navigation={navigation} defaultPage="Logistica">
             <View>
-                <Text style={{ color: colors.texto, fontSize: 18 }}>Gestion De Compra</Text>
+                <Text style={{ color: colors.texto, fontSize: 18 }}>Logistica</Text>
             </View>
         </CadenaDeSuministro>
     );
