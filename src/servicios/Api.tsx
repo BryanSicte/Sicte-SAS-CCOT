@@ -77,8 +77,8 @@ export const getBodegaKgprodOperacionesCodigoDescripUnimed = () =>
 export const postInventarios = (data) =>
     request("/inventarios/crearRegistro", "POST", data);
 
-export const putInventariosFirmaEquipos = (data) =>
-    request("/inventarios/actualizarFirmaEquipos", "PUT", data);
+export const putInventarios = (data) =>
+    request("/inventarios/actualizarRegistros", "PUT", data);
 
 export const getInventarios = () =>
     request("/inventarios/registros", "GET");

@@ -8,7 +8,7 @@ import { useThemeCustom } from "../../contexto/ThemeContext";
 import LabeledInput from "../../compuestos/Input";
 import LabeledDatePicker from "../../compuestos/Date";
 import Toast from "react-native-toast-message";
-import { getUsuariosCedulaNombre, getBodegaKgprodOperacionesCodigoDescripUnimed, postInventarios, getInventariosCedulasTecnico, putInventariosFirmaEquipos } from "../../servicios/Api";
+import { getUsuariosCedulaNombre, getBodegaKgprodOperacionesCodigoDescripUnimed, postInventarios, getInventariosCedulasTecnico, putInventarios } from "../../servicios/Api";
 import { usePlantaData } from "../../contexto/PlantaDataContext";
 import { useUserData } from "../../contexto/UserDataContext";
 import { useNavigationParams } from "../../contexto/NavigationParamsContext";
@@ -43,8 +43,8 @@ export default function RegistrarInventarios({ navigation }) {
 
     const createEmptyFormData = (user) => ({
         fecha: new Date(),
-        cedulaUsuario: user.cedula || "Pendiente",
-        nombreusuario: user.nombre || "Pendiente",
+        cedulaUsuario: user?.cedula || "Pendiente",
+        nombreusuario: user?.nombre || "Pendiente",
         cedulaTecnico: "",
         nombreTecnico: "",
         inventario: "Inventario Fiscal 2025",
@@ -68,9 +68,11 @@ export default function RegistrarInventarios({ navigation }) {
         try {
             const accionTemp = await Storage.getItem("formInventarioAccion");
             setFormAccion(accionTemp?.replace(/['"]+/g, '').trim());
-            const dataUsuarios = await getUsuariosCedulaNombre()
-            await setPlanta(dataUsuarios);
-            Toast.show({ type: "success", text1: dataUsuarios.messages.message1, text2: dataUsuarios.messages.message2, position: "top" });
+            if (accionTemp === "Editar") {
+                const dataUsuarios = await getUsuariosCedulaNombre()
+                await setPlanta(dataUsuarios);
+                Toast.show({ type: "success", text1: dataUsuarios.messages.message1, text2: dataUsuarios.messages.message2, position: "top" });
+            }
             const dataMaterial = await getBodegaKgprodOperacionesCodigoDescripUnimed()
             await setMaterial(dataMaterial);
             Toast.show({ type: "success", text1: dataMaterial.messages.message1, text2: dataMaterial.messages.message2, position: "top" });
@@ -127,8 +129,8 @@ export default function RegistrarInventarios({ navigation }) {
             const parsed = typeof savedData === "string" ? JSON.parse(savedData) : savedData;
             const data = {
                 fecha: new Date(parsed.fecha),
-                cedulaUsuario: parsed.cedulaUsuario || "Pendiente",
-                nombreusuario: parsed.nombreusuario || "Pendiente",
+                cedulaUsuario: user?.cedula || "Pendiente",
+                nombreusuario: user?.nombre || "Pendiente",
                 cedulaTecnico: parsed.cedulaTecnico,
                 nombreTecnico: parsed.nombreTecnico,
                 inventario: parsed.inventario,
@@ -195,20 +197,28 @@ export default function RegistrarInventarios({ navigation }) {
     };
 
     const handleFormUpdate = async () => {
+        if (!formData.fecha) { Toast.show({ type: "info", text1: "Falta información", text2: "Por favor cierre sesion y vuelva a ingresar.", position: "top" }); return; }
+        if (!formData.cedulaUsuario) { Toast.show({ type: "info", text1: "Falta información", text2: "Por favor cierre sesion y vuelva a ingresar.", position: "top" }); return; }
+        if (formData.cedulaUsuario === 'Pendiente') { Toast.show({ type: "info", text1: "Falta información", text2: "Por favor cierre sesion y vuelva a ingresar.", position: "top" }); return; }
+        if (!formData.nombreusuario) { Toast.show({ type: "info", text1: "Falta información", text2: "Por favor cierre sesion y vuelva a ingresar.", position: "top" }); return; }
+        if (formData.nombreusuario === 'Pendiente') { Toast.show({ type: "info", text1: "Falta información", text2: "Por favor cierre sesion y vuelva a ingresar.", position: "top" }); return; }
         if (!formData.materiales || formData.materiales.length === 0) { Toast.show({ type: "info", text1: "Falta información", text2: "Debe agregar al menos un material antes de continuar.", position: "top" }); return; }
 
         try {
             setLoading(true);
             const dataEnviar = {
                 fecha: formatearFecha(formData.fecha),
+                cedulaUsuario: formData.cedulaUsuario,
+                nombreusuario: formData.nombreusuario,
                 cedulaTecnico: formData.cedulaTecnico,
+                nombreTecnico: formData.nombreTecnico,
                 inventario: formData.inventario,
                 materiales: formData.materiales,
-                firmaMateriales: formData.firmaMateriales || null,
-                firmaTecnico: formData.firmaTecnico || null,
-                firmaEquipos: formData.firmaEquipos || null,
+                firmaMateriales: formData.firmaMateriales,
+                firmaTecnico: formData.firmaTecnico,
+                firmaEquipos: formData.firmaEquipos,
             };
-            const response = await putInventariosFirmaEquipos(dataEnviar);
+            const response = await putInventarios(dataEnviar);
             Toast.show({ type: "success", text1: response.messages.message1, text2: response.messages.message2, position: "top" });
             setFormData(createEmptyFormData(user));
             await Storage.removeItem("formInventario");
@@ -418,13 +428,13 @@ export default function RegistrarInventarios({ navigation }) {
                                 <View style={{ flex: 1, paddingTop: 20 }}>
                                     <Text style={[stylesGlobal.texto, styles.label, { marginBottom: 10 }]}>Firma del Conteo Materiales:</Text>
 
-                                    <FirmaUniversal editable={true} firmaInicial={formData.firmaMateriales} onFirmaChange={(uri) => setFormData({ ...formData, firmaMateriales: uri })} />
+                                    <FirmaUniversal editable={!initialFormDataRef.current.firmaMateriales} firmaInicial={formData.firmaMateriales} onFirmaChange={(uri) => setFormData({ ...formData, firmaMateriales: uri })} />
                                 </View>
 
                                 <View style={{ flex: 1, paddingTop: 10 }}>
                                     <Text style={[stylesGlobal.texto, styles.label, { marginBottom: 10 }]}>Firma del Tecnico:</Text>
 
-                                    <FirmaUniversal editable={true} firmaInicial={formData.firmaTecnico} onFirmaChange={(uri) => setFormData({ ...formData, firmaTecnico: uri })} />
+                                    <FirmaUniversal editable={!initialFormDataRef.current.firmaTecnico} firmaInicial={formData.firmaTecnico} onFirmaChange={(uri) => setFormData({ ...formData, firmaTecnico: uri })} />
                                 </View>
 
                                 <View style={{ flex: 1, paddingTop: 10, paddingBottom: 30 }}>
@@ -438,7 +448,7 @@ export default function RegistrarInventarios({ navigation }) {
 
                     <View style={{ alignSelf: "center", marginTop: 15 }}>
                         {formAccion === "Editar" ? (
-                            <CustomButton label="Actualizar Formulario" variant="secondary" onPress={() => handleFormUpdate()} loading={loading} disabled={loading} />
+                            <CustomButton label="Actualizar Formulario" variant="secondary" onPress={() => handleFormUpdate()} loading={loading} disabled={loading || (initialFormDataRef.current.firmaMateriales && initialFormDataRef.current.firmaTecnico && initialFormDataRef.current.firmaEquipos)} />
                         ) : (
                             <CustomButton label="Enviar Formulario" variant="secondary" onPress={() => handleForm()} loading={loading} disabled={loading} />
                         )}

@@ -131,6 +131,16 @@ export default function Inventarios({ navigation }: Props) {
 
         const base = registrosRelacionados[0];
 
+        const usuarios = Object.values(
+            registrosRelacionados.reduce((acc, r) => {
+                acc[r.cedulaUsuario] = {
+                    cedula: r.cedulaUsuario,
+                    nombre: r.nombreusuario
+                };
+                return acc;
+            }, {})
+        ).sort((a, b) => a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' }));
+
         const materiales = registrosRelacionados.map((r) => ({
             codigo: r.codigo,
             descripcion: r.descripcion,
@@ -140,8 +150,9 @@ export default function Inventarios({ navigation }: Props) {
 
         const datosEditar = {
             fecha: base.fecha,
-            cedulaUsuario: base.cedulaUsuario,
-            nombreusuario: base.nombreusuario,
+            ...(modo === "Editar" ? { cedulaUsuario: base.cedulaUsuario } : {}),
+            ...(modo === "Editar" ? { nombreusuario: base.nombreusuario } : {}),
+            ...(modo === "Leer" ? { usuarios: usuarios } : {}),
             inventario: base.inventario,
             cedulaTecnico: base.cedulaTecnico,
             nombreTecnico: base.nombreTecnico,
@@ -465,7 +476,7 @@ export default function Inventarios({ navigation }: Props) {
                                             </View>
                                             <View style={{ marginBottom: 5, flexDirection: isMobile ? "column" : "row" }}>
                                                 <Text style={{ fontWeight: "bold" }}>Operador de inventario materiales: </Text>
-                                                <Text>{datosModal?.nombreusuario}</Text>
+                                                <Text>{datosModal?.usuarios?.map(u => u.nombre).join(isMobile ? '\n' : ', ')}</Text>
                                             </View>
                                             <View style={{ marginBottom: 5, flexDirection: isMobile ? "column" : "row" }}>
                                                 <Text style={{ fontWeight: "bold" }}>Cédula técnico: </Text>
@@ -509,8 +520,11 @@ export default function Inventarios({ navigation }: Props) {
                                                         <Image source={{ uri: datosModal.firmaMateriales }} style={{ width: 200, height: 100 }} />
                                                         <View style={{ height: 1, backgroundColor: "#000" }}></View>
                                                         <Text>Operador de inventario materiales</Text>
-                                                        <Text>{datosModal?.nombreusuario}</Text>
-                                                        <Text>CC: {datosModal?.cedulaUsuario}</Text>
+                                                        <Text>
+                                                            {datosModal?.usuarios
+                                                                ?.map(u => `${u.nombre}\nCC: ${u.cedula}`)
+                                                                .join('\n')}
+                                                        </Text>
                                                     </View>
                                                 )}
                                                 {datosModal?.firmaTecnico && (

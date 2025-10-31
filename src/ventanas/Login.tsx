@@ -21,7 +21,7 @@ export default function Login({ navigation }: Props) {
     const stylesGlobal = useGlobalStyles();
     const styles = stylesLocal();
     const { params, setParams } = useNavigationParams();
-    const mensaje = params["Login"].message;
+    const mensaje = params["Login"]?.message || "";
     const [correo, setCorreo] = useState('');
     const [password, setPassword] = useState('');
     const { user, setUser } = useUserData();
