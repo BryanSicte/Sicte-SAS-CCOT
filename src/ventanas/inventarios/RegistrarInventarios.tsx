@@ -68,11 +68,9 @@ export default function RegistrarInventarios({ navigation }) {
         try {
             const accionTemp = await Storage.getItem("formInventarioAccion");
             setFormAccion(accionTemp?.replace(/['"]+/g, '').trim());
-            if (accionTemp === "Nuevo") {
-                const dataUsuarios = await getUsuariosCedulaNombre()
-                await setPlanta(dataUsuarios);
-                Toast.show({ type: "success", text1: dataUsuarios.messages.message1, text2: dataUsuarios.messages.message2, position: "top" });
-            }
+            const dataUsuarios = await getUsuariosCedulaNombre()
+            await setPlanta(dataUsuarios);
+            Toast.show({ type: "success", text1: dataUsuarios.messages.message1, text2: dataUsuarios.messages.message2, position: "top" });
             const dataMaterial = await getBodegaKgprodOperacionesCodigoDescripUnimed()
             await setMaterial(dataMaterial);
             Toast.show({ type: "success", text1: dataMaterial.messages.message1, text2: dataMaterial.messages.message2, position: "top" });
