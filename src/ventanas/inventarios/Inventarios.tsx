@@ -401,7 +401,7 @@ export default function Inventarios({ navigation }: Props) {
                                                                     heightLeft -= pdf.internal.pageSize.getHeight();
                                                                 }
 
-                                                                pdf.save(`Inventario_${datosModal?.inventario}.pdf`);
+                                                                pdf.save(`Inventario_${datosModal?.inventario}_${datosModal?.cedulaTecnico}.pdf`);
 
                                                                 Toast.show({
                                                                     type: "success",
