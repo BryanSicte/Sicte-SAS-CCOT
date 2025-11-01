@@ -68,7 +68,7 @@ export default function RegistrarInventarios({ navigation }) {
         try {
             const accionTemp = await Storage.getItem("formInventarioAccion");
             setFormAccion(accionTemp?.replace(/['"]+/g, '').trim());
-            if (accionTemp === "Editar") {
+            if (accionTemp === "Nuevo") {
                 const dataUsuarios = await getUsuariosCedulaNombre()
                 await setPlanta(dataUsuarios);
                 Toast.show({ type: "success", text1: dataUsuarios.messages.message1, text2: dataUsuarios.messages.message2, position: "top" });
