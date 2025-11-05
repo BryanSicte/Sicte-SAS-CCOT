@@ -22,8 +22,8 @@ type Props = NativeStackScreenProps<RootStackParamList, 'ParqueAutomotor'>;
 
 const tabs: TabItem[] = [
     { key: "registros", label: "Registros" },
-    // { key: "reportes", label: "Reportes" },
-    // { key: "config", label: "Config" },
+    { key: "vehiculos en campo", label: "Vehiculos en campo" },
+    { key: "pendientes por reportar", label: "Pendientes por reportar" },
 ];
 
 export default function ParqueAutomotor({ navigation }: Props) {
@@ -33,7 +33,7 @@ export default function ParqueAutomotor({ navigation }: Props) {
     const { setParams } = useNavigationParams();
     const headers = ["Fecha", "Usuario", "Sede", "Placa", "Estado", "Nombre"];
     const [data, setData] = useState<any[]>([]);
-    const [dataTabla, setDataTabla] = useState<any[]>([]);
+    const [dataTablaRegistros, setDataTablaRegistros] = useState<any[]>([]);
     const { getUser, logout } = useUserData();
     const { setMenuVisibleUser } = useUserMenu();
     const isMobileWeb = useIsMobileWeb();
@@ -56,7 +56,7 @@ export default function ParqueAutomotor({ navigation }: Props) {
                 const fechaB = new Date(b[0]);
                 return fechaB.getTime() - fechaA.getTime();
             });
-            setDataTabla(tablaOrdenada);
+            setDataTablaRegistros(tablaOrdenada);
             Toast.show({ type: "success", text1: response.messages.message1, text2: response.messages.message2, position: "top" });
         } catch (error) {
             Toast.show({ type: "error", text1: error.data.messages.message1, text2: error.data.messages.message2, position: "top" });
@@ -83,17 +83,75 @@ export default function ParqueAutomotor({ navigation }: Props) {
         loadData();
     }, []);
 
-    const [activeTab, setActiveTab] = useState<"registros" | "reportes" | "config">(
+    const [activeTab, setActiveTab] = useState<"registros" | "vehiculos en campo" | "pendientes por reportar">(
         "registros"
     );
 
-
-    const handleDownloadXLSX = () => {
+    const handleDownloadXLSXRegistros = () => {
         if (data.data.length === 0) return;
         const headers = Object.keys(data.data[0]);
         const rows = data.data.map((obj: any) => headers.map((key) => obj[key] ?? null));
-        exportToExcel("Parque Automotor", rows, headers);
+        exportToExcel("Parque automotor registros", rows, headers);
     };
+
+    let datosEnCampo: any[] | null = null;
+    let datosTablaEnCampo: any[] | null = null;
+    const [dataEnCampo, setDataEnCampo] = useState<any[]>([]);
+    const [dataTablaEnCampo, setDataTablaEnCampo] = useState<any[]>([]);
+
+    function obtenerVehiculosEnCampoSoloUnaVez(data: any[]) {
+        if (datosEnCampo && datosTablaEnCampo) {
+            return { dataTemp: datosEnCampo, tablaTemp: datosTablaEnCampo };
+        }
+
+        const registros = Array.isArray(data?.data) ? data.data : [];
+
+        const ultimaSalidaPorPlaca = Object.values(
+            registros.reduce((acc, registro) => {
+                const { placa, fecha } = registro;
+                if (!acc[placa] || new Date(fecha) > new Date(acc[placa].fecha)) {
+                    acc[placa] = registro;
+                }
+                return acc;
+            }, {})
+        ).filter((r: any) => r.estado === "Salida de vehiculo de la sede");
+
+        datosEnCampo = ultimaSalidaPorPlaca;
+
+        const tablaFormateada = ultimaSalidaPorPlaca.map((item: any) => [
+            item.fecha,
+            item.usuario,
+            item.sede,
+            item.placa,
+            item.estado,
+            item.nombre,
+        ]);
+
+        const tablaOrdenada = [...tablaFormateada].sort((a, b) => {
+            const fechaA = new Date(a[0]);
+            const fechaB = new Date(b[0]);
+            return fechaB.getTime() - fechaA.getTime();
+        });
+
+        datosTablaEnCampo = tablaOrdenada;
+
+        return { dataTemp: ultimaSalidaPorPlaca, tablaTemp: tablaOrdenada };
+    }
+
+    const handleDownloadXLSXEnCampo = () => {
+        if (dataEnCampo.length === 0) return;
+        const headers = Object.keys(dataEnCampo[0]);
+        const rows = dataEnCampo.map((obj: any) => headers.map((key) => obj[key] ?? null));
+        exportToExcel("Parque automotor en uso", rows, headers);
+    };
+
+    useEffect(() => {
+        if (data?.data) {
+            const { dataTemp, tablaTemp } = obtenerVehiculosEnCampoSoloUnaVez(data);
+            setDataTablaEnCampo(tablaTemp);
+            setDataEnCampo(dataTemp);
+        }
+    }, [data]);
 
     if (loading) {
         return <Loader visible={loading} />;
@@ -126,7 +184,7 @@ export default function ParqueAutomotor({ navigation }: Props) {
                                 <CustomButton
                                     label="Descargar"
                                     variant="secondary"
-                                    onPress={handleDownloadXLSX}
+                                    onPress={handleDownloadXLSXRegistros}
                                 />
                                 <CustomButton
                                     label="Nuevo"
@@ -138,18 +196,48 @@ export default function ParqueAutomotor({ navigation }: Props) {
                                 />
                             </View>
                             <View style={{ marginHorizontal: isMobileWeb ? 10 : 20 }}>
-                                <CustomTable headers={headers} data={dataTabla} />
+                                <CustomTable headers={headers} data={dataTablaRegistros} />
                             </View>
                         </ScrollView>
                     </KeyboardAvoidingView>
                 </>
             )}
 
-            {activeTab === "reportes" && (
-                <Text style={stylesGlobal.texto}>⚙️ Reportes del módulo</Text>
+            {activeTab === "vehiculos en campo" && (
+                <>
+                    <KeyboardAvoidingView
+                        style={{ flex: 1 }}
+                        behavior={Platform.OS === "ios" ? "padding" : "height"}
+                        keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
+                    >
+                        <ScrollView
+                            contentContainerStyle={{ paddingBottom: 60 }}
+                            showsVerticalScrollIndicator={false}
+                            keyboardShouldPersistTaps="handled"
+                        >
+                            <View style={{
+                                marginTop: isMobileWeb ? 10 : 20,
+                                marginHorizontal: isMobileWeb ? 10 : 20,
+                                marginBottom: 10,
+                                flexDirection: "row",
+                                justifyContent: "space-between",
+                                alignSelf: "stretch",
+                            }}>
+                                <CustomButton
+                                    label="Descargar"
+                                    variant="secondary"
+                                    onPress={handleDownloadXLSXEnCampo}
+                                />
+                            </View>
+                            <View style={{ marginHorizontal: isMobileWeb ? 10 : 20 }}>
+                                <CustomTable headers={headers} data={dataTablaEnCampo} />
+                            </View>
+                        </ScrollView>
+                    </KeyboardAvoidingView>
+                </>
             )}
 
-            {activeTab === "config" && (
+            {activeTab === "pendientes por reportar" && (
                 <Text style={stylesGlobal.texto}>⚙️ Configuración del módulo</Text>
             )}
         </View>

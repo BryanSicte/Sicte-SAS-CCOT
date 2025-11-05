@@ -15,6 +15,8 @@ export const handleLogout = async ({
         await Storage.removeItem("dataUser");
         await Storage.removeItem("dataPageUser");
         await Storage.removeItem("dataTokenUser");
+        await Storage.removeItem("dataPlanta");
+        await Storage.removeItem("dataMaterial");
         await Storage.removeItem("formInventarioAccion");
         await Storage.removeItem("formInventario");
         const result = await logout();
