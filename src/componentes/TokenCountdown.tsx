@@ -11,8 +11,8 @@ type Props = {
     setMenuVisibleUser: (v: boolean) => void;
 };
 
-const TokenCountdown = ({ 
-    expiryDate, 
+const TokenCountdown = ({
+    expiryDate,
     floating = false,
     logout,
     setMenuVisibleUser,
@@ -20,6 +20,7 @@ const TokenCountdown = ({
     const [timeLeft, setTimeLeft] = useState<string>("");
     const { isDark } = useThemeCustom();
     const colors = isDark ? darkColors : lightColors;
+    const { logoutHandler } = handleLogout();
 
     useEffect(() => {
         const target = new Date(expiryDate).getTime();
@@ -31,7 +32,7 @@ const TokenCountdown = ({
             if (diff <= 0) {
                 setTimeLeft("Expirado");
                 clearInterval(interval);
-                await handleLogout({
+                await logoutHandler({
                     logout,
                     setMenuVisibleUser,
                 });

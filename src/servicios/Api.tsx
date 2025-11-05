@@ -1,12 +1,13 @@
 import Constants from "expo-constants";
 import Storage from "../utilitarios/Storage";
+import { usePlantaData } from "../contexto/PlantaDataContext";
 
 const API_URL = Constants.expoConfig?.extra?.apiUrl;
 
 const request = async (endpoint, method = "GET", body = null, headers = {}) => {
     try {
         let token = null;
-        
+
         if (!endpoint.includes("/usuarios/loginV2")) {
             const storedTokenUser = await Storage.getItem("dataTokenUser");
             if (storedTokenUser) {
@@ -62,13 +63,17 @@ export const login = (correo, contrasena) =>
 export const getUsuarios = () =>
     request("/usuarios", "GET");
 
-export const getUsuariosCedulaNombre = () =>
-    request("/usuarios/plantaEnLineaCedulaNombreV2", "GET");
+export const getUsuariosCedulaNombre = async (planta) => {
+    if (planta && planta.data && planta.data.length > 0) {
+        return planta;
+    }
+    return await request("/usuarios/plantaEnLineaCedulaNombreV2", "GET");
+}
 
 export const postParqueAutomotor = (data) =>
     request("/parqueAutomotor/crearRegistro", "POST", data);
 
-export const getParqueAutomotor = () =>
+export const getParqueAutomotor = () => 
     request("/parqueAutomotor/registros", "GET");
 
 export const getBodegaKgprodOperacionesCodigoDescripUnimed = () =>

@@ -4,6 +4,7 @@ import TokenCountdown from "../componentes/TokenCountdown";
 import { useTokenUserData } from "./TokenUserContext";
 import { useUserMenu } from "./UserMenuContext";
 import { MaterialDataProvider } from "./MaterialDataContext";
+import { ParqueAutomotorDataProvider } from "./ParqueAutomotorDataContext";
 
 export const GlobalDataProvider = ({ children }: { children: React.ReactNode }) => {
     const { tokenUser } = useTokenUserData();
@@ -13,15 +14,17 @@ export const GlobalDataProvider = ({ children }: { children: React.ReactNode }) 
     return (
         <MaterialDataProvider>
             <PlantaDataProvider>
-                {children}
-                {user &&
-                    <TokenCountdown
-                        expiryDate={tokenUser?.expiryDate}
-                        floating
-                        logout={logout}
-                        setMenuVisibleUser={setMenuVisibleUser}
-                    />
-                }
+                <ParqueAutomotorDataProvider>
+                    {children}
+                    {user &&
+                        <TokenCountdown
+                            expiryDate={tokenUser?.expiryDate}
+                            floating
+                            logout={logout}
+                            setMenuVisibleUser={setMenuVisibleUser}
+                        />
+                    }
+                </ParqueAutomotorDataProvider>
             </PlantaDataProvider>
         </MaterialDataProvider>
     );

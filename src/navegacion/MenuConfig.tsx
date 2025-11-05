@@ -48,6 +48,7 @@ export const menuConfig = [
         icon: "hammer-outline",
         label: "Operación",
         items: [
+            { label: "Backlog AP", route: "PowerBIEmbed", nameBD: "operacionBacklogAP", params: { url: "https://app.powerbi.com/view?r=eyJrIjoiZDVmMTFiOWQtOTAwMC00MjczLThkYTEtNmFkNDkxZDYyN2FjIiwidCI6ImUwYmZlOTBkLTIwZTAtNDEwYi1iNmYxLTQyOWIwNDNkMzYwOCJ9" } },
             { label: "Correctivo - Preventivo", route: "PowerBIEmbed", nameBD: "operacionCorrectivoPreventivo", params: { url: "https://app.powerbi.com/view?r=eyJrIjoiOTFiYTAxMjgtYjc1Mi00ZmVhLWE3MDUtYzE1Nzc3MzAzOWU4IiwidCI6ImUwYmZlOTBkLTIwZTAtNDEwYi1iNmYxLTQyOWIwNDNkMzYwOCJ9&pageName=ReportSection" } },
             { label: "Cumplimiento SLA FO", route: "PowerBIEmbed", nameBD: "operacionCumplimientoSlaFo", params: { url: "https://app.powerbi.com/view?r=eyJrIjoiYmM0ZTU2NWMtMmFlYi00ZTE1LTlhZTEtNjYyNWM2ZDQ1NzViIiwidCI6ImUwYmZlOTBkLTIwZTAtNDEwYi1iNmYxLTQyOWIwNDNkMzYwOCJ9" } },
             { label: "Cumplimiento SLA HFC", route: "PowerBIEmbed", nameBD: "operacionCumplimientoSlaHfc", params: { url: "https://app.powerbi.com/view?r=eyJrIjoiODVkZThmM2ItZmJlZC00NjkyLThkNGUtYjUwZGFhNmNhM2RjIiwidCI6ImUwYmZlOTBkLTIwZTAtNDEwYi1iNmYxLTQyOWIwNDNkMzYwOCJ9" } },

@@ -9,7 +9,7 @@ import LabeledInput from "../../compuestos/Input";
 import LabeledSelect from "../../compuestos/Select";
 import LabeledDatePicker from "../../compuestos/Date";
 import Toast from "react-native-toast-message";
-import { getUsuariosCedulaNombre, postParqueAutomotor } from "../../servicios/Api";
+import { getParqueAutomotor, getUsuariosCedulaNombre, postParqueAutomotor } from "../../servicios/Api";
 import { usePlantaData } from "../../contexto/PlantaDataContext";
 import { useUserData } from "../../contexto/UserDataContext";
 import { useNavigationParams } from "../../contexto/NavigationParamsContext";
@@ -17,6 +17,7 @@ import { useUserMenu } from "../../contexto/UserMenuContext";
 import { handleLogout } from "../../utilitarios/HandleLogout";
 import { useIsMobileWeb } from "../../utilitarios/IsMobileWeb";
 import Loader from "../../componentes/Loader";
+import { useParqueAutomotorData } from "../../contexto/ParqueAutomotorDataContext";
 
 export default function RegistrarParqueAutomotor({ navigation }) {
     const stylesGlobal = useGlobalStyles();
@@ -26,8 +27,10 @@ export default function RegistrarParqueAutomotor({ navigation }) {
     const [loading, setLoading] = useState(true);
     const { planta, setPlanta } = usePlantaData();
     const { user, logout, getUser } = useUserData();
+    const { parqueAutomotor } = useParqueAutomotorData()
     const { setMenuVisibleUser } = useUserMenu();
     const isMobileWeb = useIsMobileWeb();
+    const { logoutHandler } = handleLogout();
 
     const createEmptyFormData = (user) => ({
         fecha: new Date(),
@@ -44,9 +47,13 @@ export default function RegistrarParqueAutomotor({ navigation }) {
 
     const loadData = async () => {
         try {
-            const data = await getUsuariosCedulaNombre()
-            await setPlanta(data);
-            Toast.show({ type: "success", text1: data.messages.message1, text2: data.messages.message2, position: "top" });
+            const dataPlanta = await getUsuariosCedulaNombre(planta)
+            if (dataPlanta && (!planta || planta.length === 0)) {
+                await setPlanta(dataPlanta);
+                Toast.show({ type: "success", text1: dataPlanta.messages.message1, text2: dataPlanta.messages.message2, position: "top" });
+            } else {
+                Toast.show({ type: "info", text1: "Datos ya disponibles", text2: "La información de planta ya se encontraba cargada.", position: "top" });
+            }
         } catch (error) {
             Toast.show({ type: "error", text1: error.data.messages.message1, text2: error.data.messages.message2, position: "top" });
         } finally {
@@ -59,7 +66,7 @@ export default function RegistrarParqueAutomotor({ navigation }) {
             try {
                 const userTemp = await getUser();
                 if (userTemp === null) {
-                    await handleLogout({
+                    await logoutHandler({
                         logout,
                         setMenuVisibleUser,
                     });
@@ -92,6 +99,52 @@ export default function RegistrarParqueAutomotor({ navigation }) {
         return `${año}-${mes}-${dia} ${horas}:${minutos}:${segundos}`;
     };
 
+    let datosEnCampo: any[] | null = null;
+    const [dataEnCampo, setDataEnCampo] = useState<any[]>([]);
+
+    function obtenerVehiculosEnCampoSoloUnaVez(data: any[]) {
+        if (datosEnCampo) {
+            return { dataTemp: datosEnCampo };
+        }
+
+        const registros = Array.isArray(parqueAutomotor?.data) ? parqueAutomotor.data : [];
+
+        const ultimaSalidaPorPlaca = Object.values(
+            registros.reduce((acc, registro) => {
+                const { placa, fecha } = registro;
+                if (!acc[placa] || new Date(fecha) > new Date(acc[placa].fecha)) {
+                    acc[placa] = registro;
+                }
+                return acc;
+            }, {})
+        ).filter((r: any) => r.estado === "Salida de vehiculo de la sede");
+
+        datosEnCampo = ultimaSalidaPorPlaca;
+
+        return { dataTemp: ultimaSalidaPorPlaca };
+    }
+
+    useEffect(() => {
+        if (parqueAutomotor?.data) {
+            const { dataTemp } = obtenerVehiculosEnCampoSoloUnaVez(parqueAutomotor);
+            setDataEnCampo(dataTemp);
+        }
+    }, [parqueAutomotor]);
+
+    const validarSiEstaEnCampo = (placa: string, cedula: string) => {
+        if (!dataEnCampo || dataEnCampo.length === 0) return { vehiculo: null, usuario: null };
+
+        const vehiculo = dataEnCampo.find(
+            (item: any) => item.placa?.toUpperCase() === placa?.toUpperCase()
+        );
+
+        const usuario = dataEnCampo.find(
+            (item: any) => item.cedula?.toString() === cedula?.toString()
+        );
+
+        return { vehiculo: vehiculo || null, usuario: usuario || null };
+    };
+
     const handleForm = async () => {
         if (!formData.sede) { Toast.show({ type: "info", text1: "Falta información", text2: "Por favor ingrese la sede.", position: "top" }); return; }
         if (!formData.placa) { Toast.show({ type: "info", text1: "Falta información", text2: "Por favor ingrese la placa.", position: "top" }); return; }
@@ -103,6 +156,11 @@ export default function RegistrarParqueAutomotor({ navigation }) {
         if (!formData.nombre) { Toast.show({ type: "info", text1: "Falta información", text2: "Por favor ingrese la nombre.", position: "top" }); return; }
         if (formData.nombre === 'Usuario no encontrado') { Toast.show({ type: "info", text1: "Falta información", text2: "Por favor ingrese un usuario correcto.", position: "top" }); return; }
         if (!formData.estado) { Toast.show({ type: "info", text1: "Falta información", text2: "Por favor ingrese la estado.", position: "top" }); return; }
+        if (formData.estado === "Salida de vehiculo de la sede") {
+            const { vehiculo, usuario } = validarSiEstaEnCampo(formData.placa, formData.cedula);
+            if (vehiculo) { Toast.show({ type: "error", text1: "Vehículo en campo", text2: `La placa ${vehiculo.placa} ya se encuentra en campo.`, position: "top" }); return; }
+            if (usuario) { Toast.show({ type: "error", text1: "Usuario en campo", text2: `La cédula ${usuario.cedula} ya tiene un vehículo en campo.`, position: "top" }); return; }
+        }
 
         try {
             setLoading(true);

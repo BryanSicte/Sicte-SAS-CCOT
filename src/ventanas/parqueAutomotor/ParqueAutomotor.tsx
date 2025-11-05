@@ -17,6 +17,7 @@ import { handleLogout } from '../../utilitarios/HandleLogout';
 import { useUserMenu } from '../../contexto/UserMenuContext';
 import { useIsMobileWeb } from '../../utilitarios/IsMobileWeb';
 import Loader from '../../componentes/Loader';
+import { useParqueAutomotorData } from '../../contexto/ParqueAutomotorDataContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ParqueAutomotor'>;
 
@@ -31,24 +32,25 @@ export default function ParqueAutomotor({ navigation }: Props) {
     const { isDark } = useThemeCustom();
     const colors = isDark ? darkColors : lightColors;
     const { setParams } = useNavigationParams();
-    const headers = ["Fecha", "Usuario", "Sede", "Placa", "Estado", "Nombre"];
-    const [data, setData] = useState<any[]>([]);
+    const headers = ["Fecha", "Sede", "Placa", "Estado", "Cedula", "Nombre"];
     const [dataTablaRegistros, setDataTablaRegistros] = useState<any[]>([]);
     const { getUser, logout } = useUserData();
     const { setMenuVisibleUser } = useUserMenu();
     const isMobileWeb = useIsMobileWeb();
     const [loading, setLoading] = useState(true);
+    const { logoutHandler } = handleLogout();
+    const { parqueAutomotor, setParqueAutomotor } = useParqueAutomotorData();
 
     const loadData = async () => {
         try {
             const response = await getParqueAutomotor();
-            setData(response);
+            setParqueAutomotor(response);
             const tablaFormateada = response.data.map((item: any) => [
                 item.fecha,
-                item.usuario,
                 item.sede,
                 item.placa,
                 item.estado,
+                item.cedula,
                 item.nombre,
             ]);
             const tablaOrdenada = [...tablaFormateada].sort((a, b) => {
@@ -70,7 +72,7 @@ export default function ParqueAutomotor({ navigation }: Props) {
             try {
                 const userTemp = await getUser();
                 if (userTemp === null) {
-                    await handleLogout({
+                    await logoutHandler({
                         logout,
                         setMenuVisibleUser,
                     });
@@ -88,9 +90,9 @@ export default function ParqueAutomotor({ navigation }: Props) {
     );
 
     const handleDownloadXLSXRegistros = () => {
-        if (data.data.length === 0) return;
-        const headers = Object.keys(data.data[0]);
-        const rows = data.data.map((obj: any) => headers.map((key) => obj[key] ?? null));
+        if (parqueAutomotor.data.length === 0) return;
+        const headers = Object.keys(parqueAutomotor.data[0]);
+        const rows = parqueAutomotor.data.map((obj: any) => headers.map((key) => obj[key] ?? null));
         exportToExcel("Parque automotor registros", rows, headers);
     };
 
@@ -104,7 +106,7 @@ export default function ParqueAutomotor({ navigation }: Props) {
             return { dataTemp: datosEnCampo, tablaTemp: datosTablaEnCampo };
         }
 
-        const registros = Array.isArray(data?.data) ? data.data : [];
+        const registros = Array.isArray(parqueAutomotor?.data) ? parqueAutomotor.data : [];
 
         const ultimaSalidaPorPlaca = Object.values(
             registros.reduce((acc, registro) => {
@@ -120,10 +122,10 @@ export default function ParqueAutomotor({ navigation }: Props) {
 
         const tablaFormateada = ultimaSalidaPorPlaca.map((item: any) => [
             item.fecha,
-            item.usuario,
             item.sede,
             item.placa,
             item.estado,
+            item.cedula,
             item.nombre,
         ]);
 
@@ -146,12 +148,12 @@ export default function ParqueAutomotor({ navigation }: Props) {
     };
 
     useEffect(() => {
-        if (data?.data) {
-            const { dataTemp, tablaTemp } = obtenerVehiculosEnCampoSoloUnaVez(data);
+        if (parqueAutomotor?.data) {
+            const { dataTemp, tablaTemp } = obtenerVehiculosEnCampoSoloUnaVez(parqueAutomotor);
             setDataTablaEnCampo(tablaTemp);
             setDataEnCampo(dataTemp);
         }
-    }, [data]);
+    }, [parqueAutomotor]);
 
     if (loading) {
         return <Loader visible={loading} />;

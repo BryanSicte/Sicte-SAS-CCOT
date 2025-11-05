@@ -89,9 +89,10 @@ export default function RootNavigator() {
     const { pages } = usePageUserData();
     const { menuVisibleUser, setMenuVisibleUser } = useUserMenu();
     const { params } = useNavigationParams();
+    const { logoutHandler } = handleLogout();
 
     const cerrarSesion = async () => {
-        await handleLogout({
+        await logoutHandler({
             logout,
             setMenuVisibleUser,
         });

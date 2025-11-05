@@ -40,6 +40,7 @@ export default function RegistrarInventarios({ navigation }) {
     const { open } = useMenu();
     const [formAccion, setFormAccion] = useState("");
     const initialFormDataRef = useRef(null);
+    const { logoutHandler } = handleLogout();
 
     const createEmptyFormData = (user) => ({
         fecha: new Date(),
@@ -89,7 +90,7 @@ export default function RegistrarInventarios({ navigation }) {
             try {
                 const userTemp = await getUser();
                 if (userTemp === null) {
-                    await handleLogout({
+                    await logoutHandler({
                         logout,
                         setMenuVisibleUser,
                     });

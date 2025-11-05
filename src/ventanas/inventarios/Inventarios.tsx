@@ -51,6 +51,7 @@ export default function Inventarios({ navigation }: Props) {
     const [datosModal, setDatosModal] = useState<any>(null);
     const [forceDesktopMode, setForceDesktopMode] = useState(false);
     const isMobile = !forceDesktopMode && isMobileWeb;
+    const { logoutHandler } = handleLogout();
 
     const loadData = async () => {
         try {
@@ -87,7 +88,7 @@ export default function Inventarios({ navigation }: Props) {
             try {
                 const userTemp = await getUser();
                 if (userTemp === null) {
-                    await handleLogout({
+                    await logoutHandler({
                         logout,
                         setMenuVisibleUser,
                     });
