@@ -18,6 +18,7 @@ import { handleLogout } from "../../utilitarios/HandleLogout";
 import { useIsMobileWeb } from "../../utilitarios/IsMobileWeb";
 import Loader from "../../componentes/Loader";
 import { useParqueAutomotorData } from "../../contexto/ParqueAutomotorDataContext";
+import LabeledTextArea from "../../compuestos/Textarea";
 
 export default function RegistrarParqueAutomotor({ navigation }) {
     const stylesGlobal = useGlobalStyles();
@@ -41,6 +42,7 @@ export default function RegistrarParqueAutomotor({ navigation }) {
         cedula: "",
         nombre: "",
         estado: "",
+        observaciones: "",
     });
 
     const [formData, setFormData] = useState(createEmptyFormData(user));
@@ -99,17 +101,17 @@ export default function RegistrarParqueAutomotor({ navigation }) {
         return `${año}-${mes}-${dia} ${horas}:${minutos}:${segundos}`;
     };
 
-    let datosEnCampo: any[] | null = null;
-    const [dataEnCampo, setDataEnCampo] = useState<any[]>([]);
+    let datosUltimoMovimiento: any[] | null = null;
+    const [dataUltimoMovimiento, setDataUltimoMovimiento] = useState<any[]>([]);
 
-    function obtenerVehiculosEnCampoSoloUnaVez(data: any[]) {
-        if (datosEnCampo) {
-            return { dataTemp: datosEnCampo };
+    function obtenerVehiculosUltimoMovimientoSoloUnaVez(data: any[]) {
+        if (datosUltimoMovimiento) {
+            return { dataTemp: datosUltimoMovimiento };
         }
 
         const registros = Array.isArray(parqueAutomotor?.data) ? parqueAutomotor.data : [];
 
-        const ultimaSalidaPorPlaca = Object.values(
+        const ultimoMovimientoPorPlaca = Object.values(
             registros.reduce((acc, registro) => {
                 const { placa, fecha } = registro;
                 if (!acc[placa] || new Date(fecha) > new Date(acc[placa].fecha)) {
@@ -117,28 +119,28 @@ export default function RegistrarParqueAutomotor({ navigation }) {
                 }
                 return acc;
             }, {})
-        ).filter((r: any) => r.estado === "Salida de vehiculo de la sede");
+        )
 
-        datosEnCampo = ultimaSalidaPorPlaca;
+        datosUltimoMovimiento = ultimoMovimientoPorPlaca;
 
-        return { dataTemp: ultimaSalidaPorPlaca };
+        return { dataTemp: ultimoMovimientoPorPlaca };
     }
 
     useEffect(() => {
         if (parqueAutomotor?.data) {
-            const { dataTemp } = obtenerVehiculosEnCampoSoloUnaVez(parqueAutomotor);
-            setDataEnCampo(dataTemp);
+            const { dataTemp } = obtenerVehiculosUltimoMovimientoSoloUnaVez(parqueAutomotor);
+            setDataUltimoMovimiento(dataTemp);
         }
     }, [parqueAutomotor]);
 
-    const validarSiEstaEnCampo = (placa: string, cedula: string) => {
-        if (!dataEnCampo || dataEnCampo.length === 0) return { vehiculo: null, usuario: null };
+    const validarUltimoMovimiento = (placa: string, cedula: string) => {
+        if (!dataUltimoMovimiento || dataUltimoMovimiento.length === 0) return { vehiculo: null, usuario: null };
 
-        const vehiculo = dataEnCampo.find(
+        const vehiculo = dataUltimoMovimiento.find(
             (item: any) => item.placa?.toUpperCase() === placa?.toUpperCase()
         );
 
-        const usuario = dataEnCampo.find(
+        const usuario = dataUltimoMovimiento.find(
             (item: any) => item.cedula?.toString() === cedula?.toString()
         );
 
@@ -157,10 +159,21 @@ export default function RegistrarParqueAutomotor({ navigation }) {
         if (formData.nombre === 'Usuario no encontrado') { Toast.show({ type: "info", text1: "Falta información", text2: "Por favor ingrese un usuario correcto.", position: "top" }); return; }
         if (!formData.estado) { Toast.show({ type: "info", text1: "Falta información", text2: "Por favor ingrese la estado.", position: "top" }); return; }
         if (formData.estado === "Salida de vehiculo de la sede") {
-            const { vehiculo, usuario } = validarSiEstaEnCampo(formData.placa, formData.cedula);
-            if (vehiculo) { Toast.show({ type: "error", text1: "Vehículo en campo", text2: `La placa ${vehiculo.placa} ya se encuentra en campo.`, position: "top" }); return; }
-            if (usuario) { Toast.show({ type: "error", text1: "Usuario en campo", text2: `La cédula ${usuario.cedula} ya tiene un vehículo en campo.`, position: "top" }); return; }
+            const { vehiculo, usuario } = validarUltimoMovimiento(formData.placa, formData.cedula);
+            if (vehiculo && vehiculo.estado?.toString() === "Salida de vehiculo de la sede") { Toast.show({ type: "error", text1: "Vehículo en campo", text2: `La placa ${vehiculo.placa} ya se encuentra en campo.`, position: "top" }); return; }
+            if (usuario && usuario.estado?.toString() === "Salida de vehiculo de la sede") { Toast.show({ type: "error", text1: "Usuario en campo", text2: `La cédula ${usuario.cedula} ya tiene un vehículo en campo.`, position: "top" }); return; }
         }
+        if (formData.estado === "Entrada de vehiculo a la sede") {
+            const { vehiculo, usuario } = validarUltimoMovimiento(formData.placa, formData.cedula);
+            if (vehiculo && vehiculo.estado?.toString() === "Salida de vehiculo de la sede" && vehiculo.cedula?.toString() !== formData.cedula?.toString()) { Toast.show({ type: "error", text1: "Coincidencia incorrecta", text2: `La placa ${formData.placa} esta asignada al usuario ${vehiculo.nombre}, no la cedula ingresada.`, position: "top" }); return; }
+            if (usuario && usuario.estado?.toString() === "Salida de vehiculo de la sede" && usuario.placa?.toString() !== formData.placa?.toString()) { Toast.show({ type: "error", text1: "Coincidencia incorrecta", text2: `La cedula ${formData.cedula} tiene asignado el vehiculo ${usuario.placa}, no la placa ingresada.`, position: "top" }); return; }
+            if (vehiculo && vehiculo.estado?.toString() === "No usado") { Toast.show({ type: "error", text1: "Registro inválido", text2: `No puede marcar como "Entrada de vehiculo a la sede" un vehiculo que su ultimo estado fue "No Usado", debe existir una salida a terreno o en taller.`, position: "top" }); return; }
+        }
+        if (formData.estado === "No usado") {
+            const { vehiculo } = validarUltimoMovimiento(formData.placa, formData.cedula);
+            if (vehiculo && vehiculo.estado?.toString() === "Salida de vehiculo de la sede") { Toast.show({ type: "error", text1: "Registro inválido", text2: `No puede marcar como "No usado" el vehículo ${vehiculo.placa} que tiene como ultimo estado una salida a ${vehiculo.nombre}, se debe tener la entrada del vehiculo.`, position: "top" }); return; }
+        }
+
 
         try {
             setLoading(true);
@@ -334,8 +347,18 @@ export default function RegistrarParqueAutomotor({ navigation }) {
                                 { label: "Entrada de vehiculo a la sede", value: "Entrada de vehiculo a la sede" },
                                 { label: "Salida de vehiculo de la sede", value: "Salida de vehiculo de la sede" },
                                 { label: "No usado", value: "No usado" },
+                                { label: "En Taller", value: "En Taller" },
                             ]}
                             placeholder="Selecciona un estado"
+                        />
+                        <LabeledTextArea
+                            label="Observaciones"
+                            value={formData.observaciones}
+                            icon="document-text-outline"
+                            placeholder="Agrege una observacion si lo requiere"
+                            onChangeText={(text) => {
+                                setFormData({ ...formData, observaciones: text });
+                            }}
                         />
                     </View>
 
