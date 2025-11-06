@@ -158,6 +158,10 @@ export default function ParqueAutomotor({ navigation }: Props) {
     const [dataTablaPendientesReportar, setDataTablaPendientesReportar] = useState<any[]>([]);
 
     function obtenerPlacasPendientesReportar() {
+        if (!parqueAutomotorBase?.data || !parqueAutomotor?.data) {
+            return { dataTemp: [], tablaTemp: [] };
+        }
+
         if (datosPendientesReportar && datosTablaPendientesReportar) {
             return { dataTemp: datosPendientesReportar, tablaTemp: datosTablaPendientesReportar };
         }
@@ -234,7 +238,7 @@ export default function ParqueAutomotor({ navigation }: Props) {
 
         datosTablaPendientesReportar = tablaFormateada;
 
-        return { dataTemp: placasFiltradas, tablaTemp: tablaFormateada};
+        return { dataTemp: placasFiltradas, tablaTemp: tablaFormateada };
     }
 
     const handleDownloadXLSXPendientesReportar = () => {
