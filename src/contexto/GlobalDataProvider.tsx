@@ -5,6 +5,7 @@ import { useTokenUserData } from "./TokenUserContext";
 import { useUserMenu } from "./UserMenuContext";
 import { MaterialDataProvider } from "./MaterialDataContext";
 import { ParqueAutomotorDataProvider } from "./ParqueAutomotorDataContext";
+import { ParqueAutomotorBaseDataProvider } from "./ParqueAutomotorBaseDataContext";
 
 export const GlobalDataProvider = ({ children }: { children: React.ReactNode }) => {
     const { tokenUser } = useTokenUserData();
@@ -15,15 +16,17 @@ export const GlobalDataProvider = ({ children }: { children: React.ReactNode }) 
         <MaterialDataProvider>
             <PlantaDataProvider>
                 <ParqueAutomotorDataProvider>
-                    {children}
-                    {user &&
-                        <TokenCountdown
-                            expiryDate={tokenUser?.expiryDate}
-                            floating
-                            logout={logout}
-                            setMenuVisibleUser={setMenuVisibleUser}
-                        />
-                    }
+                    <ParqueAutomotorBaseDataProvider>
+                        {children}
+                        {user &&
+                            <TokenCountdown
+                                expiryDate={tokenUser?.expiryDate}
+                                floating
+                                logout={logout}
+                                setMenuVisibleUser={setMenuVisibleUser}
+                            />
+                        }
+                    </ParqueAutomotorBaseDataProvider>
                 </ParqueAutomotorDataProvider>
             </PlantaDataProvider>
         </MaterialDataProvider>

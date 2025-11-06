@@ -47,7 +47,8 @@ export default function CustomTable({
         return data.filter((row) =>
             row.every((cell, colIndex) => {
                 const filterValue = filters[colIndex]?.toLowerCase() || "";
-                return cell.toLowerCase().includes(filterValue);
+                const cellValue = String(cell ?? "").toLowerCase();
+                return cellValue.includes(filterValue);
             })
         );
     }, [filters, data]);

@@ -5,12 +5,14 @@ import Storage from "../utilitarios/Storage";
 import { usePageUserData } from "../contexto/PageUserDataContext";
 import { useTokenUserData } from "../contexto/TokenUserContext";
 import { useParqueAutomotorData } from "../contexto/ParqueAutomotorDataContext";
+import { useParqueAutomotorBaseData } from "../contexto/ParqueAutomotorBaseDataContext";
 
 export const handleLogout = () => {
     const { clearPages } = usePageUserData();
     const { clearTokenUser } = useTokenUserData();
     const { clearPlanta } = usePlantaData();
     const { clearParqueAutomotor } = useParqueAutomotorData();
+    const { clearParqueAutomotorBase } = useParqueAutomotorBaseData();
 
     const logoutHandler = async ({
         logout,
@@ -24,6 +26,7 @@ export const handleLogout = () => {
             clearTokenUser();
             clearPlanta();
             clearParqueAutomotor();
+            clearParqueAutomotorBase();
             await Storage.removeItem("dataMaterial");
             await Storage.removeItem("formInventarioAccion");
             await Storage.removeItem("formInventario");

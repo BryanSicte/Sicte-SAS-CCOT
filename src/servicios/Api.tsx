@@ -76,6 +76,13 @@ export const postParqueAutomotor = (data) =>
 export const getParqueAutomotor = () => 
     request("/parqueAutomotor/registros", "GET");
 
+export const getParqueAutomotorBase = async (parqueAutomotorBase) => {
+    if (parqueAutomotorBase && parqueAutomotorBase.data && parqueAutomotorBase.data.length > 0) {
+        return parqueAutomotorBase;
+    }
+    return await request("/parqueAutomotor/base", "GET");
+}
+
 export const getBodegaKgprodOperacionesCodigoDescripUnimed = () =>
     request("/bodega/registrosKgprodOperacionesCodigoDescripUnimed", "GET");
 

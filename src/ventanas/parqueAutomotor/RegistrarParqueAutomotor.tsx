@@ -19,6 +19,7 @@ import { useIsMobileWeb } from "../../utilitarios/IsMobileWeb";
 import Loader from "../../componentes/Loader";
 import { useParqueAutomotorData } from "../../contexto/ParqueAutomotorDataContext";
 import LabeledTextArea from "../../compuestos/Textarea";
+import { useParqueAutomotorBaseData } from "../../contexto/ParqueAutomotorBaseDataContext";
 
 export default function RegistrarParqueAutomotor({ navigation }) {
     const stylesGlobal = useGlobalStyles();
@@ -29,6 +30,7 @@ export default function RegistrarParqueAutomotor({ navigation }) {
     const { planta, setPlanta } = usePlantaData();
     const { user, logout, getUser } = useUserData();
     const { parqueAutomotor } = useParqueAutomotorData()
+    const { parqueAutomotorBase } = useParqueAutomotorBaseData();
     const { setMenuVisibleUser } = useUserMenu();
     const isMobileWeb = useIsMobileWeb();
     const { logoutHandler } = handleLogout();
@@ -153,6 +155,9 @@ export default function RegistrarParqueAutomotor({ navigation }) {
         if (formData.placa.length < 5 || formData.placa.length > 6) { Toast.show({ type: "info", text1: "Placa inválida", text2: "La placa debe tener entre 5 y 6 caracteres.", position: "top" }); return; }
         const placaPattern = /^[A-Z]{3}[0-9]{2}[A-Z0-9]{1}$/;
         if (!placaPattern.test(formData.placa)) { Toast.show({ type: "info", text1: "Placa inválida", text2: "La placa debe tener el formato ABC12D o ABC123.", position: "top" }); return; }
+        if (!parqueAutomotorBase?.data || parqueAutomotorBase.data.length === 0) {Toast.show({ type: "error", text1: "Datos no disponibles", text2: "No se encontraron registros en la base de placas.", position: "top" }); return; }
+        const placaExiste = parqueAutomotorBase.data.some((item: any) => item.CENTRO?.toUpperCase?.() === formData.placa?.toUpperCase?.() );
+        if (!placaExiste) { Toast.show({ type: "error", text1: "Placa no registrada", text2: `La placa ${formData.placa} no se encuentra en la base de la empresa.`, position: "top" }); return; }
         if (!formData.cedula) { Toast.show({ type: "info", text1: "Falta información", text2: "Por favor ingrese la cedula.", position: "top" }); return; }
         if (formData.cedula === 'Usuario no encontrado') { Toast.show({ type: "info", text1: "Falta información", text2: "Por favor ingrese un usuario correcto.", position: "top" }); return; }
         if (!formData.nombre) { Toast.show({ type: "info", text1: "Falta información", text2: "Por favor ingrese la nombre.", position: "top" }); return; }
@@ -173,7 +178,6 @@ export default function RegistrarParqueAutomotor({ navigation }) {
             const { vehiculo } = validarUltimoMovimiento(formData.placa, formData.cedula);
             if (vehiculo && vehiculo.estado?.toString() === "Salida de vehiculo de la sede") { Toast.show({ type: "error", text1: "Registro inválido", text2: `No puede marcar como "No usado" el vehículo ${vehiculo.placa} que tiene como ultimo estado una salida a ${vehiculo.nombre}, se debe tener la entrada del vehiculo.`, position: "top" }); return; }
         }
-
 
         try {
             setLoading(true);
@@ -288,22 +292,28 @@ export default function RegistrarParqueAutomotor({ navigation }) {
                             ]}
                             placeholder="Selecciona una sede"
                         />
-                        <LabeledInput
-                            label="Placa"
-                            placeholder="Ingrese una placa"
-                            value={formData.placa}
-                            onChangeText={(text) => {
-                                let value = text.toUpperCase();
-                                value = value.replace(/[^A-Z0-9]/g, "");
-                                if (value.length > 6) value = value.slice(0, 6);
-                                const pattern = /^([A-Z]{0,3})([0-9]{0,2})([A-Z0-9]{0,1})$/;
-                                if (pattern.test(value)) {
+                        <View style={{ position: "relative", zIndex: 5 }}>
+                            <LabeledInput
+                                label="Placa"
+                                placeholder="Ingrese una placa"
+                                value={formData.placa}
+                                icon="car-outline"
+                                autoCapitalize="characters"
+                                onChangeText={(text) => {
+                                    let value = text.toUpperCase();
+                                    value = value.replace(/[^A-Z0-9]/g, "");
+                                    if (value.length > 6) value = value.slice(0, 6);
+                                    const pattern = /^([A-Z]{0,3})([0-9]{0,2})([A-Z0-9]{0,1})$/;
+                                    if (pattern.test(value)) {
+                                        setFormData({ ...formData, placa: value });
+                                    }
+                                }}
+                                data={(parqueAutomotorBase?.data ?? []).map((m) => m.CENTRO)}
+                                onSelectItem={(value) => {
                                     setFormData({ ...formData, placa: value });
-                                }
-                            }}
-                            icon="car-outline"
-                            autoCapitalize="characters"
-                        />
+                                }}
+                            />
+                        </View>
                         <View style={{ position: "relative", zIndex: 4 }}>
                             <LabeledInput
                                 label="Cedula Conductor"

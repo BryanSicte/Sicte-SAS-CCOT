@@ -8,7 +8,7 @@ import CustomTable from '../../componentes/Table';
 import CustomTabs, { TabItem } from '../../componentes/Tabs';
 import { useThemeCustom } from '../../contexto/ThemeContext';
 import { darkColors, lightColors } from '../../estilos/Colors';
-import { getParqueAutomotor } from '../../servicios/Api';
+import { getParqueAutomotor, getParqueAutomotorBase } from '../../servicios/Api';
 import Toast from 'react-native-toast-message';
 import { exportToExcel } from '../../utilitarios/ExportToExcel';
 import { useNavigationParams } from '../../contexto/NavigationParamsContext';
@@ -18,6 +18,7 @@ import { useUserMenu } from '../../contexto/UserMenuContext';
 import { useIsMobileWeb } from '../../utilitarios/IsMobileWeb';
 import Loader from '../../componentes/Loader';
 import { useParqueAutomotorData } from '../../contexto/ParqueAutomotorDataContext';
+import { useParqueAutomotorBaseData } from '../../contexto/ParqueAutomotorBaseDataContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ParqueAutomotor'>;
 
@@ -40,9 +41,12 @@ export default function ParqueAutomotor({ navigation }: Props) {
     const [loading, setLoading] = useState(true);
     const { logoutHandler } = handleLogout();
     const { parqueAutomotor, setParqueAutomotor } = useParqueAutomotorData();
+    const { parqueAutomotorBase, setParqueAutomotorBase } = useParqueAutomotorBaseData();
 
     const loadData = async () => {
         try {
+            const responseBase = await getParqueAutomotorBase(parqueAutomotorBase);
+            setParqueAutomotorBase(responseBase);
             const response = await getParqueAutomotor();
             setParqueAutomotor(response);
             const tablaFormateada = response.data.map((item: any) => [
@@ -147,13 +151,111 @@ export default function ParqueAutomotor({ navigation }: Props) {
         exportToExcel("Parque automotor en uso", rows, headers);
     };
 
+    const headersPendientesReportar = ["Placa", "Tiempo Sin Reportar", "Ultima Fecha", "Dias", "Horas", "Minutos", "Estado"];
+    let datosPendientesReportar: any[] | null = null;
+    let datosTablaPendientesReportar: any[] | null = null;
+    const [dataPendientesReportar, setDataPendientesReportar] = useState<any[]>([]);
+    const [dataTablaPendientesReportar, setDataTablaPendientesReportar] = useState<any[]>([]);
+
+    function obtenerPlacasPendientesReportar() {
+        if (datosPendientesReportar && datosTablaPendientesReportar) {
+            return { dataTemp: datosPendientesReportar, tablaTemp: datosTablaPendientesReportar };
+        }
+
+        const baseData = parqueAutomotorBase.data;
+        const registros = parqueAutomotor.data;
+        const ahora = new Date();
+
+        const placasPendientes = baseData
+            .map((itemBase: any) => {
+                const placaBase = itemBase.CENTRO?.toUpperCase?.();
+
+                const registrosPlaca = registros.filter(
+                    (itemParque: any) => itemParque.placa?.toUpperCase?.() === placaBase
+                );
+
+                if (registrosPlaca.length === 0) {
+                    return {
+                        placa: placaBase,
+                        ultimaFecha: null,
+                        tiempoSinReporte: "Nunca reportado",
+                        dias: null,
+                        horas: null,
+                        minutos: null,
+                        estado: "Nunca reportado",
+                    };
+                }
+
+                const ultimaFecha = new Date(
+                    Math.max(...registrosPlaca.map((r: any) => new Date(r.fecha).getTime()))
+                );
+
+                const diffMs = ahora.getTime() - ultimaFecha.getTime();
+                const diffMin = Math.floor(diffMs / (1000 * 60));
+                const dias = Math.floor(diffMin / (60 * 24));
+                const horas = Math.floor((diffMin % (60 * 24)) / 60);
+                const minutos = diffMin % 60;
+
+                const tiempoSinReporte = `${dias}d ${horas}h ${minutos}m`;
+                const diffHoras = diffMs / (1000 * 60 * 60);
+
+                return {
+                    placa: placaBase,
+                    ultimaFecha: ultimaFecha.toLocaleString(),
+                    tiempoSinReporte,
+                    dias,
+                    horas,
+                    minutos,
+                    estado: diffHoras > 24 ? "Pendiente de reporte" : "Reciente",
+                };
+            })
+
+        const placasFiltradas = placasPendientes.filter(
+            (item) => item.estado === "Pendiente de reporte" || item.estado === "Nunca reportado"
+        );
+
+        placasFiltradas.sort((a, b) => {
+            if (a.ultimaFecha === null) return -1;
+            if (b.ultimaFecha === null) return 1;
+            return new Date(a.ultimaFecha).getTime() - new Date(b.ultimaFecha).getTime();
+        });
+
+        datosPendientesReportar = placasFiltradas;
+
+        const tablaFormateada = placasFiltradas.map((item: any) => [
+            item.placa,
+            item.tiempoSinReporte,
+            item.ultimaFecha,
+            item.dias,
+            item.horas,
+            item.minutos,
+            item.estado,
+        ]);
+
+        datosTablaPendientesReportar = tablaFormateada;
+
+        return { dataTemp: placasFiltradas, tablaTemp: tablaFormateada};
+    }
+
+    const handleDownloadXLSXPendientesReportar = () => {
+        if (dataPendientesReportar.length === 0) return;
+        const headers = Object.keys(dataPendientesReportar[0]);
+        const rows = dataPendientesReportar.map((obj: any) => headers.map((key) => obj[key] ?? null));
+        exportToExcel("Parque automotor pendientes", rows, headers);
+    };
+
     useEffect(() => {
         if (parqueAutomotor?.data) {
             const { dataTemp, tablaTemp } = obtenerVehiculosEnCampoSoloUnaVez(parqueAutomotor);
             setDataTablaEnCampo(tablaTemp);
             setDataEnCampo(dataTemp);
         }
-    }, [parqueAutomotor]);
+        if (parqueAutomotorBase?.data) {
+            const { dataTemp, tablaTemp } = obtenerPlacasPendientesReportar();
+            setDataPendientesReportar(dataTemp);
+            setDataTablaPendientesReportar(tablaTemp);
+        }
+    }, [parqueAutomotor, parqueAutomotorBase]);
 
     if (loading) {
         return <Loader visible={loading} />;
@@ -240,7 +342,37 @@ export default function ParqueAutomotor({ navigation }: Props) {
             )}
 
             {activeTab === "pendientes por reportar" && (
-                <Text style={stylesGlobal.texto}>⚙️ Configuración del módulo</Text>
+                <>
+                    <KeyboardAvoidingView
+                        style={{ flex: 1 }}
+                        behavior={Platform.OS === "ios" ? "padding" : "height"}
+                        keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
+                    >
+                        <ScrollView
+                            contentContainerStyle={{ paddingBottom: 60 }}
+                            showsVerticalScrollIndicator={false}
+                            keyboardShouldPersistTaps="handled"
+                        >
+                            <View style={{
+                                marginTop: isMobileWeb ? 10 : 20,
+                                marginHorizontal: isMobileWeb ? 10 : 20,
+                                marginBottom: 10,
+                                flexDirection: "row",
+                                justifyContent: "space-between",
+                                alignSelf: "stretch",
+                            }}>
+                                <CustomButton
+                                    label="Descargar"
+                                    variant="secondary"
+                                    onPress={handleDownloadXLSXPendientesReportar}
+                                />
+                            </View>
+                            <View style={{ marginHorizontal: isMobileWeb ? 10 : 20 }}>
+                                <CustomTable headers={headersPendientesReportar} data={dataTablaPendientesReportar} />
+                            </View>
+                        </ScrollView>
+                    </KeyboardAvoidingView>
+                </>
             )}
         </View>
     );
