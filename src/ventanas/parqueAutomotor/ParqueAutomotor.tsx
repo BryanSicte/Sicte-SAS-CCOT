@@ -100,57 +100,6 @@ export default function ParqueAutomotor({ navigation }: Props) {
         exportToExcel("Parque automotor registros", rows, headers);
     };
 
-    let datosEnCampo: any[] | null = null;
-    let datosTablaEnCampo: any[] | null = null;
-    const [dataEnCampo, setDataEnCampo] = useState<any[]>([]);
-    const [dataTablaEnCampo, setDataTablaEnCampo] = useState<any[]>([]);
-
-    function obtenerVehiculosEnCampoSoloUnaVez(data: any[]) {
-        if (datosEnCampo && datosTablaEnCampo) {
-            return { dataTemp: datosEnCampo, tablaTemp: datosTablaEnCampo };
-        }
-
-        const registros = Array.isArray(parqueAutomotor?.data) ? parqueAutomotor.data : [];
-
-        const ultimaSalidaPorPlaca = Object.values(
-            registros.reduce((acc, registro) => {
-                const { placa, fecha } = registro;
-                if (!acc[placa] || new Date(fecha) > new Date(acc[placa].fecha)) {
-                    acc[placa] = registro;
-                }
-                return acc;
-            }, {})
-        ).filter((r: any) => r.estado === "Salida de vehiculo de la sede");
-
-        datosEnCampo = ultimaSalidaPorPlaca;
-
-        const tablaFormateada = ultimaSalidaPorPlaca.map((item: any) => [
-            item.fecha,
-            item.sede,
-            item.placa,
-            item.estado,
-            item.cedula,
-            item.nombre,
-        ]);
-
-        const tablaOrdenada = [...tablaFormateada].sort((a, b) => {
-            const fechaA = new Date(a[0]);
-            const fechaB = new Date(b[0]);
-            return fechaB.getTime() - fechaA.getTime();
-        });
-
-        datosTablaEnCampo = tablaOrdenada;
-
-        return { dataTemp: ultimaSalidaPorPlaca, tablaTemp: tablaOrdenada };
-    }
-
-    const handleDownloadXLSXEnCampo = () => {
-        if (dataEnCampo.length === 0) return;
-        const headers = Object.keys(dataEnCampo[0]);
-        const rows = dataEnCampo.map((obj: any) => headers.map((key) => obj[key] ?? null));
-        exportToExcel("Parque automotor en uso", rows, headers);
-    };
-
     const headersPendientesReportar = ["Placa", "Tiempo Sin Reportar", "Ultima Fecha", "Dias", "Horas", "Minutos", "Estado"];
     let datosPendientesReportar: any[] | null = null;
     let datosTablaPendientesReportar: any[] | null = null;
@@ -246,6 +195,70 @@ export default function ParqueAutomotor({ navigation }: Props) {
         const headers = Object.keys(dataPendientesReportar[0]);
         const rows = dataPendientesReportar.map((obj: any) => headers.map((key) => obj[key] ?? null));
         exportToExcel("Parque automotor pendientes", rows, headers);
+    };
+
+    let datosEnCampo: any[] | null = null;
+    let datosTablaEnCampo: any[] | null = null;
+    const [dataEnCampo, setDataEnCampo] = useState<any[]>([]);
+    const [dataTablaEnCampo, setDataTablaEnCampo] = useState<any[]>([]);
+
+    function obtenerVehiculosEnCampoSoloUnaVez(data: any[]) {
+        if (!parqueAutomotorBase?.data || !parqueAutomotor?.data) {
+            return { dataTemp: [], tablaTemp: [] };
+        }
+
+        if (datosEnCampo && datosTablaEnCampo) {
+            return { dataTemp: datosEnCampo, tablaTemp: datosTablaEnCampo };
+        }
+
+        const registros = Array.isArray(parqueAutomotor?.data) ? parqueAutomotor.data : [];
+        const baseData = Array.isArray(parqueAutomotorBase.data) ? parqueAutomotorBase.data : [];
+
+        const placasBase = baseData
+            .map((item: any) => item.CENTRO?.toUpperCase?.())
+            .filter(Boolean);
+
+        const ultimaSalidaPorPlaca = Object.values(
+            registros.reduce((acc, registro) => {
+                const { placa, fecha } = registro;
+                if (!acc[placa] || new Date(fecha) > new Date(acc[placa].fecha)) {
+                    acc[placa] = registro;
+                }
+                return acc;
+            }, {})
+        ).filter((r: any) => r.estado === "Salida de vehiculo de la sede");
+
+        const ultimaSalidaFiltrada = ultimaSalidaPorPlaca.filter((r: any) =>
+            placasBase.includes(r.placa?.toUpperCase?.())
+        );
+
+        datosEnCampo = ultimaSalidaFiltrada;
+
+        const tablaFormateada = ultimaSalidaFiltrada.map((item: any) => [
+            item.fecha,
+            item.sede,
+            item.placa,
+            item.estado,
+            item.cedula,
+            item.nombre,
+        ]);
+
+        const tablaOrdenada = [...tablaFormateada].sort((a, b) => {
+            const fechaA = new Date(a[0]);
+            const fechaB = new Date(b[0]);
+            return fechaB.getTime() - fechaA.getTime();
+        });
+
+        datosTablaEnCampo = tablaOrdenada;
+
+        return { dataTemp: ultimaSalidaFiltrada, tablaTemp: tablaOrdenada };
+    }
+
+    const handleDownloadXLSXEnCampo = () => {
+        if (dataEnCampo.length === 0) return;
+        const headers = Object.keys(dataEnCampo[0]);
+        const rows = dataEnCampo.map((obj: any) => headers.map((key) => obj[key] ?? null));
+        exportToExcel("Parque automotor en uso", rows, headers);
     };
 
     useEffect(() => {
