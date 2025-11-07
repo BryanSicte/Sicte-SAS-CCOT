@@ -29,7 +29,7 @@ export default function RegistrarParqueAutomotor({ navigation }) {
     const [loading, setLoading] = useState(true);
     const { planta, setPlanta } = usePlantaData();
     const { user, logout, getUser } = useUserData();
-    const { parqueAutomotor } = useParqueAutomotorData()
+    const { parqueAutomotor, setParqueAutomotor } = useParqueAutomotorData();
     const { parqueAutomotorBase } = useParqueAutomotorBaseData();
     const { setMenuVisibleUser } = useUserMenu();
     const isMobileWeb = useIsMobileWeb();
@@ -51,13 +51,11 @@ export default function RegistrarParqueAutomotor({ navigation }) {
 
     const loadData = async () => {
         try {
+            const response = await getParqueAutomotor();
+            setParqueAutomotor(response);
             const dataPlanta = await getUsuariosCedulaNombre(planta)
-            if (dataPlanta && (!planta || planta.length === 0)) {
-                await setPlanta(dataPlanta);
-                Toast.show({ type: "success", text1: dataPlanta.messages.message1, text2: dataPlanta.messages.message2, position: "top" });
-            } else {
-                Toast.show({ type: "info", text1: "Datos ya disponibles", text2: "La información de planta ya se encontraba cargada.", position: "top" });
-            }
+            setPlanta(dataPlanta);
+            Toast.show({ type: "success", text1: dataPlanta.messages.message1, text2: dataPlanta.messages.message2, position: "top" });
         } catch (error) {
             Toast.show({ type: "error", text1: error.data.messages.message1, text2: error.data.messages.message2, position: "top" });
         } finally {
@@ -155,8 +153,8 @@ export default function RegistrarParqueAutomotor({ navigation }) {
         if (formData.placa.length < 5 || formData.placa.length > 6) { Toast.show({ type: "info", text1: "Placa inválida", text2: "La placa debe tener entre 5 y 6 caracteres.", position: "top" }); return; }
         const placaPattern = /^[A-Z]{3}[0-9]{2}[A-Z0-9]{1}$/;
         if (!placaPattern.test(formData.placa)) { Toast.show({ type: "info", text1: "Placa inválida", text2: "La placa debe tener el formato ABC12D o ABC123.", position: "top" }); return; }
-        if (!parqueAutomotorBase?.data || parqueAutomotorBase.data.length === 0) {Toast.show({ type: "error", text1: "Datos no disponibles", text2: "No se encontraron registros en la base de placas.", position: "top" }); return; }
-        const placaExiste = parqueAutomotorBase.data.some((item: any) => item.CENTRO?.toUpperCase?.() === formData.placa?.toUpperCase?.() );
+        if (!parqueAutomotorBase?.data || parqueAutomotorBase.data.length === 0) { Toast.show({ type: "error", text1: "Datos no disponibles", text2: "No se encontraron registros en la base de placas.", position: "top" }); return; }
+        const placaExiste = parqueAutomotorBase.data.some((item: any) => item.CENTRO?.toUpperCase?.() === formData.placa?.toUpperCase?.());
         if (!placaExiste) { Toast.show({ type: "error", text1: "Placa no registrada", text2: `La placa ${formData.placa} no se encuentra en la base de la empresa.`, position: "top" }); return; }
         if (!formData.cedula) { Toast.show({ type: "info", text1: "Falta información", text2: "Por favor ingrese la cedula.", position: "top" }); return; }
         if (formData.cedula === 'Usuario no encontrado') { Toast.show({ type: "info", text1: "Falta información", text2: "Por favor ingrese un usuario correcto.", position: "top" }); return; }
