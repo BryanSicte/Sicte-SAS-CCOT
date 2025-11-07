@@ -48,7 +48,8 @@ export const menuConfig = [
         icon: "hammer-outline",
         label: "Operación",
         items: [
-            { label: "Backlog AP", route: "PowerBIEmbed", nameBD: "operacionBacklogAP", params: { url: "https://app.powerbi.com/view?r=eyJrIjoiZDVmMTFiOWQtOTAwMC00MjczLThkYTEtNmFkNDkxZDYyN2FjIiwidCI6ImUwYmZlOTBkLTIwZTAtNDEwYi1iNmYxLTQyOWIwNDNkMzYwOCJ9" } },
+            { label: "Atencion AP", route: "PowerBIEmbed", nameBD: "operacionAtencionAP", params: { url: "https://app.powerbi.com/view?r=eyJrIjoiM2M1NWVlMzYtNGNjNS00ODc4LTk0MGYtMmEwMDZhNGUyYzljIiwidCI6ImUwYmZlOTBkLTIwZTAtNDEwYi1iNmYxLTQyOWIwNDNkMzYwOCJ9" } },
+            { label: "Backlog AP", route: "PowerBIEmbed", nameBD: "operacionBacklogAP", params: { url: "https://app.powerbi.com/view?r=eyJrIjoiNDNiY2VjMjktOGM2Yi00YjBkLWE0N2EtMjNiNjI1N2IyMTMyIiwidCI6ImUwYmZlOTBkLTIwZTAtNDEwYi1iNmYxLTQyOWIwNDNkMzYwOCJ9" } },
             { label: "Correctivo - Preventivo", route: "PowerBIEmbed", nameBD: "operacionCorrectivoPreventivo", params: { url: "https://app.powerbi.com/view?r=eyJrIjoiOTFiYTAxMjgtYjc1Mi00ZmVhLWE3MDUtYzE1Nzc3MzAzOWU4IiwidCI6ImUwYmZlOTBkLTIwZTAtNDEwYi1iNmYxLTQyOWIwNDNkMzYwOCJ9&pageName=ReportSection" } },
             { label: "Cumplimiento SLA FO", route: "PowerBIEmbed", nameBD: "operacionCumplimientoSlaFo", params: { url: "https://app.powerbi.com/view?r=eyJrIjoiYmM0ZTU2NWMtMmFlYi00ZTE1LTlhZTEtNjYyNWM2ZDQ1NzViIiwidCI6ImUwYmZlOTBkLTIwZTAtNDEwYi1iNmYxLTQyOWIwNDNkMzYwOCJ9" } },
             { label: "Cumplimiento SLA HFC", route: "PowerBIEmbed", nameBD: "operacionCumplimientoSlaHfc", params: { url: "https://app.powerbi.com/view?r=eyJrIjoiODVkZThmM2ItZmJlZC00NjkyLThkNGUtYjUwZGFhNmNhM2RjIiwidCI6ImUwYmZlOTBkLTIwZTAtNDEwYi1iNmYxLTQyOWIwNDNkMzYwOCJ9" } },
@@ -59,7 +60,6 @@ export const menuConfig = [
             { label: "Seguimiento Operaciones Norte", route: "PowerBIEmbed", nameBD: "operacionSeguimientoOperacionesNorte", params: { url: "https://app.powerbi.com/view?r=eyJrIjoiMmFmYTRiZTAtYzEzYS00N2Y3LTg4MzUtNjc1NDVhYzI3ZmJjIiwidCI6ImUwYmZlOTBkLTIwZTAtNDEwYi1iNmYxLTQyOWIwNDNkMzYwOCJ9" } },
             { label: "Seguimiento SMU", route: "PowerBIEmbed", nameBD: "operacionSeguimientoSmu", params: { url: "https://app.powerbi.com/view?r=eyJrIjoiYzUzZTczZDctNzg3NC00YmUxLTkxM2YtYzM5YThjY2RkMzEyIiwidCI6ImUwYmZlOTBkLTIwZTAtNDEwYi1iNmYxLTQyOWIwNDNkMzYwOCJ9" } },
             { label: "Técnico SMU", route: "PowerBIEmbed", nameBD: "operacionTecnicoSmu", params: { url: "https://app.powerbi.com/view?r=eyJrIjoiYzliMjkxN2EtNWNhMC00NzU5LTkzYjktOTY5ZmMzOWZiN2Q5IiwidCI6ImUwYmZlOTBkLTIwZTAtNDEwYi1iNmYxLTQyOWIwNDNkMzYwOCJ9" } },
-
         ]
     },
     {

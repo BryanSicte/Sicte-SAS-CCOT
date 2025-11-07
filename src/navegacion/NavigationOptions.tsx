@@ -173,7 +173,7 @@ export const getHeaderOptions = (
             const [screenWidth, setScreenWidth] = useState(Dimensions.get("window").width);
             const [displayTitle, setDisplayTitle] = useState(title);
             let maxChars = 20;
-
+            
             useEffect(() => {
                 const subscription = Dimensions.addEventListener("change", ({ window }) => {
                     setScreenWidth(window.width);
@@ -197,7 +197,7 @@ export const getHeaderOptions = (
                         setDisplayTitle(title.length > maxChars ? title.slice(0, maxChars) + "..." : title);
                     }
                 }
-            }, [screenWidth, showLogo]);
+            }, [screenWidth, showLogo, title]);
 
             return (
                 <View

@@ -45,11 +45,19 @@ export default function SolicitudAbastecimientoNuevo({ navigation }: Props) {
         fecha: new Date(),
         cedulaUsuario: user?.cedula || "Pendiente",
         usuario: user?.nombre || "Pendiente",
+        consumo: "",
+        solicitud: "",
+        codigo: "",
+        descripcion: "",
+        cantidad: "",
+        unidadMedida: "",
         sede: "",
-        placa: "",
-        cedula: "",
-        nombre: "",
-        estado: "",
+        segmento: "",
+        tiempoAbastecimiento: new Date(),
+        idOt: "",
+        fechaEstCierre: new Date(),
+        facturacionEsperada: "",
+        grupo: "",
     });
 
     const [formData, setFormData] = useState(createEmptyFormData(user));
@@ -148,25 +156,25 @@ export default function SolicitudAbastecimientoNuevo({ navigation }: Props) {
                                 disabled
                             />
                             <LabeledInput
-                                label="Cedula Usuario"
+                                label="Cedula usuario"
                                 placeholder="Ingrese la cedula"
                                 value={formData.cedulaUsuario}
-                                onChangeText={(text) => setFormData({ ...formData, nombre: text })}
+                                onChangeText={(text) => setFormData({ ...formData, cedulaUsuario: text })}
                                 icon="card-outline"
                                 disabled
                             />
                             <LabeledInput
-                                label="Nombre Usuario"
+                                label="Nombre usuario"
                                 placeholder="Ingrese el nombre"
                                 value={formData.usuario}
-                                onChangeText={(text) => setFormData({ ...formData, nombre: text })}
+                                onChangeText={(text) => setFormData({ ...formData, usuario: text })}
                                 icon="person-outline"
                                 disabled
                             />
                             <LabeledSelect
                                 label="Método de consumo"
-                                value={formData.sede}
-                                onValueChange={(value) => setFormData({ ...formData, sede: value })}
+                                value={formData.consumo}
+                                onValueChange={(value) => setFormData({ ...formData, consumo: value })}
                                 icon="business-outline"
                                 items={[
                                     { label: "Demanda", value: "Demanda" },
@@ -174,51 +182,80 @@ export default function SolicitudAbastecimientoNuevo({ navigation }: Props) {
                                 ]}
                                 placeholder="Selecciona una sede"
                             />
-                            <LabeledSelect
-                                label="Tipo de Solicitud"
-                                value={formData.sede}
-                                onValueChange={(value) => setFormData({ ...formData, sede: value })}
-                                icon="business-outline"
-                                items={[
-                                    { label: "Materiales", value: "Materiales" },
-                                    { label: "Servicios", value: "Servicios" },
-                                ]}
-                                placeholder="Selecciona una sede"
-                            />
+                            {formData.consumo === "Demanda" && (
+                                <LabeledSelect
+                                    label="Tipo de solicitud"
+                                    value={formData.solicitud}
+                                    onValueChange={(value) => setFormData({ ...formData, solicitud: value })}
+                                    icon="business-outline"
+                                    items={[
+                                        { label: "Materiales", value: "Materiales" },
+                                        { label: "Servicios", value: "Servicios" },
+                                    ]}
+                                    placeholder="Selecciona una sede"
+                                />
+                            )}
                             <View style={{ position: "relative", zIndex: 4 }}>
                                 <LabeledInput
                                     label="Codigo SAP"
-                                    value={formData.cedula}
-                                    icon="card-outline"
+                                    value={formData.codigo}
+                                    icon="pricetag-outline"
                                     placeholder="Ingrese el codigo sap"
                                     onChangeText={(value) => {
                                         const plantaItem = planta.data.find((p) => p.nit === value);
-                                        setFormData({ ...formData, cedula: value, nombre: plantaItem?.nombre ? plantaItem.nombre : "Usuario no encontrado" });
+                                        setFormData({ ...formData, codigo: value, descripcion: plantaItem?.nombre ? plantaItem.nombre : "Material no encontrado" });
                                     }}
                                     data={(planta?.data ?? []).map((m) => m.nit)}
                                     onSelectItem={(value) => {
                                         const plantaItem = planta.data.find((p) => p.nit === value);
-                                        setFormData({ ...formData, cedula: value, nombre: plantaItem?.nombre ? plantaItem.nombre : "Usuario no encontrado" });
+                                        setFormData({ ...formData, codigo: value, descripcion: plantaItem?.nombre ? plantaItem.nombre : "Material no encontrado" });
                                     }}
                                 />
                             </View>
                             <View style={{ position: "relative", zIndex: 3 }}>
                                 <LabeledInput
                                     label="Descripcion"
-                                    value={formData.nombre}
-                                    icon="person-outline"
+                                    value={formData.descripcion}
+                                    icon="document-text-outline"
                                     placeholder="Ingrese la descripcion"
                                     onChangeText={(value) => {
                                         const plantaItem = planta.data.find((p) => p.nombre === value);
-                                        setFormData({ ...formData, nombre: value, cedula: plantaItem?.nit ? plantaItem.nit : "Usuario no encontrado" });
+                                        setFormData({ ...formData, descripcion: value, codigo: plantaItem?.nit ? plantaItem.nit : "Material no encontrado" });
                                     }}
                                     data={(planta?.data ?? []).map((m) => m.nombre)}
                                     onSelectItem={(value) => {
                                         const plantaItem = planta.data.find((p) => p.nombre === value);
-                                        setFormData({ ...formData, nombre: value, cedula: plantaItem?.nit ? plantaItem.nit : "Usuario no encontrado" });
+                                        setFormData({ ...formData, descripcion: value, codigo: plantaItem?.nit ? plantaItem.nit : "Material no encontrado" });
                                     }}
                                 />
                             </View>
+                            <LabeledInput
+                                label="Cantidad"
+                                placeholder="Ingrese la cantidad"
+                                value={formData.cantidad}
+                                keyboardType="decimal-pad"
+                                onChangeText={(value) => {
+                                    const soloNumeros = value.replace(/[^0-9.]/g, "");
+                                    const partes = soloNumeros.split(".");
+                                    if (partes.length > 2) return;
+                                    let limpio = soloNumeros;
+                                    if (limpio.startsWith(".")) {
+                                        limpio = "0" + limpio;
+                                    }
+                                    if (/^\d+(\.\d*)?$/.test(limpio) || limpio === "") {
+                                        setFormData({ ...formData, cantidad: limpio });
+                                    }
+                                }}
+                                icon="calculator-outline"
+                            />
+                            <LabeledInput
+                                icon="scale-outline"
+                                label="Unidad de medida"
+                                placeholder="Ingrese la unidad de medida"
+                                value={formData.unidadMedida}
+                                onChangeText={(text) => setFormData({ ...formData, unidadMedida: text })}
+                                disabled
+                            />
                             <LabeledSelect
                                 label="Sede"
                                 value={formData.sede}
@@ -235,68 +272,75 @@ export default function SolicitudAbastecimientoNuevo({ navigation }: Props) {
                                 ]}
                                 placeholder="Selecciona una sede"
                             />
-                            <LabeledInput
-                                label="Placa"
-                                placeholder="Ingrese una placa"
-                                value={formData.placa}
-                                onChangeText={(text) => {
-                                    let value = text.toUpperCase();
-                                    value = value.replace(/[^A-Z0-9]/g, "");
-                                    if (value.length > 6) value = value.slice(0, 6);
-                                    const pattern = /^([A-Z]{0,3})([0-9]{0,2})([A-Z0-9]{0,1})$/;
-                                    if (pattern.test(value)) {
-                                        setFormData({ ...formData, placa: value });
-                                    }
-                                }}
-                                icon="car-outline"
-                                autoCapitalize="characters"
-                            />
-                            <View style={{ position: "relative", zIndex: 4 }}>
-                                <LabeledInput
-                                    label="Cedula Conductor"
-                                    value={formData.cedula}
-                                    icon="card-outline"
-                                    placeholder="Ingrese la cedula del conductor"
-                                    onChangeText={(value) => {
-                                        const plantaItem = planta.data.find((p) => p.nit === value);
-                                        setFormData({ ...formData, cedula: value, nombre: plantaItem?.nombre ? plantaItem.nombre : "Usuario no encontrado" });
-                                    }}
-                                    data={(planta?.data ?? []).map((m) => m.nit)}
-                                    onSelectItem={(value) => {
-                                        const plantaItem = planta.data.find((p) => p.nit === value);
-                                        setFormData({ ...formData, cedula: value, nombre: plantaItem?.nombre ? plantaItem.nombre : "Usuario no encontrado" });
-                                    }}
-                                />
-                            </View>
-                            <View style={{ position: "relative", zIndex: 3 }}>
-                                <LabeledInput
-                                    label="Nombre Conductor"
-                                    value={formData.nombre}
-                                    icon="person-outline"
-                                    placeholder="Ingrese el nombre del conductor"
-                                    onChangeText={(value) => {
-                                        const plantaItem = planta.data.find((p) => p.nombre === value);
-                                        setFormData({ ...formData, nombre: value, cedula: plantaItem?.nit ? plantaItem.nit : "Usuario no encontrado" });
-                                    }}
-                                    data={(planta?.data ?? []).map((m) => m.nombre)}
-                                    onSelectItem={(value) => {
-                                        const plantaItem = planta.data.find((p) => p.nombre === value);
-                                        setFormData({ ...formData, nombre: value, cedula: plantaItem?.nit ? plantaItem.nit : "Usuario no encontrado" });
-                                    }}
-                                />
-                            </View>
                             <LabeledSelect
-                                label="Estado"
-                                value={formData.estado}
-                                onValueChange={(value) => setFormData({ ...formData, estado: value })}
-                                icon="radio-button-on-outline"
+                                label="Segmento"
+                                value={formData.segmento}
+                                onValueChange={(value) => setFormData({ ...formData, segmento: value })}
+                                icon="briefcase-outline"
                                 items={[
-                                    { label: "Entrada de vehiculo a la sede", value: "Entrada de vehiculo a la sede" },
-                                    { label: "Salida de vehiculo de la sede", value: "Salida de vehiculo de la sede" },
-                                    { label: "No usado", value: "No usado" },
+                                    { label: "Corporativo", value: "Corporativo" },
+                                    { label: "Red Externa", value: "Red Externa" },
+                                    { label: "Mantenimiento", value: "Mantenimiento" },
+                                    { label: "Operaciones", value: "Operaciones" },
                                 ]}
-                                placeholder="Selecciona un estado"
+                                placeholder="Selecciona una sede"
                             />
+                            {formData.consumo === "Demanda" && (
+                                <>
+                                    <LabeledDatePicker
+                                        label="Tiempo abastecimiento"
+                                        date={formData.tiempoAbastecimiento}
+                                        onChange={(value) => setFormData({ ...formData, tiempoAbastecimiento: value })}
+                                        mode="datetime"
+                                        showSeconds
+                                    />
+                                    <LabeledInput
+                                        label="ID / OT"
+                                        value={formData.idOt}
+                                        icon="clipboard-outline"
+                                        placeholder="Ingrese el ID / OT"
+                                        onChangeText={(value) => {
+                                            setFormData({ ...formData, idOt: value });
+                                        }}
+                                    />
+                                    <LabeledDatePicker
+                                        label="Fecha estimada de cierre del proyecto"
+                                        date={formData.fechaEstCierre}
+                                        onChange={(value) => setFormData({ ...formData, fechaEstCierre: value })}
+                                        mode="datetime"
+                                        showSeconds
+                                    />
+                                    <LabeledInput
+                                        label="Facturación esperada"
+                                        placeholder="Ingrese la facturación esperada"
+                                        value={`$ ${formData.facturacionEsperada}`}
+                                        keyboardType="decimal-pad"
+                                        onChangeText={(value) => {
+                                            let limpio = value.replace(/[^0-9.]/g, "");
+                                            const partes = limpio.split(".");
+
+                                            if (partes.length > 2) return;
+                                            if (limpio.startsWith(".")) limpio = "0" + limpio;
+                                            if (partes[1]?.length > 2) return;
+                                            setFormData({ ...formData, facturacionEsperada: limpio });
+                                        }}
+                                        icon="trending-up-outline"
+                                    />
+                                    <LabeledSelect
+                                        label="Grupo"
+                                        value={formData.grupo}
+                                        onValueChange={(value) => setFormData({ ...formData, grupo: value })}
+                                        icon="folder-outline"
+                                        items={[
+                                            { label: "G01", value: "G01" },
+                                            { label: "G02", value: "G02" },
+                                            { label: "G03", value: "G03" },
+                                            { label: "G04", value: "G04" },
+                                        ]}
+                                        placeholder="Selecciona un grupo"
+                                    />
+                                </>
+                            )}
                         </View>
 
                         <View style={{ alignSelf: "center" }}>

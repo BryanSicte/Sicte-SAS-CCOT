@@ -280,20 +280,20 @@ export default function ParqueAutomotor({ navigation }: Props) {
 
     return (
         <View style={stylesGlobal.container}>
-            <CustomTabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
+            <KeyboardAvoidingView
+                style={{ flex: 1 }}
+                behavior={Platform.OS === "ios" ? "padding" : "height"}
+                keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
+            >
+                <ScrollView
+                    contentContainerStyle={{ paddingBottom: 60 }}
+                    showsVerticalScrollIndicator={false}
+                    keyboardShouldPersistTaps="handled"
+                >
+                    <CustomTabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
 
-            {activeTab === "registros" && (
-                <>
-                    <KeyboardAvoidingView
-                        style={{ flex: 1 }}
-                        behavior={Platform.OS === "ios" ? "padding" : "height"}
-                        keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
-                    >
-                        <ScrollView
-                            contentContainerStyle={{ paddingBottom: 60 }}
-                            showsVerticalScrollIndicator={false}
-                            keyboardShouldPersistTaps="handled"
-                        >
+                    {activeTab === "registros" && (
+                        <>
                             <View style={{
                                 marginTop: isMobileWeb ? 10 : 20,
                                 marginHorizontal: isMobileWeb ? 10 : 20,
@@ -319,23 +319,11 @@ export default function ParqueAutomotor({ navigation }: Props) {
                             <View style={{ marginHorizontal: isMobileWeb ? 10 : 20 }}>
                                 <CustomTable headers={headers} data={dataTablaRegistros} />
                             </View>
-                        </ScrollView>
-                    </KeyboardAvoidingView>
-                </>
-            )}
+                        </>
+                    )}
 
-            {activeTab === "vehiculos en campo" && (
-                <>
-                    <KeyboardAvoidingView
-                        style={{ flex: 1 }}
-                        behavior={Platform.OS === "ios" ? "padding" : "height"}
-                        keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
-                    >
-                        <ScrollView
-                            contentContainerStyle={{ paddingBottom: 60 }}
-                            showsVerticalScrollIndicator={false}
-                            keyboardShouldPersistTaps="handled"
-                        >
+                    {activeTab === "vehiculos en campo" && (
+                        <>
                             <View style={{
                                 marginTop: isMobileWeb ? 10 : 20,
                                 marginHorizontal: isMobileWeb ? 10 : 20,
@@ -353,23 +341,11 @@ export default function ParqueAutomotor({ navigation }: Props) {
                             <View style={{ marginHorizontal: isMobileWeb ? 10 : 20 }}>
                                 <CustomTable headers={headers} data={dataTablaEnCampo} />
                             </View>
-                        </ScrollView>
-                    </KeyboardAvoidingView>
-                </>
-            )}
+                        </>
+                    )}
 
-            {activeTab === "pendientes por reportar" && (
-                <>
-                    <KeyboardAvoidingView
-                        style={{ flex: 1 }}
-                        behavior={Platform.OS === "ios" ? "padding" : "height"}
-                        keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
-                    >
-                        <ScrollView
-                            contentContainerStyle={{ paddingBottom: 60 }}
-                            showsVerticalScrollIndicator={false}
-                            keyboardShouldPersistTaps="handled"
-                        >
+                    {activeTab === "pendientes por reportar" && (
+                        <>
                             <View style={{
                                 marginTop: isMobileWeb ? 10 : 20,
                                 marginHorizontal: isMobileWeb ? 10 : 20,
@@ -387,10 +363,10 @@ export default function ParqueAutomotor({ navigation }: Props) {
                             <View style={{ marginHorizontal: isMobileWeb ? 10 : 20 }}>
                                 <CustomTable headers={headersPendientesReportar} data={dataTablaPendientesReportar} />
                             </View>
-                        </ScrollView>
-                    </KeyboardAvoidingView>
-                </>
-            )}
+                        </>
+                    )}
+                </ScrollView>
+            </KeyboardAvoidingView>
         </View>
     );
 }

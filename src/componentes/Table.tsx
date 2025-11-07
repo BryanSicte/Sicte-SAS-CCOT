@@ -317,10 +317,11 @@ const stylesLocal = () => {
             fontWeight: "bold",
             color: isDark ? darkColors.texto : lightColors.texto,
             fontSize: stylesGlobal.texto.fontSize,
+            textAlign: "center",
         },
         paginationContainer: {
             flexDirection: "row",
-            justifyContent: "space-between",
+            justifyContent: isMobileWeb ? "center" : "space-between",
             alignItems: "center",
         },
         pageInfo: {

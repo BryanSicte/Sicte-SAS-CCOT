@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, StyleSheet, Pressable } from "react-native";
+import { View, Text, StyleSheet, Pressable, ScrollView } from "react-native";
 import CustomButton from "./Button";
 import { darkColors, lightColors } from "../estilos/Colors";
 import { useThemeCustom } from "../contexto/ThemeContext";
@@ -23,7 +23,11 @@ export default function CustomTabs({ tabs, activeTab, onChange }: Props) {
 
     return (
         <View style={[styles.tabsWrapper, { borderBottomWidth: 1, borderColor: colors.linea }]}>
-            <View style={styles.tabsContainer}>
+            <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={true}
+                contentContainerStyle={styles.tabsContainer}
+            >
                 {tabs.map((tab) => {
                     const isActive = activeTab === tab.key;
 
@@ -66,7 +70,7 @@ export default function CustomTabs({ tabs, activeTab, onChange }: Props) {
                         </Pressable>
                     );
                 })}
-            </View>
+            </ScrollView>
         </View>
     );
 }
@@ -77,13 +81,13 @@ const stylesLocal = () => {
     return StyleSheet.create({
         tabsWrapper: {
             marginBottom: 10,
-            marginTop: isMobileWeb? 10 : 20,
+            marginTop: isMobileWeb ? 10 : 20,
             alignSelf: "stretch",
         },
         tabsContainer: {
             flexDirection: "row",
             alignItems: "flex-end",
-            paddingLeft: 20,
+            paddingLeft: isMobileWeb ? 10 : 20,
         },
         tab: {
             paddingHorizontal: 16,
