@@ -101,12 +101,14 @@ export default function RegistrarParqueAutomotor({ navigation }) {
         return `${año}-${mes}-${dia} ${horas}:${minutos}:${segundos}`;
     };
 
-    let datosUltimoMovimiento: any[] | null = null;
-    const [dataUltimoMovimiento, setDataUltimoMovimiento] = useState<any[]>([]);
+    let datosUltimoMovimientoPorPlaca: any[] | null = null;
+    const [dataUltimoMovimientoPorPlaca, setDataUltimoMovimientoPorPlaca] = useState<any[]>([]);
+    let datosUltimoMovimientoPorCedula: any[] | null = null;
+    const [dataUltimoMovimientoPorCedula, setDataUltimoMovimientoPorCedula] = useState<any[]>([]);
 
     function obtenerVehiculosUltimoMovimientoSoloUnaVez(data: any[]) {
-        if (datosUltimoMovimiento) {
-            return { dataTemp: datosUltimoMovimiento };
+        if (datosUltimoMovimientoPorPlaca || datosUltimoMovimientoPorCedula) {
+            return { dataPlacaTemp: datosUltimoMovimientoPorPlaca, dataCedulaTemp: datosUltimoMovimientoPorCedula };
         }
 
         const registros = Array.isArray(parqueAutomotor?.data) ? parqueAutomotor.data : [];
@@ -121,29 +123,40 @@ export default function RegistrarParqueAutomotor({ navigation }) {
             }, {})
         )
 
-        datosUltimoMovimiento = ultimoMovimientoPorPlaca;
+        const ultimoMovimientoPorCedula = Object.values(
+            registros.reduce((acc, registro) => {
+                const { cedula, fecha } = registro;
+                if (!cedula) return acc;
+                if (!acc[cedula] || new Date(fecha) > new Date(acc[cedula].fecha)) {
+                    acc[cedula] = registro;
+                }
+                return acc;
+            }, {})
+        );
 
-        return { dataTemp: ultimoMovimientoPorPlaca };
+        return { dataPlacaTemp: ultimoMovimientoPorPlaca, dataCedulaTemp: ultimoMovimientoPorCedula };
     }
 
     useEffect(() => {
         if (parqueAutomotor?.data) {
-            const { dataTemp } = obtenerVehiculosUltimoMovimientoSoloUnaVez(parqueAutomotor);
-            setDataUltimoMovimiento(dataTemp);
+            const { dataPlacaTemp, dataCedulaTemp } = obtenerVehiculosUltimoMovimientoSoloUnaVez(parqueAutomotor);
+            setDataUltimoMovimientoPorPlaca(dataPlacaTemp);
+            setDataUltimoMovimientoPorCedula(dataCedulaTemp);
         }
     }, [parqueAutomotor]);
 
     const validarUltimoMovimiento = (placa: string, cedula: string) => {
-        if (!dataUltimoMovimiento || dataUltimoMovimiento.length === 0) return { vehiculo: null, usuario: null };
+        if (!dataUltimoMovimientoPorPlaca || dataUltimoMovimientoPorPlaca.length === 0) return { vehiculo: null, usuario: null };
+        if (!dataUltimoMovimientoPorCedula || dataUltimoMovimientoPorCedula.length === 0) return { vehiculo: null, usuario: null };
 
-        const vehiculo = dataUltimoMovimiento.find(
+        const vehiculo = dataUltimoMovimientoPorPlaca.find(
             (item: any) => item.placa?.toUpperCase() === placa?.toUpperCase()
         );
 
-        const usuario = dataUltimoMovimiento.find(
-            (item: any) => item.cedula?.toString() === cedula?.toString()
+        const usuario = dataUltimoMovimientoPorCedula.find(
+            (item: any) => item.cedula?.toUpperCase() === cedula?.toUpperCase()
         );
-
+        
         return { vehiculo: vehiculo || null, usuario: usuario || null };
     };
 
