@@ -83,6 +83,16 @@ adb logcat *:S ReactNative:V ReactNativeJS:V
 npx expo prebuild
 npx expo run:android --variant release
 ```
+
+### Para ver los logs y como esta corriendo la construccion ejecutar en otra terminar lo siguiente
+```bash
+npx expo prebuild
+cd android
+gradlew assembleRelease --console=plain
+```
+
+### Link para descargar java 21 https://adoptium.net/es/temurin/releases?version=21&os=any&arch=any
+
 ### Si se quiere versión release (final)
 ```bash
 cd android
