@@ -1,74 +1,106 @@
 import * as TaskManager from "expo-task-manager";
 import * as ExpoLocation from "expo-location";
 import { Platform } from "react-native";
+import Toast from "react-native-toast-message";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { postUbicacionUsuarios } from "../servicios/Api";
 
 const TASK_NAME = "BACKGROUND_LOCATION_TASK";
-
 let webWatchId: number | null = null;
 
 if (Platform.OS !== "web") {
-    // Registrar la tarea (solo se hace una vez)
     TaskManager.defineTask(TASK_NAME, async ({ data, error }) => {
         if (error) {
             console.error("Error en tarea de ubicación:", error);
+            Toast.show({ type: "error", text1: "Error en tarea de ubicación", text2: "Ocurrió un problema al ejecutar la tarea de ubicación.", position: "top" });
             return;
         }
         if (data) {
             const { locations } = data as any;
             const location = locations[0];
             if (location) {
-                console.log("📍 Nueva ubicación:", location.coords);
+                const userData = await AsyncStorage.getItem("dataUser");
+                const user = userData ? JSON.parse(userData) : null;
+                const fechaActual = new Date().toISOString();
+                const payload = {
+                    fechaToma: fechaActual,
+                    cedulaUsuario: user.cedula,
+                    nombreUsuario: user.nombre,
+                    precisionLatLon: location.coords.accuracy,
+                    altitud: location.coords.altitude,
+                    precisionAltitud: location.coords.altitudeAccuracy,
+                    direccionGrados: location.coords.heading,
+                    latitud: location.coords.latitude,
+                    longitud: location.coords.longitude,
+                    velocidad: location.coords.speed,
+                    origen: Platform.OS,
+                };
+                console.log("📍 Nueva ubicación registrada:", payload);
+                const response = await postUbicacionUsuarios(payload);
                 // Aquí podrías hacer un fetch a tu API para guardar la ubicación
             }
         }
     });
 }
 
-export async function startBackgroundLocation(userId: number) {
+export async function startBackgroundLocation(user: any) {
     try {
         if (Platform.OS === "web") {
-            // 🌐 --- Versión Web ---
             if (!("geolocation" in navigator)) {
-                console.warn("Geolocalización no soportada en este navegador.");
+                Toast.show({ type: "info", text1: "Geolocalización no disponible", text2: "Tu navegador no admite funciones de ubicación.", position: "top" });
                 return;
             }
 
             if (webWatchId) {
-                console.log("🔄 Servicio de ubicación web ya activo");
+                Toast.show({ type: "info", text1: "Servicio de ubicación activo", text2: "El proceso ya se encuentra en ejecución.", position: "top" });
                 return;
             }
 
             webWatchId = navigator.geolocation.watchPosition(
-                (position) => {
-                    console.log("📍 Nueva ubicación (web):", position.coords);
+                async (position) => {
+                    const fechaActual = new Date().toISOString();
+                    const payload = {
+                        fechaToma: fechaActual,
+                        cedulaUsuario: user.cedula,
+                        nombreUsuario: user.nombre,
+                        precisionLatLon: position.coords.accuracy,
+                        altitud: position.coords.altitude,
+                        precisionAltitud: position.coords.altitudeAccuracy,
+                        direccionGrados: position.coords.heading,
+                        latitud: position.coords.latitude,
+                        longitud: position.coords.longitude,
+                        velocidad: position.coords.speed,
+                        origen: Platform.OS,
+                    };
+                    console.log("📍 Nueva ubicación (web):", payload);
+                    const response = await postUbicacionUsuarios(payload);
                     // Enviar a tu API, si quieres
                     // fetch(`${API_URL}/ubicacion`, { method: "POST", body: JSON.stringify({...}) })
                 },
                 (error) => {
                     console.error("❌ Error obteniendo ubicación web:", error);
+                    Toast.show({ type: "error", text1: "Error al iniciar ubicación", text2: "No fue posible activar el servicio de ubicación. Cierra sesion y intenta nuevamente.", position: "top" });
                 },
                 {
-                    enableHighAccuracy: true,
-                    maximumAge: 10000,
-                    timeout: 5000,
+                    enableHighAccuracy: true,   // usa GPS
+                    maximumAge: 10000,          // no reutiliza datos viejos (milisegundos)
+                    timeout: 30000,              // espera hasta 20 segundos antes de fallar (milisegundos)
                 }
             );
 
-            console.log("✅ Servicio de ubicación web iniciado para usuario:", userId);
+            Toast.show({ type: "success", text1: "Ubicación activa", text2: "Se ha iniciado el servicio de ubicación correctamente.", position: "top" });
             return;
         }
 
-        // 📱 --- Versión App (Android / iOS) ---
-        // Pedir permisos
         const { status: foregroundStatus } = await ExpoLocation.requestForegroundPermissionsAsync();
         if (foregroundStatus !== "granted") {
-            console.warn("Permiso de ubicación denegado (foreground)");
+            Toast.show({ type: "error", text1: "Permiso de ubicación denegado", text2: "Foreground permission no concedido por el usuario.", position: "top" });
             return;
         }
 
         const { status: backgroundStatus } = await ExpoLocation.requestBackgroundPermissionsAsync();
         if (backgroundStatus !== "granted") {
-            console.warn("Permiso de ubicación denegado (background)");
+            Toast.show({ type: "error", text1: "Permiso de ubicación denegado", text2: "Background permission no concedido por el usuario.", position: "top" });
             return;
         }
 
@@ -76,8 +108,8 @@ export async function startBackgroundLocation(userId: number) {
         if (!hasStarted) {
             await ExpoLocation.startLocationUpdatesAsync(TASK_NAME, {
                 accuracy: ExpoLocation.Accuracy.High,
-                distanceInterval: 10, // cada 10 metros
-                deferredUpdatesInterval: 1000 * 60, // cada minuto
+                distanceInterval: 5, // cada 5 metros
+                deferredUpdatesInterval: 1000 * (60 / 2), // cada minuto / 2
                 showsBackgroundLocationIndicator: true,
                 pausesUpdatesAutomatically: false,
                 foregroundService: {
@@ -86,10 +118,11 @@ export async function startBackgroundLocation(userId: number) {
                 },
             });
 
-            console.log("✅ Servicio de ubicación iniciado para usuario:", userId);
+            Toast.show({ type: "success", text1: "Ubicación activa", text2: "Se ha iniciado el servicio de ubicación correctamente.", position: "top" });
         }
     } catch (error) {
         console.error("❌ Error iniciando ubicación:", error);
+        Toast.show({ type: "error", text1: "Error al iniciar ubicación", text2: "No fue posible activar el servicio de ubicación. Cierra sesion y intenta nuevamente.", position: "top" });
     }
 }
 
@@ -99,19 +132,19 @@ export async function stopBackgroundLocation() {
             if (webWatchId !== null) {
                 navigator.geolocation.clearWatch(webWatchId);
                 webWatchId = null;
-                console.log("🛑 Servicio de ubicación web detenido");
+                Toast.show({ type: "info", text1: "Servicio de ubicación detenido", text2: "El servicio de ubicación se ha desactivado correctamente.", position: "top" });
             }
             return;
         }
 
-        // 📱 Versión app
         const hasStarted = await ExpoLocation.hasStartedLocationUpdatesAsync(TASK_NAME);
         if (hasStarted) {
             await ExpoLocation.stopLocationUpdatesAsync(TASK_NAME);
-            console.log("🛑 Servicio de ubicación detenido");
+            Toast.show({ type: "info", text1: "Servicio de ubicación detenido", text2: "El servicio de ubicación se ha desactivado correctamente.", position: "top" });
         }
     } catch (error) {
         console.error("❌ Error deteniendo ubicación:", error);
+
     }
 }
 

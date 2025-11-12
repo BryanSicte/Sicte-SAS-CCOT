@@ -50,7 +50,7 @@ export const UserDataProvider = ({ children }: { children: React.ReactNode }) =>
 
     useEffect(() => {
         if (user?.id) {
-            startBackgroundLocation(user.id);
+            startBackgroundLocation(user);
         } else {
             stopBackgroundLocation();
         }

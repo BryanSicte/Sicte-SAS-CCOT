@@ -63,6 +63,9 @@ export const login = (correo, contrasena) =>
 export const getUsuarios = () =>
     request("/usuarios", "GET");
 
+export const postUbicacionUsuarios = (data) =>
+    request("/usuarios/ubicacionUsuarios", "POST", data);
+
 export const getUsuariosCedulaNombre = async (planta) => {
     if (planta && planta.data && planta.data.length > 0) {
         return planta;

@@ -14,6 +14,24 @@ npx expo start -c
 ```bash
 npx expo start -c --tunnel
 ```
+### Ejecutar proyecto para que sirva por cable y web despues de instalar el adb y la variable de entorno
+```bash
+npx expo start --localhost
+```
+
+
+### para ejecutar proyecto por tunnel ngrok pero antes se debe habilitar esto para que pueda ser accesible el backend en desarrollo
+```bash
+ngrok http 8120
+```
+### para cerrar el servicio ADB
+```bash
+adb kill-server
+```
+### para abrir el servicio ADB
+```bash
+adb start-server
+```
 
 
 ## Despliegue de aplicacion en web
@@ -58,4 +76,15 @@ eas update --branch preview --message "Implementa auto update al iniciar la app"
 ### Sentencia para ver logs conectado el celular por cable 
 ```bash
 adb logcat *:S ReactNative:V ReactNativeJS:V 
+```
+
+### Construir el APK para produccion, lo crea en la carpeta android/app/build/outputs/apk/release/app-release.apk
+```bash
+npx expo prebuild
+npx expo run:android --variant release
+```
+### Si se quiere versión release (final)
+```bash
+cd android
+./gradlew assembleRelease
 ```

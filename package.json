@@ -8,7 +8,9 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "build": "npx expo export",
-    "start": "npx serve -s dist"
+    "start": "npx serve -s dist",
+    "start:dev": "expo start --config app.dev.json",
+    "start:prod": "expo start --config app.prod.json"
   },
   "dependencies": {
     "@expo-google-fonts/tilt-warp": "^0.4.2",
