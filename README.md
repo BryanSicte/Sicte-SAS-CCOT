@@ -55,3 +55,7 @@ eas update
 eas update --branch preview --message "Implementa auto update al iniciar la app"
 ```
 
+### Sentencia para ver logs conectado el celular por cable 
+```bash
+adb logcat *:S ReactNative:V ReactNativeJS:V 
+```

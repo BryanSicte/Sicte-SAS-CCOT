@@ -5,6 +5,7 @@ import { StackNavigationOptions } from "@react-navigation/stack";
 import Storage from "../utilitarios/Storage";
 import { useUserMenu } from "../contexto/UserMenuContext";
 import { useNavigationParams } from "../contexto/NavigationParamsContext";
+import { HeaderTitle } from "./HeaderTitle";
 
 type HeaderOptionsParams = {
     toggleMenu: () => void;
@@ -149,13 +150,11 @@ export const getHeaderOptions = (
                     <Image
                         source={{
                             uri:
-                                Platform.OS === "web"
+                                Platform.OS === "web" && !isMobileWeb
                                     ? isDark
                                         ? "https://res.cloudinary.com/dcozwbcpi/image/upload/v1753297343/Logo_Original_2_zelyfk.png"
                                         : "https://res.cloudinary.com/dcozwbcpi/image/upload/v1753297342/Logo_Original_homvl9.png"
-                                    : isDark
-                                        ? "https://res.cloudinary.com/dcozwbcpi/image/upload/v1753297343/Logo_Original_Mobile_Dark.png"
-                                        : "https://res.cloudinary.com/dcozwbcpi/image/upload/v1753297342/Logo_Original_Mobile_Light.png",
+                                    : null,
                         }}
                         style={{
                             width: Platform.OS === "web" ? 150 : 0,
@@ -168,62 +167,15 @@ export const getHeaderOptions = (
             </View>
         ),
 
-        headerTitleAlign: isMobileWeb && title !== "CCOT" ? "left" : "center",
-        headerTitle: () => {
-            const [screenWidth, setScreenWidth] = useState(Dimensions.get("window").width);
-            const [displayTitle, setDisplayTitle] = useState(title);
-            let maxChars = 20;
-            
-            useEffect(() => {
-                const subscription = Dimensions.addEventListener("change", ({ window }) => {
-                    setScreenWidth(window.width);
-                });
-
-                return () => subscription?.remove?.();
-            }, []);
-
-            useEffect(() => {
-                if (screenWidth) {
-                    const screenWidthTemp = screenWidth - (showLogo ? 215 : 45) - 96;
-                    const fontSize = isMobileWeb ? 25 : 35;
-                    const avgCharWidthFactor = 0.6;
-                    const textWidthTemp = title.length * fontSize * avgCharWidthFactor;
-
-                    if (textWidthTemp > screenWidthTemp) {
-                        maxChars = Math.floor((screenWidthTemp) / (isMobileWeb ? 12 : 20)) - 4;
-                        setDisplayTitle(title.length > maxChars ? title.slice(0, maxChars) + "..." : title);
-                    } else {
-                        maxChars = textWidthTemp;
-                        setDisplayTitle(title.length > maxChars ? title.slice(0, maxChars) + "..." : title);
-                    }
-                }
-            }, [screenWidth, showLogo, title]);
-
-            return (
-                <View
-                    style={{
-                        flex: 1,
-                        alignItems: Platform.OS === "web" ? "center" : "flex-start",
-                        justifyContent: "center",
-                        overflow: "hidden",
-                        paddingLeft: isMobileWeb ? 0 : 20,
-                    }}
-                >
-                    <Text
-                        style={{
-                            fontSize: isMobileWeb ? 25 : 35,
-                            fontWeight: "bold",
-                            color: colors.texto,
-                            fontFamily: "TiltWarp",
-                        }}
-                        numberOfLines={1}
-                        ellipsizeMode="tail"
-                    >
-                        {displayTitle}
-                    </Text>
-                </View>
-            );
-        },
+        headerTitleAlign: (isMobileWeb || Platform.OS !== "web") && title !== "CCOT" ? "left" : "center",
+        headerTitle: () => (
+            <HeaderTitle
+                title={title}
+                showLogo={showLogo}
+                isMobileWeb={isMobileWeb}
+                colors={colors}
+            />
+        ),
 
         headerRight: () => (
             <View style={{ flexDirection: "row", alignItems: "center" }}>

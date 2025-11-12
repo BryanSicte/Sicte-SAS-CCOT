@@ -18,14 +18,7 @@ import { useUserMenu } from '../../contexto/UserMenuContext';
 import { useIsMobileWeb } from '../../utilitarios/IsMobileWeb';
 import Storage from "../../utilitarios/Storage";
 import Loader from '../../componentes/Loader';
-import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
 import { Ionicons } from '@expo/vector-icons';
-
-let html2pdf: any;
-if (Platform.OS !== "web") {
-    html2pdf = require("react-native-html-to-pdf");
-}
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Inventarios'>;
 
@@ -187,22 +180,6 @@ export default function Inventarios({ navigation }: Props) {
         return datosEditar;
     };
 
-    const generarPDFWeb = async () => {
-        const element = document.getElementById("modalLeerInventario");
-        if (!element) return;
-
-        const canvas = await html2canvas(element);
-        const imgData = canvas.toDataURL("image/png");
-
-        const pdf = new jsPDF("p", "mm", "a4");
-        const imgProps = pdf.getImageProperties(imgData);
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-
-        pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-        pdf.save(`inventario_${Date.now()}.pdf`);
-    };
-
     if (loading) {
         return <Loader visible={loading} />;
     }
@@ -319,126 +296,138 @@ export default function Inventarios({ navigation }: Props) {
                                                     label="Generar PDF"
                                                     onPress={async () => {
                                                         if (Platform.OS === "web") {
-                                                            setForceDesktopMode(true);
-                                                            await new Promise((resolve) => setTimeout(resolve, 200));
-                                                            const element = document.getElementById("modalLeerInventario");
-                                                            if (!element) return;
-
-                                                            setForceDesktopMode(false);
-
-                                                            const captureWidthPx = 1000;
-                                                            const captureScale = 3;
-
-                                                            const clone = element.cloneNode(true) as HTMLElement;
-
-                                                            const wrapper = document.createElement("div");
-                                                            wrapper.setAttribute("id", "modal-capture-wrapper");
-                                                            wrapper.style.position = "absolute";
-                                                            wrapper.style.left = "-99999px";
-                                                            wrapper.style.top = "0";
-                                                            wrapper.style.width = `${captureWidthPx}px`;
-                                                            wrapper.style.overflow = "visible";
-                                                            wrapper.style.zIndex = "99999";
-                                                            wrapper.appendChild(clone);
-                                                            document.body.appendChild(wrapper);
-
                                                             try {
-                                                                clone.style.width = `${captureWidthPx}px`;
-                                                                clone.style.height = "auto";
-                                                                clone.style.overflow = "visible";
+                                                                const html2canvas = (await import("html2canvas")).default;
+                                                                const { jsPDF } = await import("jspdf");
 
-                                                                const imgs = Array.from(clone.getElementsByTagName("img")) as HTMLImageElement[];
-                                                                imgs.forEach((img) => {
-                                                                    if (!img.src.startsWith("data:") && !img.crossOrigin) {
-                                                                        try {
-                                                                            img.crossOrigin = "anonymous";
-                                                                        } catch (e) {
+                                                                setForceDesktopMode(true);
+
+                                                                await new Promise((resolve) => setTimeout(resolve, 200));
+                                                                const element = document.getElementById("modalLeerInventario");
+                                                                if (!element) return;
+
+                                                                setForceDesktopMode(false);
+
+                                                                const captureWidthPx = 1000;
+                                                                const captureScale = 3;
+
+                                                                const clone = element.cloneNode(true) as HTMLElement;
+
+                                                                const wrapper = document.createElement("div");
+                                                                wrapper.setAttribute("id", "modal-capture-wrapper");
+                                                                wrapper.style.position = "absolute";
+                                                                wrapper.style.left = "-99999px";
+                                                                wrapper.style.top = "0";
+                                                                wrapper.style.width = `${captureWidthPx}px`;
+                                                                wrapper.style.overflow = "visible";
+                                                                wrapper.style.zIndex = "99999";
+                                                                wrapper.appendChild(clone);
+                                                                document.body.appendChild(wrapper);
+
+                                                                try {
+                                                                    clone.style.width = `${captureWidthPx}px`;
+                                                                    clone.style.height = "auto";
+                                                                    clone.style.overflow = "visible";
+
+                                                                    const imgs = Array.from(clone.getElementsByTagName("img")) as HTMLImageElement[];
+                                                                    imgs.forEach((img) => {
+                                                                        if (!img.src.startsWith("data:") && !img.crossOrigin) {
+                                                                            try {
+                                                                                img.crossOrigin = "anonymous";
+                                                                            } catch (e) {
+                                                                            }
                                                                         }
-                                                                    }
-                                                                });
+                                                                    });
 
-                                                                await Promise.all(
-                                                                    imgs.map(
-                                                                        (img) =>
-                                                                            new Promise<void>((resolve) => {
-                                                                                if (img.complete && img.naturalWidth !== 0) resolve();
-                                                                                else {
-                                                                                    img.onload = () => resolve();
-                                                                                    img.onerror = () => resolve();
-                                                                                }
-                                                                            })
-                                                                    )
-                                                                );
+                                                                    await Promise.all(
+                                                                        imgs.map(
+                                                                            (img) =>
+                                                                                new Promise<void>((resolve) => {
+                                                                                    if (img.complete && img.naturalWidth !== 0) resolve();
+                                                                                    else {
+                                                                                        img.onload = () => resolve();
+                                                                                        img.onerror = () => resolve();
+                                                                                    }
+                                                                                })
+                                                                        )
+                                                                    );
 
-                                                                const canvas = await html2canvas(clone, {
-                                                                    scale: captureScale,
-                                                                    useCORS: true,
-                                                                    allowTaint: true,
-                                                                    backgroundColor: "#ffffff",
-                                                                    logging: false,
-                                                                });
+                                                                    const canvas = await html2canvas(clone, {
+                                                                        scale: captureScale,
+                                                                        useCORS: true,
+                                                                        allowTaint: true,
+                                                                        backgroundColor: "#ffffff",
+                                                                        logging: false,
+                                                                    });
 
-                                                                const imgData = canvas.toDataURL("image/png");
+                                                                    const imgData = canvas.toDataURL("image/png");
 
-                                                                const pdf = new jsPDF({
-                                                                    orientation: "portrait",
-                                                                    unit: "mm",
-                                                                    format: "letter",
-                                                                });
+                                                                    const pdf = new jsPDF({
+                                                                        orientation: "portrait",
+                                                                        unit: "mm",
+                                                                        format: "letter",
+                                                                    });
 
-                                                                const pdfWidth = pdf.internal.pageSize.getWidth();
-                                                                const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+                                                                    const pdfWidth = pdf.internal.pageSize.getWidth();
+                                                                    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
 
-                                                                let heightLeft = pdfHeight;
-                                                                let position = 0;
+                                                                    let heightLeft = pdfHeight;
+                                                                    let position = 0;
 
-                                                                pdf.addImage(imgData, "PNG", 0, position, pdfWidth, pdfHeight);
-                                                                heightLeft -= pdf.internal.pageSize.getHeight();
-
-                                                                while (heightLeft > 0) {
-                                                                    position = heightLeft - pdfHeight;
-                                                                    pdf.addPage();
                                                                     pdf.addImage(imgData, "PNG", 0, position, pdfWidth, pdfHeight);
                                                                     heightLeft -= pdf.internal.pageSize.getHeight();
+
+                                                                    while (heightLeft > 0) {
+                                                                        position = heightLeft - pdfHeight;
+                                                                        pdf.addPage();
+                                                                        pdf.addImage(imgData, "PNG", 0, position, pdfWidth, pdfHeight);
+                                                                        heightLeft -= pdf.internal.pageSize.getHeight();
+                                                                    }
+
+                                                                    pdf.save(`Inventario_${datosModal?.inventario}_${datosModal?.cedulaTecnico}.pdf`);
+
+                                                                    Toast.show({
+                                                                        type: "success",
+                                                                        text1: "PDF generado correctamente",
+                                                                        text2: "Incluye logo y firmas.",
+                                                                        position: "top",
+                                                                    });
+                                                                } catch (err) {
+                                                                    console.error("Error generando PDF desde clon:", err);
+                                                                    Toast.show({ type: "error", text1: "Error", text2: "No se pudo generar el PDF." });
+                                                                } finally {
+                                                                    const existing = document.getElementById("modal-capture-wrapper");
+                                                                    if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
                                                                 }
-
-                                                                pdf.save(`Inventario_${datosModal?.inventario}_${datosModal?.cedulaTecnico}.pdf`);
-
-                                                                Toast.show({
-                                                                    type: "success",
-                                                                    text1: "PDF generado correctamente",
-                                                                    text2: "Incluye logo y firmas.",
-                                                                    position: "top",
-                                                                });
                                                             } catch (err) {
-                                                                console.error("Error generando PDF desde clon:", err);
-                                                                Toast.show({ type: "error", text1: "Error", text2: "No se pudo generar el PDF." });
-                                                            } finally {
-                                                                const existing = document.getElementById("modal-capture-wrapper");
-                                                                if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
+                                                                console.error("Error generando PDF web:", err);
                                                             }
                                                         } else {
-                                                            const htmlContent = `
-                                                            <h1>Inventario</h1>
-                                                            <p>Fecha: ${datosModal?.fecha}</p>
-                                                            <p>Técnico: ${datosModal?.nombreTecnico} (${datosModal?.cedulaTecnico})</p>
-                                                            <p>Inventario: ${datosModal?.inventario}</p>
-                                                            <h2>Materiales</h2>
-                                                            <ul>
-                                                                ${datosModal?.materiales.map(m => `<li>${m.codigo} - ${m.descripcion} - ${m.cantidad} ${m.unidadMedida}</li>`).join("")}
-                                                            </ul>
-                                                            <h2>Firmas</h2>
-                                                            ${datosModal?.firmaEquipos ? `<img src="${datosModal.firmaEquipos}" width="300" />` : ""}
-                                                            ${datosModal?.firmaMateriales ? `<img src="${datosModal.firmaMateriales}" width="300" />` : ""}
-                                                            ${datosModal?.firmaTecnico ? `<img src="${datosModal.firmaTecnico}" width="300" />` : ""}
-                                                        `;
-                                                            const options = {
-                                                                html: htmlContent,
-                                                                fileName: `inventario_${datosModal?.inventario}`,
-                                                                directory: "Documents",
-                                                            };
-                                                            const pdf = await html2pdf.convert(options);
-                                                            Toast.show({ type: "success", text1: "PDF generado", text2: pdf.filePath });
+                                                            try {
+                                                                const { printToFileAsync } = await import("expo-print");
+                                                                const { shareAsync } = await import("expo-sharing");
+
+                                                                const html = `
+                                                                    <h1>Inventario</h1>
+                                                                    <p>Fecha: ${datosModal?.fecha}</p>
+                                                                    <p>Técnico: ${datosModal?.nombreTecnico} (${datosModal?.cedulaTecnico})</p>
+                                                                    <p>Inventario: ${datosModal?.inventario}</p>
+                                                                    <h2>Materiales</h2>
+                                                                    <ul>
+                                                                        ${datosModal?.materiales.map(
+                                                                            m => `<li>${m.codigo} - ${m.descripcion} - ${m.cantidad} ${m.unidadMedida}</li>`
+                                                                        ).join("")}
+                                                                    </ul>
+                                                                `;
+
+                                                                const file = await printToFileAsync({ html });
+                                                                await shareAsync(file.uri);
+
+                                                                Toast.show({ type: "success", text1: "PDF generado y listo para compartir" });
+                                                            } catch (err) {
+                                                                console.error("Error generando PDF móvil:", err);
+                                                                Toast.show({ type: "error", text1: "Error", text2: "No se pudo generar el PDF." });
+                                                            }
                                                         }
                                                     }}
                                                 />

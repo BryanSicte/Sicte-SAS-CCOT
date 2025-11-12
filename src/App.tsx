@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
+import { Platform } from "react-native";
 import RootNavigator, { navigationRef } from './navegacion/RootNavigator';
 import { ThemeProvider, useThemeCustom } from './contexto/ThemeContext';
 import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
@@ -31,14 +32,21 @@ export default function App() {
     });
 
     useEffect(() => {
-        const htmlEl = document.documentElement;
-        htmlEl.setAttribute("translate", "no");
-        document.querySelector("meta[name='google']") ||
-            document.head.insertAdjacentHTML("beforeend", `<meta name="google" content="notranslate">`);
+        if (Platform.OS === "web") {
+            const htmlEl = document.documentElement;
+            htmlEl.setAttribute("translate", "no");
+            document.querySelector("meta[name='google']") ||
+                document.head.insertAdjacentHTML("beforeend", `<meta name="google" content="notranslate">`);
+        }
     }, []);
 
     const ensureLatestVersion = useCallback(async () => {
         try {
+            if (__DEV__ || !Updates.checkForUpdateAsync) {
+                if (__DEV__) console.log("🚫 Saltando verificación de actualizaciones en modo desarrollo o Expo Go.");
+                return;
+            }
+
             const update = await Updates.checkForUpdateAsync();
             if (update.isAvailable) {
                 if (__DEV__) console.log("🌀 Nueva actualización detectada, aplicando...");

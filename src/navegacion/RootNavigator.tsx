@@ -183,7 +183,7 @@ export default function RootNavigator() {
                                 isDark,
                                 colors,
                                 navigation,
-                                showLogo: !isMobileWeb,
+                                showLogo: !isMobileWeb && Platform.OS === "web",
                                 isMobileWeb: isMobileWeb,
                             }),
                             title: "Sicte CCOT",
@@ -203,7 +203,7 @@ export default function RootNavigator() {
                                 isDark,
                                 colors,
                                 navigation,
-                                showLogo: !isMobileWeb,
+                                showLogo: !isMobileWeb && Platform.OS === "web",
                                 isMobileWeb: isMobileWeb,
                             }),
                             title: data?.label ?? "CCOT",
@@ -225,7 +225,7 @@ export default function RootNavigator() {
                                 isDark,
                                 colors,
                                 navigation,
-                                showLogo: !isMobileWeb,
+                                showLogo: !isMobileWeb && Platform.OS === "web",
                                 isMobileWeb: isMobileWeb,
                             }),
                             title: report?.label ?? "CCOT",
@@ -244,7 +244,7 @@ export default function RootNavigator() {
                                 isDark,
                                 colors,
                                 navigation,
-                                showLogo: !isMobileWeb,
+                                showLogo: !isMobileWeb && Platform.OS === "web",
                                 isMobileWeb: isMobileWeb,
                             }),
                         };
@@ -262,7 +262,7 @@ export default function RootNavigator() {
                                 isDark,
                                 colors,
                                 navigation,
-                                showLogo: !isMobileWeb,
+                                showLogo: !isMobileWeb && Platform.OS === "web",
                                 isMobileWeb: isMobileWeb,
                             }),
                         };
@@ -280,7 +280,7 @@ export default function RootNavigator() {
                                 isDark,
                                 colors,
                                 navigation,
-                                showLogo: !isMobileWeb,
+                                showLogo: !isMobileWeb && Platform.OS === "web",
                                 isMobileWeb: isMobileWeb,
                             }),
                         };
@@ -298,7 +298,7 @@ export default function RootNavigator() {
                                 isDark,
                                 colors,
                                 navigation,
-                                showLogo: !isMobileWeb,
+                                showLogo: !isMobileWeb && Platform.OS === "web",
                                 isMobileWeb: isMobileWeb,
                             }),
                         };
@@ -316,7 +316,7 @@ export default function RootNavigator() {
                                 isDark,
                                 colors,
                                 navigation,
-                                showLogo: !isMobileWeb,
+                                showLogo: !isMobileWeb && Platform.OS === "web",
                                 isMobileWeb: isMobileWeb,
                             }),
                         };
@@ -334,7 +334,7 @@ export default function RootNavigator() {
                                 isDark,
                                 colors,
                                 navigation,
-                                showLogo: !isMobileWeb,
+                                showLogo: !isMobileWeb && Platform.OS === "web",
                                 isMobileWeb: isMobileWeb,
                             }),
                         };
@@ -352,7 +352,7 @@ export default function RootNavigator() {
                                 isDark,
                                 colors,
                                 navigation,
-                                showLogo: !isMobileWeb,
+                                showLogo: !isMobileWeb && Platform.OS === "web",
                                 isMobileWeb: isMobileWeb,
                             }),
                         };
@@ -370,7 +370,7 @@ export default function RootNavigator() {
                                 isDark,
                                 colors,
                                 navigation,
-                                showLogo: !isMobileWeb,
+                                showLogo: !isMobileWeb && Platform.OS === "web",
                                 isMobileWeb: isMobileWeb,
                             }),
                         };
@@ -388,7 +388,7 @@ export default function RootNavigator() {
                                 isDark,
                                 colors,
                                 navigation,
-                                showLogo: !isMobileWeb,
+                                showLogo: !isMobileWeb && Platform.OS === "web",
                                 isMobileWeb: isMobileWeb,
                             }),
                         };
@@ -406,7 +406,7 @@ export default function RootNavigator() {
                                 isDark,
                                 colors,
                                 navigation,
-                                showLogo: !isMobileWeb,
+                                showLogo: !isMobileWeb && Platform.OS === "web",
                                 isMobileWeb: isMobileWeb,
                             }),
                         };
@@ -424,7 +424,7 @@ export default function RootNavigator() {
                                 isDark,
                                 colors,
                                 navigation,
-                                showLogo: !isMobileWeb,
+                                showLogo: !isMobileWeb && Platform.OS === "web",
                                 isMobileWeb: isMobileWeb,
                             }),
                         };
@@ -442,7 +442,7 @@ export default function RootNavigator() {
                                 isDark,
                                 colors,
                                 navigation,
-                                showLogo: !isMobileWeb,
+                                showLogo: !isMobileWeb && Platform.OS === "web",
                                 isMobileWeb: isMobileWeb,
                             }),
                         };
@@ -460,14 +460,14 @@ export default function RootNavigator() {
                             isDark,
                             colors,
                             navigation,
-                            showLogo: !isMobileWeb,
+                            showLogo: !isMobileWeb && Platform.OS === "web",
                             isMobileWeb: isMobileWeb,
                         });
                     }}
                 />
             </Stack.Navigator>
 
-            {open && isMobileWeb && (
+            {open && (isMobileWeb || Platform.OS !== "web") && (
                 <Pressable
                     onPress={() => {
                         setMenuVisibleUser(false);
@@ -769,7 +769,7 @@ const MenuItem = ({
                     onDisabledPress?.();
                     return;
                 }
-                if (isMobileWeb) {
+                if (isMobileWeb || Platform.OS !== "web") {
                     toggleMenu();
                 }
 

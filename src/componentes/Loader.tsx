@@ -1,12 +1,32 @@
-import React, { useEffect, useRef } from "react";
-import { View, ActivityIndicator, StyleSheet, Text, Animated, Easing } from "react-native";
+import React from "react";
+import { View, StyleSheet, Text, Platform } from "react-native";
 import { useThemeCustom } from "../contexto/ThemeContext";
 import { darkColors, lightColors } from "../estilos/Colors";
-import { Ionicons } from "@expo/vector-icons";
-import LottieView from "lottie-react-native";
 import humanCharacters from "../assets/humanCharacters.json";
 import { useGlobalStyles } from "../estilos/GlobalStyles";
 import { useIsMobileWeb } from "../utilitarios/IsMobileWeb";
+
+let LottieView: any;
+
+try {
+    if (Platform.OS === "web") {
+        const lottieModule = require("lottie-react");
+        const LottieComp = lottieModule.default || lottieModule.Lottie || lottieModule;
+        LottieView = (props: any) => (
+            <LottieComp
+                animationData={props.source}
+                loop={props.loop}
+                autoplay={props.autoPlay}
+                style={props.style}
+            />
+        );
+    } else {
+        LottieView = require("lottie-react-native").default;
+    }
+} catch (error) {
+    console.error("Error cargando Lottie:", error);
+    LottieView = () => null;
+}
 
 interface LoaderProps {
     visible?: boolean;
@@ -18,7 +38,7 @@ interface LoaderProps {
 
 const Loader: React.FC<LoaderProps> = ({
     visible = true,
-    size = 80,
+    size = "90%",
     color = "#007BFF",
     style = {},
     text = "... Cargando Datos ...",
@@ -30,13 +50,18 @@ const Loader: React.FC<LoaderProps> = ({
 
     if (!visible) return null;
 
+    const animationSource = Platform.OS === "web" ? humanCharacters : require("../assets/humanCharacters.json");
+
     return (
         <View style={[stylesGlobal.container, styles.container, style]}>
-            <LottieView
-                source={humanCharacters}
-                autoPlay
-                loop
-            />
+            <View style={{ width: size, height: size }}>
+                <LottieView
+                    source={animationSource}
+                    autoPlay
+                    loop
+                    style={{ width: "100%", height: "100%" }}
+                />
+            </View>
             <View>
                 <Text style={[styles.texto]}>{text}</Text>
             </View>
@@ -54,7 +79,7 @@ const stylesLocal = () => {
             flexDirection: "column",
             justifyContent: "center",
             alignItems: "center",
-            paddingRight: isMobileWeb ? 0 : 20,
+            paddingRight: isMobileWeb || Platform.OS !== "web" ? 0 : 20,
             paddingTop: 70,
             paddingBottom: 100,
         },

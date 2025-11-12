@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import Storage from "../utilitarios/Storage";
 import { login, login as loginApi } from "../servicios/Api";
 import { usePageUserData } from "./PageUserDataContext";
+import { startBackgroundLocation, stopBackgroundLocation } from "../utilitarios/BackgroundLocation";
 
 type User = Awaited<ReturnType<typeof loginApi>>["usuario"];
 
@@ -46,6 +47,14 @@ export const UserDataProvider = ({ children }: { children: React.ReactNode }) =>
         await setPages(data.data.page);
         return data;
     };
+
+    useEffect(() => {
+        if (user?.id) {
+            startBackgroundLocation(user.id);
+        } else {
+            stopBackgroundLocation();
+        }
+    }, [user]);
 
     useEffect(() => {
         getUser();

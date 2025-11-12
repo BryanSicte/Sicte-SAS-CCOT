@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { View, Text, KeyboardAvoidingView, ScrollView, Platform, Pressable } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { View, Text, KeyboardAvoidingView, ScrollView, Platform, Pressable, StyleSheet } from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../navegacion/RootNavigator";
 import CadenaDeSuministro from "./CadenaDeSuministro";
@@ -18,6 +18,10 @@ import { useGlobalStyles } from "../../estilos/GlobalStyles";
 import { usePlantaData } from "../../contexto/PlantaDataContext";
 import Loader from "../../componentes/Loader";
 import { useUserData } from "../../contexto/UserDataContext";
+import Toast from "react-native-toast-message";
+import { handleLogout } from "../../utilitarios/HandleLogout";
+import { useUserMenu } from "../../contexto/UserMenuContext";
+import Storage from "../../utilitarios/Storage";
 
 type Props = NativeStackScreenProps<RootStackParamList, "SolicitudAbastecimientoNuevo">;
 
@@ -26,13 +30,18 @@ export default function SolicitudAbastecimientoNuevo({ navigation }: Props) {
     const colors = isDark ? darkColors : lightColors;
     const isMobileWeb = useIsMobileWeb();
     const { setParams } = useNavigationParams();
-    const headers = ["Fecha", "Usuario", "Sede", "Placa", "Estado", "Nombre"];
+    const headers = ["Codigo SAP", "Descripcion", "Cantidad", "U.M."];
     const [data, setData] = useState<any[]>([]);
     const [dataTabla, setDataTabla] = useState<any[]>([]);
     const stylesGlobal = useGlobalStyles();
     const { planta, setPlanta } = usePlantaData();
     const [loading, setLoading] = useState(false);
+    const [loadingForm, setLoadingForm] = useState(true);
     const { user, logout, getUser } = useUserData();
+    const styles = stylesLocal();
+    const { logoutHandler } = handleLogout();
+    const { setMenuVisibleUser } = useUserMenu();
+    const initialFormDataRef = useRef(null);
 
     const handleDownloadXLSX = () => {
         if (data.data.length === 0) return;
@@ -47,10 +56,6 @@ export default function SolicitudAbastecimientoNuevo({ navigation }: Props) {
         usuario: user?.nombre || "Pendiente",
         consumo: "",
         solicitud: "",
-        codigo: "",
-        descripcion: "",
-        cantidad: "",
-        unidadMedida: "",
         sede: "",
         segmento: "",
         tiempoAbastecimiento: new Date(),
@@ -58,9 +63,80 @@ export default function SolicitudAbastecimientoNuevo({ navigation }: Props) {
         fechaEstCierre: new Date(),
         facturacionEsperada: "",
         grupo: "",
+        materiales: [],
+    });
+
+    const createEmptyNuevoMaterial = () => ({
+        codigo: "",
+        descripcion: "",
+        cantidad: "",
+        unidadMedida: "",
     });
 
     const [formData, setFormData] = useState(createEmptyFormData(user));
+    const [nuevoMaterial, setNuevoMaterial] = useState(createEmptyNuevoMaterial());
+
+    useEffect(() => {
+        const loadUser = async () => {
+            try {
+                const userTemp = await getUser();
+                if (userTemp === null) {
+                    await logoutHandler({
+                        logout,
+                        setMenuVisibleUser,
+                    });
+                }
+            } catch (error) {
+                console.log("Error obteniendo usuario:", error);
+            }
+        };
+        loadUser();
+    }, []);
+
+    useEffect(() => {
+        const saveFormData = async () => {
+            try {
+                await Storage.setItem("formSolicitudAbastecimiento", formData);
+            } catch (error) {
+                console.error("Error guardando el formulario:", error);
+            }
+        };
+        if (!loadingForm) {
+            saveFormData();
+        }
+    }, [formData]);
+
+    useEffect(() => {
+        const loadForm = async () => {
+            const savedData = await Storage.getItem("formSolicitudAbastecimiento");
+            if (savedData === null) {
+                setFormData(createEmptyFormData(user));
+                initialFormDataRef.current = {};
+                setLoadingForm(false);
+                return;
+            }
+            const parsed = typeof savedData === "string" ? JSON.parse(savedData) : savedData;
+            const data = {
+                fecha: new Date(parsed.fecha),
+                cedulaUsuario: user?.cedula || "Pendiente",
+                usuario: user?.nombre || "Pendiente",
+                consumo: parsed.consumo,
+                solicitud: parsed.solicitud,
+                sede: parsed.sede,
+                segmento: parsed.segmento,
+                tiempoAbastecimiento: new Date(parsed.tiempoAbastecimiento),
+                idOt: parsed.idOt,
+                fechaEstCierre: new Date(parsed.fechaEstCierre),
+                facturacionEsperada: parsed.facturacionEsperada,
+                grupo: parsed.grupo,
+                materiales: parsed.materiales,
+            };
+            setFormData(data);
+            initialFormDataRef.current = data;
+            setLoadingForm(false);
+        };
+        loadForm();
+    }, [user]);
 
     const handleForm = async () => {
         // if (!formData.sede) { Toast.show({ type: "info", text1: "Falta información", text2: "Por favor ingrese la sede.", position: "top" }); return; }
@@ -91,6 +167,23 @@ export default function SolicitudAbastecimientoNuevo({ navigation }: Props) {
         // } finally {
         //     setLoading(false);
         // }
+    };
+
+    const handleGuardar = () => {
+        if (!nuevoMaterial.codigo) { Toast.show({ type: "info", text1: "Falta información", text2: "Por favor ingrese el codigo.", position: "top" }); return; }
+        if (nuevoMaterial.codigo === 'Material no encontrado') { Toast.show({ type: "info", text1: "Falta información", text2: "Verifica la descripcion o el código del material e inténtalo nuevamente.", position: "top" }); return; }
+        if (!nuevoMaterial.descripcion) { Toast.show({ type: "info", text1: "Falta información", text2: "Por favor ingrese la descripcion.", position: "top" }); return; }
+        if (nuevoMaterial.descripcion === 'Material no encontrado') { Toast.show({ type: "info", text1: "Falta información", text2: "Verifica la descripcion o el código del material e inténtalo nuevamente.", position: "top" }); return; }
+        if (!nuevoMaterial.cantidad) { Toast.show({ type: "info", text1: "Falta información", text2: "Por favor ingrese la cantidad.", position: "top" }); return; }
+        const materialYaExiste = formData.materiales.some((m) => m.codigo?.toLowerCase() === nuevoMaterial.codigo?.toLowerCase());
+        if (materialYaExiste) { Toast.show({ type: "info", text1: "Material duplicado", text2: "Este código de material ya fue ingresado.", position: "top" }); return; }
+
+        setFormData((prevData) => ({
+            ...prevData,
+            materiales: [...prevData.materiales, nuevoMaterial],
+        }));
+
+        setNuevoMaterial(createEmptyNuevoMaterial());
     };
 
     if (loading) {
@@ -195,67 +288,6 @@ export default function SolicitudAbastecimientoNuevo({ navigation }: Props) {
                                     placeholder="Selecciona una sede"
                                 />
                             )}
-                            <View style={{ position: "relative", zIndex: 4 }}>
-                                <LabeledInput
-                                    label="Codigo SAP"
-                                    value={formData.codigo}
-                                    icon="pricetag-outline"
-                                    placeholder="Ingrese el codigo sap"
-                                    onChangeText={(value) => {
-                                        const plantaItem = planta.data.find((p) => p.nit === value);
-                                        setFormData({ ...formData, codigo: value, descripcion: plantaItem?.nombre ? plantaItem.nombre : "Material no encontrado" });
-                                    }}
-                                    data={(planta?.data ?? []).map((m) => m.nit)}
-                                    onSelectItem={(value) => {
-                                        const plantaItem = planta.data.find((p) => p.nit === value);
-                                        setFormData({ ...formData, codigo: value, descripcion: plantaItem?.nombre ? plantaItem.nombre : "Material no encontrado" });
-                                    }}
-                                />
-                            </View>
-                            <View style={{ position: "relative", zIndex: 3 }}>
-                                <LabeledInput
-                                    label="Descripcion"
-                                    value={formData.descripcion}
-                                    icon="document-text-outline"
-                                    placeholder="Ingrese la descripcion"
-                                    onChangeText={(value) => {
-                                        const plantaItem = planta.data.find((p) => p.nombre === value);
-                                        setFormData({ ...formData, descripcion: value, codigo: plantaItem?.nit ? plantaItem.nit : "Material no encontrado" });
-                                    }}
-                                    data={(planta?.data ?? []).map((m) => m.nombre)}
-                                    onSelectItem={(value) => {
-                                        const plantaItem = planta.data.find((p) => p.nombre === value);
-                                        setFormData({ ...formData, descripcion: value, codigo: plantaItem?.nit ? plantaItem.nit : "Material no encontrado" });
-                                    }}
-                                />
-                            </View>
-                            <LabeledInput
-                                label="Cantidad"
-                                placeholder="Ingrese la cantidad"
-                                value={formData.cantidad}
-                                keyboardType="decimal-pad"
-                                onChangeText={(value) => {
-                                    const soloNumeros = value.replace(/[^0-9.]/g, "");
-                                    const partes = soloNumeros.split(".");
-                                    if (partes.length > 2) return;
-                                    let limpio = soloNumeros;
-                                    if (limpio.startsWith(".")) {
-                                        limpio = "0" + limpio;
-                                    }
-                                    if (/^\d+(\.\d*)?$/.test(limpio) || limpio === "") {
-                                        setFormData({ ...formData, cantidad: limpio });
-                                    }
-                                }}
-                                icon="calculator-outline"
-                            />
-                            <LabeledInput
-                                icon="scale-outline"
-                                label="Unidad de medida"
-                                placeholder="Ingrese la unidad de medida"
-                                value={formData.unidadMedida}
-                                onChangeText={(text) => setFormData({ ...formData, unidadMedida: text })}
-                                disabled
-                            />
                             <LabeledSelect
                                 label="Sede"
                                 value={formData.sede}
@@ -335,12 +367,92 @@ export default function SolicitudAbastecimientoNuevo({ navigation }: Props) {
                                             { label: "G01", value: "G01" },
                                             { label: "G02", value: "G02" },
                                             { label: "G03", value: "G03" },
-                                            { label: "G04", value: "G04" },
+                                            { label: "G06", value: "G06" },
+                                            { label: "G08", value: "G08" },
+                                            { label: "G09", value: "G09" },
                                         ]}
                                         placeholder="Selecciona un grupo"
                                     />
                                 </>
                             )}
+                            <Text style={[stylesGlobal.texto, styles.label]}>Materiales o servicios:</Text>
+                            <Text style={[stylesGlobal.texto, styles.label, { alignSelf: "flex-end" }]}>Agregar material o servicio</Text>
+                            <View style={{ position: "relative", zIndex: 4 }}>
+                                <LabeledInput
+                                    label="Codigo SAP"
+                                    value={nuevoMaterial.codigo}
+                                    icon="pricetag-outline"
+                                    placeholder="Ingrese el codigo sap"
+                                    onChangeText={(value) => {
+                                        const plantaItem = planta.data.find((p) => p.nit === value);
+                                        setNuevoMaterial({ ...nuevoMaterial, codigo: value, descripcion: plantaItem?.nombre ? plantaItem.nombre : "Material no encontrado" });
+                                    }}
+                                    data={(planta?.data ?? []).map((m) => m.nit)}
+                                    onSelectItem={(value) => {
+                                        const plantaItem = planta.data.find((p) => p.nit === value);
+                                        setNuevoMaterial({ ...nuevoMaterial, codigo: value, descripcion: plantaItem?.nombre ? plantaItem.nombre : "Material no encontrado" });
+                                    }}
+                                />
+                            </View>
+                            <View style={{ position: "relative", zIndex: 3 }}>
+                                <LabeledInput
+                                    label="Descripcion"
+                                    value={nuevoMaterial.descripcion}
+                                    icon="document-text-outline"
+                                    placeholder="Ingrese la descripcion"
+                                    onChangeText={(value) => {
+                                        const plantaItem = planta.data.find((p) => p.nombre === value);
+                                        setNuevoMaterial({ ...nuevoMaterial, descripcion: value, codigo: plantaItem?.nit ? plantaItem.nit : "Material no encontrado" });
+                                    }}
+                                    data={(planta?.data ?? []).map((m) => m.nombre)}
+                                    onSelectItem={(value) => {
+                                        const plantaItem = planta.data.find((p) => p.nombre === value);
+                                        setNuevoMaterial({ ...nuevoMaterial, descripcion: value, codigo: plantaItem?.nit ? plantaItem.nit : "Material no encontrado" });
+                                    }}
+                                />
+                            </View>
+                            <LabeledInput
+                                label="Cantidad"
+                                placeholder="Ingrese la cantidad"
+                                value={nuevoMaterial.cantidad}
+                                keyboardType="decimal-pad"
+                                onChangeText={(value) => {
+                                    const soloNumeros = value.replace(/[^0-9.]/g, "");
+                                    const partes = soloNumeros.split(".");
+                                    if (partes.length > 2) return;
+                                    let limpio = soloNumeros;
+                                    if (limpio.startsWith(".")) {
+                                        limpio = "0" + limpio;
+                                    }
+                                    if (/^\d+(\.\d*)?$/.test(limpio) || limpio === "") {
+                                        setNuevoMaterial({ ...nuevoMaterial, cantidad: limpio });
+                                    }
+                                }}
+                                icon="calculator-outline"
+                            />
+                            <LabeledInput
+                                icon="scale-outline"
+                                label="Unidad de medida"
+                                placeholder="Ingrese la unidad de medida"
+                                value={nuevoMaterial.unidadMedida}
+                                onChangeText={(text) => setNuevoMaterial({ ...nuevoMaterial, unidadMedida: text })}
+                                disabled
+                            />
+                            <View style={{ alignSelf: "flex-start", marginTop: 5 }}>
+                                <CustomButton label="Agregar" onPress={handleGuardar} />
+                            </View>
+                            <Text style={[stylesGlobal.texto, styles.label, { alignSelf: "flex-end", marginBottom: 10 }]}>Materiales o servicios ingresados</Text>
+                            <CustomTable
+                                headers={headers}
+                                data={formData.materiales.map((m) => [m.codigo, m.descripcion, m.cantidad, m.unidadMedida])}
+                                eliminar={true}
+                                onEliminar={(item) => {
+                                    setFormData((prev) => ({
+                                        ...prev,
+                                        materiales: prev.materiales.filter((m) => m.codigo !== item[0]),
+                                    }));
+                                }}
+                            />
                         </View>
 
                         <View style={{ alignSelf: "center" }}>
@@ -352,3 +464,13 @@ export default function SolicitudAbastecimientoNuevo({ navigation }: Props) {
         </CadenaDeSuministro>
     );
 }
+
+const stylesLocal = () => {
+
+    return StyleSheet.create({
+        label: {
+            fontWeight: "500",
+            marginBottom: 5,
+        },
+    });
+};

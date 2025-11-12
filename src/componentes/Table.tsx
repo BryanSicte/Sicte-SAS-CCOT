@@ -241,7 +241,7 @@ export default function CustomTable({
                     style={{ marginRight: 10, marginTop: 10 }}
                 />
 
-                {!isMobileWeb && (
+                {(!isMobileWeb && Platform.OS === "web") && (
                     <Text style={styles.pageInfo}>
                         Página {page} de {totalPages} | Total: {data.length} ítems {"\n"}
                         Mostrando del{" "}{Math.min((page - 1) * itemsPerPage + 1, filteredData.length)}{" "}al{" "}
@@ -258,7 +258,7 @@ export default function CustomTable({
                 />
             </View>
 
-            {isMobileWeb && (
+            {(isMobileWeb || Platform.OS === "android" || Platform.OS === "ios") && (
                 <Text style={styles.pageInfo}>
                     Página {page} de {totalPages} | Total: {data.length} ítems {"\n"}
                     Mostrando del{" "}{Math.min((page - 1) * itemsPerPage + 1, filteredData.length)}{" "}al{" "}
@@ -321,7 +321,7 @@ const stylesLocal = () => {
         },
         paginationContainer: {
             flexDirection: "row",
-            justifyContent: isMobileWeb ? "center" : "space-between",
+            justifyContent: isMobileWeb || Platform.OS !== "web" ? "center" : "space-between",
             alignItems: "center",
         },
         pageInfo: {

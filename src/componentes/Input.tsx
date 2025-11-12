@@ -41,21 +41,23 @@ export default function CustomInput({
     const containerRef = useRef<View>(null);
 
     useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (Platform.OS !== "web") return;
+        if (Platform.OS === "web") {
+            const handleClickOutside = (event) => {
+                if (Platform.OS !== "web") return;
 
-            if (containerRef.current && !containerRef.current.contains?.(event.target)) {
-                setShowList(false);
-            }
-        };
+                if (containerRef.current && !containerRef.current.contains?.(event.target)) {
+                    setShowList(false);
+                }
+            };
 
-        document.addEventListener("mousedown", handleClickOutside);
-        document.addEventListener("touchstart", handleClickOutside);
+            document.addEventListener("mousedown", handleClickOutside);
+            document.addEventListener("touchstart", handleClickOutside);
 
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-            document.removeEventListener("touchstart", handleClickOutside);
-        };
+            return () => {
+                document.removeEventListener("mousedown", handleClickOutside);
+                document.removeEventListener("touchstart", handleClickOutside);
+            };
+        }
     }, []);
 
     const handleChange = (text: string) => {
