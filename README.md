@@ -88,7 +88,8 @@ npx expo run:android --variant release
 ```bash
 npx expo prebuild
 cd android
-gradlew assembleRelease --console=plain
+.\gradlew clear
+.\gradlew assembleRelease --console=plain
 ```
 
 ### Link para descargar java 21 https://adoptium.net/es/temurin/releases?version=21&os=any&arch=any
