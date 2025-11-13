@@ -106,6 +106,7 @@ export const menuConfig = [
         items: [
             { label: "Gestion Mantenimientos", route: "PowerBIEmbed", nameBD: "parqueAutomotorGestionMantenimientos", params: { url: "https://app.powerbi.com/view?r=eyJrIjoiOTRkYWM4N2ItNTUwMi00ZTA1LTg3YTItNjhhMzU4MGUzMGUyIiwidCI6ImUwYmZlOTBkLTIwZTAtNDEwYi1iNmYxLTQyOWIwNDNkMzYwOCJ9" } },
             { label: "Moviles", route: "PowerBIEmbed", nameBD: "parqueAutomotorMoviles", params: { url: "https://app.powerbi.com/view?r=eyJrIjoiNGZmYWI5MDItZWY1YS00YzZiLTlkN2MtMzNmODMwYjMyMmM4IiwidCI6ImUwYmZlOTBkLTIwZTAtNDEwYi1iNmYxLTQyOWIwNDNkMzYwOCJ9" } },
+            { label: "Seguimiento", route: "PowerBIEmbed", nameBD: "parqueAutomotorSeguimiento", params: { url: "https://app.powerbi.com/view?r=eyJrIjoiYjA1MGZlMmYtNjViMS00NzI0LWI1NjEtODQ3MzM4YzViMjg1IiwidCI6ImUwYmZlOTBkLTIwZTAtNDEwYi1iNmYxLTQyOWIwNDNkMzYwOCJ9" } },
         ]
     },
     {
