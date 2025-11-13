@@ -34,6 +34,7 @@ import TesoreriaAbastecimiento from '../ventanas/cadenaDeSuministro/TesoreriaAba
 import DetailsScreen from '../ventanas/DetailsScreen';
 import Inventarios from '../ventanas/inventarios/Inventarios';
 import RegistrarInventarios from '../ventanas/inventarios/RegistrarInventarios';
+import Recorridos from '../ventanas/recorridos/Recorridos';
 
 export const navigationRef = createNavigationContainerRef();
 
@@ -69,6 +70,7 @@ export type RootStackParamList = {
     TesoreriaAbastecimiento: { message?: string, label?: string };
     Inventarios: { message?: string, label?: string };
     RegistrarInventarios: { message?: string, label?: string };
+    Recorridos: { message?: string, label?: string };
     Details: { message: string };
 };
 
@@ -88,8 +90,8 @@ export default function RootNavigator() {
     const { user, logout, getUser } = useUserData();
     const { pages } = usePageUserData();
     const { menuVisibleUser, setMenuVisibleUser } = useUserMenu();
-    const { params } = useNavigationParams();
     const { logoutHandler } = handleLogout();
+    const { params, setParams } = useNavigationParams();
 
     const cerrarSesion = async () => {
         await logoutHandler({
@@ -450,6 +452,24 @@ export default function RootNavigator() {
                 />
 
                 <Stack.Screen
+                    name="Recorridos"
+                    component={Recorridos}
+                    options={() => {
+                        return {
+                            ...getHeaderOptions("Recorridos", {
+                                toggleMenu,
+                                toggleTheme,
+                                isDark,
+                                colors,
+                                navigation,
+                                showLogo: !isMobileWeb && Platform.OS === "web",
+                                isMobileWeb: isMobileWeb,
+                            }),
+                        };
+                    }}
+                />
+
+                <Stack.Screen
                     name="Settings"
                     component={DetailsScreen}
                     options={({ route }) => {
@@ -696,6 +716,33 @@ export default function RootNavigator() {
                                 <Ionicons name="person-add-outline" size={18} color={state.pressed ? colors.iconoPressed : state.hovered ? colors.iconoHover : colors.icono} style={{ marginRight: 10, paddingLeft: 5 }} />
                                 <Text style={{ color: state.pressed ? colors.textoPressed : state.hovered ? colors.textoHover : colors.texto, fontSize: stylesGlobal.texto.fontSize - 2 }}>
                                     Control de usuarios
+                                </Text>
+                            </View>
+                        )}
+                    </Pressable>
+
+                    <Pressable
+                        onPress={() => {
+                            if (user.rol !== "admin") {
+                                showAccessDeniedToast();
+                                return;
+                            }
+                            setMenuVisibleUser(false);
+                            setParams("Recorridos", { label: "Recorridos" });
+                            navigation.navigate("Recorridos");
+                        }}
+                        style={({ pressed, hovered }: any) => [
+                            styles.item,
+                            { paddingVertical: 6, opacity: user.rol !== "admin" ? 0.4 : 1 },
+                            hovered && { backgroundColor: colors.backgroundHover },
+                            pressed && { backgroundColor: colors.backgroundPressed },
+                        ]}
+                    >
+                        {(state: any) => (
+                            <View style={{ flexDirection: "row", alignItems: "center" }}>
+                                <Ionicons name="map-outline" size={18} color={state.pressed ? colors.iconoPressed : state.hovered ? colors.iconoHover : colors.icono} style={{ marginRight: 10, paddingLeft: 5 }} />
+                                <Text style={{ color: state.pressed ? colors.textoPressed : state.hovered ? colors.textoHover : colors.texto, fontSize: stylesGlobal.texto.fontSize - 2 }}>
+                                    Recorridos
                                 </Text>
                             </View>
                         )}

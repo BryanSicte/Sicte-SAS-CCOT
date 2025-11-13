@@ -35,7 +35,7 @@ if (Platform.OS !== "web") {
                     velocidad: location.coords.speed,
                     origen: Platform.OS,
                 };
-                console.log("📍 Nueva ubicación registrada:", payload);
+                // console.log("📍 Nueva ubicación registrada:", payload);
                 const response = await postUbicacionUsuarios(payload);
                 // Aquí podrías hacer un fetch a tu API para guardar la ubicación
             }
@@ -72,7 +72,7 @@ export async function startBackgroundLocation(user: any) {
                         velocidad: position.coords.speed,
                         origen: Platform.OS,
                     };
-                    console.log("📍 Nueva ubicación (web):", payload);
+                    // console.log("📍 Nueva ubicación (web):", payload);
                     const response = await postUbicacionUsuarios(payload);
                     // Enviar a tu API, si quieres
                     // fetch(`${API_URL}/ubicacion`, { method: "POST", body: JSON.stringify({...}) })

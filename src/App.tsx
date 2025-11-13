@@ -107,6 +107,7 @@ export default function App() {
                 TesoreriaAbastecimiento: 'cadenaDeSuministro/tesoreria',
                 Inventarios: 'inventarios',
                 RegistrarInventarios: 'inventarios/registrar',
+                Recorridos: 'recorridos',
             },
         },
     };

@@ -18,6 +18,18 @@ npx expo start -c --tunnel
 ```bash
 npx expo start --localhost
 ```
+### Ejecutar proyecto en android
+```bash
+npx expo run:android
+```
+### Ejecutar proyecto en ios
+```bash
+npx expo run:ios
+```
+### Ejecutar proyecto en web
+```bash
+npx expo start --web
+```
 
 
 ### para ejecutar proyecto por tunnel ngrok pero antes se debe habilitar esto para que pueda ser accesible el backend en desarrollo

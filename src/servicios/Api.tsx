@@ -63,6 +63,9 @@ export const login = (correo, contrasena) =>
 export const getUsuarios = () =>
     request("/usuarios", "GET");
 
+export const getUbicacionUsuarios = () =>
+    request("/usuarios/ubicacionUsuarios", "GET");
+
 export const postUbicacionUsuarios = (data) =>
     request("/usuarios/ubicacionUsuarios", "POST", data);
 
