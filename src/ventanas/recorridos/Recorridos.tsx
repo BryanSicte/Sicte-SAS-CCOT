@@ -19,7 +19,7 @@ import { useIsMobileWeb } from '../../utilitarios/IsMobileWeb';
 import Loader from '../../componentes/Loader';
 import { useParqueAutomotorData } from '../../contexto/ParqueAutomotorDataContext';
 import { useParqueAutomotorBaseData } from '../../contexto/ParqueAutomotorBaseDataContext';
-import MapView from '../../compuestos/MapView';
+import MapViewNative from '../../compuestos/MapViewNative';
 import { Picker } from '@react-native-picker/picker';
 import LabeledSelect from '../../compuestos/Select';
 import LabeledDatePicker from '../../compuestos/Date';
@@ -149,7 +149,7 @@ export default function Recorridos({ navigation }: Props) {
                     </View>
 
                     <View style={{ height: Platform.OS === "web" ? "Calc(100% - 40px)" : Dimensions.get("window").height }}>
-                        <MapView coords={filteredCoords.length ? filteredCoords : []} />
+                        <MapViewNative coords={filteredCoords.length ? filteredCoords : []} />
                     </View>
                 </ScrollView>
             </KeyboardAvoidingView>
