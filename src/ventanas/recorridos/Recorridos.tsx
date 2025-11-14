@@ -19,7 +19,7 @@ import { useIsMobileWeb } from '../../utilitarios/IsMobileWeb';
 import Loader from '../../componentes/Loader';
 import { useParqueAutomotorData } from '../../contexto/ParqueAutomotorDataContext';
 import { useParqueAutomotorBaseData } from '../../contexto/ParqueAutomotorBaseDataContext';
-import MapViewNative from '../../compuestos/MapViewNative';
+import MapViewNative from '../../componentes/MapViewNative';
 import { Picker } from '@react-native-picker/picker';
 import LabeledSelect from '../../compuestos/Select';
 import LabeledDatePicker from '../../compuestos/Date';
