@@ -1,1 +1,1 @@
-export { default } from "../componentes/MapView";
+export { default } from "../componentes/MapViewNative";

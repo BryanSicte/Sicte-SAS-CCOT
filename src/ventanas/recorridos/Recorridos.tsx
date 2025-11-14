@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, ScrollView, KeyboardAvoidingView, Platform, Dimensions } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navegacion/RootNavigator';
 import { useGlobalStyles } from '../../estilos/GlobalStyles';
@@ -20,6 +20,9 @@ import Loader from '../../componentes/Loader';
 import { useParqueAutomotorData } from '../../contexto/ParqueAutomotorDataContext';
 import { useParqueAutomotorBaseData } from '../../contexto/ParqueAutomotorBaseDataContext';
 import MapView from '../../compuestos/MapView';
+import { Picker } from '@react-native-picker/picker';
+import LabeledSelect from '../../compuestos/Select';
+import LabeledDatePicker from '../../compuestos/Date';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Recorridos'>;
 
@@ -33,27 +36,35 @@ export default function Recorridos({ navigation }: Props) {
     const isMobileWeb = useIsMobileWeb();
     const [loading, setLoading] = useState(true);
     const { logoutHandler } = handleLogout();
-    const [ubicaciones, setUbicaciones] = useState("");
+    const [ubicaciones, setUbicaciones] = useState<any[]>([]);
+    const [selectedUser, setSelectedUser] = useState<string | null>(null);
+    const [users, setUsers] = useState<string[]>([]);
+    const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
 
     const loadData = async () => {
         try {
             const response = await getUbicacionUsuarios();
-            setUbicaciones(response);
-            console.log(response)
-            const tablaFormateada = response.data.map((item: any) => [
-                item.fecha,
-                item.sede,
-                item.placa,
-                item.estado,
-                item.cedula,
-                item.nombre,
-            ]);
-            const tablaOrdenada = [...tablaFormateada].sort((a, b) => {
-                const fechaA = new Date(a[0]);
-                const fechaB = new Date(b[0]);
-                return fechaB.getTime() - fechaA.getTime();
+            const coords = response.data.map((item: any) => {
+                const fechaUTC = new Date(item.fechaToma);
+                const fechaBogota = new Date(fechaUTC.getTime() - 5 * 60 * 60 * 1000);
+                const fechaStr = fechaBogota.toISOString().split("T")[0];
+
+                return {
+                    latitude: parseFloat(item.latitud),
+                    longitude: parseFloat(item.longitud),
+                    nombre: item.nombreUsuario,
+                    fecha: fechaStr,
+                };
             });
-            
+            setUbicaciones(coords);
+
+            const uniqueUsers = Array.from(new Set(coords.map((u: any) => u.nombre)));
+            setUsers(uniqueUsers);
+
+            if (uniqueUsers.length > 0) {
+                setSelectedUser(uniqueUsers[0]);
+            }
+
             Toast.show({ type: "success", text1: response.messages.message1, text2: response.messages.message2, position: "top" });
         } catch (error) {
             Toast.show({ type: "error", text1: error.data.messages.message1, text2: error.data.messages.message2, position: "top" });
@@ -80,31 +91,65 @@ export default function Recorridos({ navigation }: Props) {
         loadData();
     }, []);
 
+    const filteredCoords = ubicaciones.filter((u) => {
+        if (!selectedUser) return false;
+        if (!selectedDate) return u.nombre === selectedUser;
+
+        const uDateStr = new Date(u.fecha).toISOString().split("T")[0];
+        const selectedDateStr = selectedDate.toISOString().split("T")[0];
+        return u.nombre === selectedUser && uDateStr === selectedDateStr;
+    });
+
     if (loading) {
         return <Loader visible={loading} />;
     }
 
-    const dummyCoords = [
-        { latitude: 4.648625, longitude: -74.247895 },
-        { latitude: 4.652, longitude: -74.243 },
-        { latitude: 4.655, longitude: -74.240 },
-        { latitude: 4.658, longitude: -74.238 },
-    ];
-
     return (
         <View style={stylesGlobal.container}>
             <KeyboardAvoidingView
-                style={{ flex: 1 }}
+                style={{ flex: 1, height: Platform.OS === "web" ? "100%" : Dimensions.get("window").height }}
                 behavior={Platform.OS === "ios" ? "padding" : "height"}
                 keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
             >
                 <ScrollView
-                    contentContainerStyle={{ paddingBottom: 60 }}
+                    contentContainerStyle={{ paddingBottom: 60, height: Platform.OS === "web" ? "100%" : Dimensions.get("window").height }}
                     showsVerticalScrollIndicator={false}
                     keyboardShouldPersistTaps="handled"
                 >
-                    <View style={{ height: "100vh"}}>
-                        <MapView coords={dummyCoords} />
+                    <View
+                        style={{
+                            marginVertical: 10,
+                            marginHorizontal: 10,
+                            height: 80,
+                            flexDirection: "row",
+                            alignItems: "center",
+                            justifyContent: "space-between"
+                        }}
+                    >
+                        <View style={{ flex: 1, marginRight: 5 }}>
+                            <LabeledDatePicker
+                                label="Fecha"
+                                date={selectedDate}
+                                onChange={(value) => setSelectedDate(value)}
+                                mode="date"
+                                disabled={false}
+                            />
+                        </View>
+
+                        <View style={{ flex: 1, marginLeft: 5 }}>
+                            <LabeledSelect
+                                label="Usuario"
+                                value={selectedUser}
+                                onValueChange={(value) => setSelectedUser(value)}
+                                icon="person-outline"
+                                items={users.map((u) => ({ label: u, value: u }))}
+                                placeholder="Selecciona un usuario"
+                            />
+                        </View>
+                    </View>
+
+                    <View style={{ height: Platform.OS === "web" ? "Calc(100% - 40px)" : Dimensions.get("window").height }}>
+                        <MapView coords={filteredCoords.length ? filteredCoords : []} />
                     </View>
                 </ScrollView>
             </KeyboardAvoidingView>

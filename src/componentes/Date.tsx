@@ -123,7 +123,7 @@ export default function CustomDatePicker({
                                 minute: "2-digit",
                                 second: showSeconds ? "2-digit" : undefined,
                             })
-                            : date.toLocaleString()
+                            : date.toLocaleDateString()
                         : placeholder ??
                         (mode === "time"
                             ? "Selecciona la hora"

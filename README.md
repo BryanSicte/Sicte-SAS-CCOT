@@ -18,11 +18,11 @@ npx expo start -c --tunnel
 ```bash
 npx expo start --localhost
 ```
-### Ejecutar proyecto en android
+### Construir APK en dev para ejecutar proyecto en android
 ```bash
 npx expo run:android
 ```
-### Ejecutar proyecto en ios
+### Construir APK en dev para ejecutar proyecto en ios
 ```bash
 npx expo run:ios
 ```
@@ -50,7 +50,7 @@ adb start-server
 ### Subir el proyecto a giithub para que railway lo despliegue automaticamente
 
 
-## Despliegue de aplicacion en android
+## Despliegue de aplicacion en android con https://expo.dev/
 ### Examinar que todas las librerias esten bien
 ```bash
 npx expo-doctor
@@ -85,6 +85,8 @@ eas update
 eas update --branch preview --message "Implementa auto update al iniciar la app"
 ```
 
+
+## Construccion de aplicacion en android de forma local
 ### Sentencia para ver logs conectado el celular por cable 
 ```bash
 adb logcat *:S ReactNative:V ReactNativeJS:V 
@@ -96,6 +98,16 @@ npx expo prebuild
 npx expo run:android --variant release
 ```
 
+### En modo dev se debe correr el siguiente comando cada ves que se modifique:
+#### - android/
+#### - build.gradle
+#### - AndroidManifest.xml
+#### - librerías nativas
+#### - Agregas o quitas dependencias nativas
+```bash
+npx expo run:android
+```
+
 ### Para ver los logs y como esta corriendo la construccion ejecutar en otra terminar lo siguiente
 ```bash
 npx expo prebuild
@@ -103,8 +115,6 @@ cd android
 .\gradlew clear
 .\gradlew assembleRelease --console=plain
 ```
-
-### Link para descargar java 21 https://adoptium.net/es/temurin/releases?version=21&os=any&arch=any
 
 ### Si se quiere versión release (final)
 ```bash
