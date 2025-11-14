@@ -19,6 +19,11 @@ npx expo start -c --tunnel
 npx expo start --localhost
 ```
 ### Construir APK en dev para ejecutar proyecto en android
+#### Tener instalado antes de, solo una vez
+```bash
+npx expo install expo-dev-client
+```
+#### Ejecutar siempre que hay cambios nativos para desarrollar sobre una apk directamente
 ```bash
 npx expo run:android
 ```
@@ -120,4 +125,29 @@ cd android
 ```bash
 cd android
 ./gradlew assembleRelease
+```
+
+
+### Configurar variables de entorno sobre terminal solo para esa sesion de terminal
+set JAVA_HOME=C:\Program Files\Java\jdk-17
+set PATH=%JAVA_HOME%\bin;%PATH%
+java -version
+
+set ANDROID_HOME=C:\Users\Alejandra\AppData\Local\Android\Sdk
+set ANDROID_SDK_ROOT=C:\Users\Alejandra\AppData\Local\Android\Sdk
+
+
+### Cada que se quiera reconstruir el .apk en modo dev usar estos comandos
+#### Metodo 1 mas demorado pero mas garantizado
+```bash
+npx expo prebuild --clean
+npx expo run:android
+```
+#### Metodo 2 menos demorado
+```bash
+npx expo prebuild
+cd android
+gradlew clean
+cd ..
+npx expo run:android
 ```

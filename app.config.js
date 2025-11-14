@@ -39,7 +39,12 @@ export default {
         "ACCESS_COARSE_LOCATION",
         "ACCESS_FINE_LOCATION",
         "ACCESS_BACKGROUND_LOCATION"
-      ]
+      ],
+      config: {
+        googleMaps: {
+          "apiKey": "AIzaSyDgoT1jsWnp4t2O-5k-xklh6ZgPc5oOh_8"
+        }
+      }
     },
     jsEngine: "hermes",
     debug: true,

@@ -107,9 +107,11 @@ export async function startBackgroundLocation(user: any) {
         const hasStarted = await ExpoLocation.hasStartedLocationUpdatesAsync(TASK_NAME);
         if (!hasStarted) {
             await ExpoLocation.startLocationUpdatesAsync(TASK_NAME, {
-                accuracy: ExpoLocation.Accuracy.High,
-                distanceInterval: 5, // cada 5 metros
-                deferredUpdatesInterval: 1000 * (60 / 2), // cada minuto / 2
+                accuracy: ExpoLocation.Accuracy.Highest,
+                timeInterval: 5000,
+                distanceInterval: 1,
+                deferredUpdatesInterval: 0,
+                deferredUpdatesDistance: 0,
                 showsBackgroundLocationIndicator: true,
                 pausesUpdatesAutomatically: false,
                 foregroundService: {
