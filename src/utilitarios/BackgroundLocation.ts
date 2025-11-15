@@ -43,6 +43,24 @@ if (Platform.OS !== "web") {
     });
 }
 
+let lastPosition: { lat: number; lon: number } | null = null;
+
+function getDistanceMeters(lat1, lon1, lat2, lon2) {
+    const R = 6371000;
+    const toRad = (v) => (v * Math.PI) / 180;
+
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
+
+    const a =
+        Math.sin(dLat / 2) ** 2 +
+        Math.cos(toRad(lat1)) *
+        Math.cos(toRad(lat2)) *
+        Math.sin(dLon / 2) ** 2;
+
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
 export async function startBackgroundLocation(user: any) {
     try {
         if (Platform.OS === "web") {
@@ -58,9 +76,23 @@ export async function startBackgroundLocation(user: any) {
 
             webWatchId = navigator.geolocation.watchPosition(
                 async (position) => {
-                    const fechaActual = new Date().toISOString();
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+
+                    if (lastPosition) {
+                        const dist = getDistanceMeters(
+                            lastPosition.lat,
+                            lastPosition.lon,
+                            lat,
+                            lon
+                        );
+
+                        if (dist < 10) return;
+                    }
+
+                    lastPosition = { lat, lon };
                     const payload = {
-                        fechaToma: fechaActual,
+                        fechaToma: new Date().toISOString(),
                         cedulaUsuario: user.cedula,
                         nombreUsuario: user.nombre,
                         precisionLatLon: position.coords.accuracy,
@@ -83,7 +115,7 @@ export async function startBackgroundLocation(user: any) {
                 },
                 {
                     enableHighAccuracy: true,   // usa GPS
-                    maximumAge: 10000,          // no reutiliza datos viejos (milisegundos)
+                    maximumAge: 0,          // no reutiliza datos viejos (milisegundos)
                     timeout: 30000,              // espera hasta 20 segundos antes de fallar (milisegundos)
                 }
             );
@@ -108,8 +140,8 @@ export async function startBackgroundLocation(user: any) {
         if (!hasStarted) {
             await ExpoLocation.startLocationUpdatesAsync(TASK_NAME, {
                 accuracy: ExpoLocation.Accuracy.Highest,
-                timeInterval: 5000,
-                distanceInterval: 1,
+                timeInterval: 0,
+                distanceInterval: 10,
                 deferredUpdatesInterval: 0,
                 deferredUpdatesDistance: 0,
                 showsBackgroundLocationIndicator: true,

@@ -102,7 +102,7 @@ export default function CustomDatePicker({
     return (
         <>
             <Pressable
-            disabled={disabled}
+                disabled={disabled}
                 onPress={() => setPickerVisible(true)}
                 style={{ flexDirection: "row", alignItems: "center", opacity: disabled ? 0.6 : 1 }}
             >
@@ -123,12 +123,14 @@ export default function CustomDatePicker({
                                 minute: "2-digit",
                                 second: showSeconds ? "2-digit" : undefined,
                             })
-                            : date.toLocaleDateString()
-                        : placeholder ??
-                        (mode === "time"
-                            ? "Selecciona la hora"
                             : mode === "datetime"
-                                ? "Selecciona fecha y hora"
+                                ? date.toLocaleString()
+                                : date.toLocaleDateString()
+                        : placeholder ||
+                        (mode === "datetime"
+                            ? "Selecciona fecha y hora"
+                            : mode === "time"
+                                ? "Selecciona la hora"
                                 : "Selecciona la fecha")}
                 </Text>
             </Pressable>

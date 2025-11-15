@@ -91,7 +91,17 @@ export default function CustomInput({
                     value={value}
                     onChangeText={handleChange}
                     onFocus={() => {
-                        if (data.length > 0 && value?.length > 0) setShowList(true);
+                        if (data.length > 0) {
+                            if (value?.length > 0) {
+                                const filtered = data.filter((item) =>
+                                    item.toLowerCase().includes(value.toLowerCase())
+                                );
+                                setFilteredData(filtered);
+                            } else {
+                                setFilteredData(data);
+                            }
+                            setShowList(true);
+                        }
                     }}
                     {...(Platform.OS === "web" ? { disabled } : {})}
                     {...props}
