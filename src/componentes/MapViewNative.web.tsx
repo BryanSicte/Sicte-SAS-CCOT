@@ -29,8 +29,8 @@ function RecenterButton({ coords }) {
             onPress={recenter}
             style={{
                 position: "absolute",
-                bottom: 20,
-                left: 20,
+                top: 80,
+                right: 20,
                 paddingVertical: 10,
                 paddingHorizontal: 14,
                 borderRadius: 50,

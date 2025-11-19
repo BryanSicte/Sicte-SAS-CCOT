@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, Platform, Dimensions, Modal, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { View, Text, Platform, Dimensions, Modal, TouchableOpacity, TouchableWithoutFeedback, ScrollView, KeyboardAvoidingView } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navegacion/RootNavigator';
 import { useGlobalStyles } from '../../estilos/GlobalStyles';
@@ -18,15 +18,18 @@ import MapViewNative from '../../componentes/MapViewNative';
 import LabeledDatePicker from '../../compuestos/Date';
 import { Ionicons } from '@expo/vector-icons';
 import LabeledInput from '../../compuestos/Input';
+import LargeAreaChart from '../../charts/LargeAreaChart';
+import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Recorridos'>;
 
-function generarHorasEntreFechas(inicio: Date, fin: Date) {
+function generarHorasEntreFechas(inicio, fin) {
     const horas = [];
     const actual = new Date(inicio);
 
     while (actual <= fin) {
-        horas.push(actual.getHours());
+        horas.push(new Date(actual));
         actual.setHours(actual.getHours() + 1);
     }
 
@@ -57,8 +60,8 @@ export default function Recorridos({ navigation }: Props) {
             selectedUser: "",
         };
     };
-
     const [filter, setFilter] = useState(createEmptyFormData());
+    const [zoomRange, setZoomRange] = useState(null);
 
     const loadData = async () => {
         try {
@@ -131,27 +134,43 @@ export default function Recorridos({ navigation }: Props) {
         filter.selectedDateFinal
     );
 
-    // Inicializar el mapa de actividad
     const actividad = {};
-    horasRango.forEach(h => actividad[h] = 0);
+    horasRango.forEach(date => {
+        actividad[date.getTime()] = 0;
+    });
 
-    // Llenar actividad
     filteredCoords.forEach(p => {
-        const hora = p.fecha.getHours();
+        const timestamp = new Date(
+            p.fecha.getFullYear(),
+            p.fecha.getMonth(),
+            p.fecha.getDate(),
+            p.fecha.getHours(),
+            0, 0, 0
+        ).getTime();
+
         const velocidad = p.velocidad || 0;
 
-        if (actividad.hasOwnProperty(hora)) {
-            if (velocidad > 1) {   // umbral movimiento
-                actividad[hora] += 1;
+        if (actividad.hasOwnProperty(timestamp)) {
+            if (velocidad > 1) {
+                actividad[timestamp] += 1;
             }
         }
     });
 
-    // Convertirlo a un array para la gráfica
-    const actividadPorHora = horasRango.map(h => ({
-        x: h,
-        y: actividad[h],
-    }));
+    const actividadPorHora = Object.keys(actividad).map(ts => [
+        Number(ts),
+        actividad[ts],
+    ]);
+
+    const coordsParaMapa = !zoomRange
+        ? filteredCoords
+        : filteredCoords.filter((p) => {
+            const t = p.fecha.getTime();
+            return t >= zoomRange.start && t <= zoomRange.end;
+        });
+
+    const sheetRef = useRef<BottomSheet>(null);
+    const snapPoints = useMemo(() => ["20%", "80%"], []);
 
     if (loading) {
         return <Loader visible={loading} />;
@@ -160,8 +179,49 @@ export default function Recorridos({ navigation }: Props) {
     return (
         <View style={stylesGlobal.container}>
 
-            <View style={{ height: Platform.OS === "web" ? "100%" : Dimensions.get("window").height, width: "100%" }}>
-                <MapViewNative coords={filteredCoords.length ? filteredCoords : []} />
+            {/* <View style={{ height: Platform.OS === "web" ? "100%" : Dimensions.get("window").height, width: "100%" }}>
+                <View style={{ height: Platform.OS === "web" ? "60%" : (Dimensions.get("window").height * 0.6) }}>
+                    <MapViewNative coords={coordsParaMapa.length ? coordsParaMapa : []} />
+                </View>
+                <View style={{ height: Platform.OS === "web" ? "40%" : (Dimensions.get("window").height * 0.3) }}>
+                    <LargeAreaChart 
+                    data={actividadPorHora} 
+                    title={"Actividad por movimiento"} 
+                    nameSeries={"Actividad"} 
+                    onZoomChange={(range) => {
+                        setZoomRange(range);
+                    }} 
+                        />
+                </View>
+            </View> */}
+
+            <View style={{ flex: 1 }}>
+                <MapViewNative coords={coordsParaMapa.length ? coordsParaMapa : []} />
+
+                <BottomSheet
+                    ref={sheetRef}
+                    snapPoints={snapPoints}
+                    enablePanDownToClose={false}
+                >
+                    <BottomSheetView
+                        style={{
+                            flex: 1,
+                            padding: 10,
+                            height: Platform.OS === "web"
+                                ? "80%"
+                                : Dimensions.get("window").height * 0.65,
+                        }}
+                    >
+                        <LargeAreaChart
+                            data={actividadPorHora}
+                            title={"Actividad por movimiento"}
+                            nameSeries={"Actividad"}
+                            onZoomChange={(range) => {
+                                setZoomRange(range);
+                            }}
+                        />
+                    </BottomSheetView>
+                </BottomSheet>
             </View>
 
             <View
@@ -201,18 +261,20 @@ export default function Recorridos({ navigation }: Props) {
                         style={{
                             flex: 1,
                             backgroundColor: "rgba(0,0,0,0.4)",
-                            justifyContent: "center",
-                            alignItems: "center"
+                            justifyContent: "flex-start",
+                            alignItems: "center",
                         }}
                     >
                         <TouchableWithoutFeedback onPress={() => null}>
-                            <View
-                                style={{
+                            <KeyboardAwareScrollView
+                                enableOnAndroid
+                                extraScrollHeight={50}
+                                contentContainerStyle={{
                                     backgroundColor: colors.backgroundContainer,
-                                    width: "85%",
                                     paddingVertical: 20,
                                     paddingHorizontal: 20,
-                                    borderRadius: 12
+                                    borderRadius: 12,
+                                    marginTop: 100,
                                 }}
                             >
                                 <View
@@ -302,11 +364,11 @@ export default function Recorridos({ navigation }: Props) {
                                         onPress={() => setShowFilters(false)}
                                     />
                                 </View>
-                            </View>
+                            </KeyboardAwareScrollView>
                         </TouchableWithoutFeedback>
                     </View>
-                </TouchableWithoutFeedback>
-            </Modal>
-        </View>
+                </TouchableWithoutFeedback >
+            </Modal >
+        </View >
     );
 }

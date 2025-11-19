@@ -36,6 +36,26 @@ npx expo run:ios
 npx expo start --web
 ```
 
+### Ejecutar Android DEV (nombre dev, package dev, URL dev)
+```bash
+npm run android:dev
+```
+
+### Ejecutar Android PROD (nombre real, package real, URL prod)
+```bash
+npm run android:prod
+```
+
+### Ejecutar Web DEV
+```bash
+npm run web:dev
+```
+
+### Ejecutar Web PROD
+```bash
+npm run web:prod
+```
+
 
 ### para ejecutar proyecto por tunnel ngrok pero antes se debe habilitar esto para que pueda ser accesible el backend en desarrollo
 ```bash
@@ -150,4 +170,10 @@ cd android
 gradlew clean
 cd ..
 npx expo run:android
+```
+
+
+### Agregar la linea de "com.google.android.geo.API_KEY" en AndroidManifest.xml despues de <application
+```bash
+<meta-data android:name="com.google.android.geo.API_KEY" android:value="AIzaSyDgoT1jsWnp4t2O-5k-xklh6ZgPc5oOh_8"/>
 ```

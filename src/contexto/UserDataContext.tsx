@@ -3,6 +3,7 @@ import Storage from "../utilitarios/Storage";
 import { login, login as loginApi } from "../servicios/Api";
 import { usePageUserData } from "./PageUserDataContext";
 import { startBackgroundLocation, stopBackgroundLocation } from "../utilitarios/BackgroundLocation";
+import { AppState } from "react-native";
 
 type User = Awaited<ReturnType<typeof loginApi>>["usuario"];
 
@@ -14,6 +15,15 @@ type UserContextType = {
 };
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
+
+function initLocation(user) {
+    const subscription = AppState.addEventListener("change", (state) => {
+        if (state === "active") {
+            startBackgroundLocation(user);
+            subscription.remove();
+        }
+    });
+}
 
 export const UserDataProvider = ({ children }: { children: React.ReactNode }) => {
     const [user, setUserState] = useState<User | null>(null);
@@ -50,7 +60,7 @@ export const UserDataProvider = ({ children }: { children: React.ReactNode }) =>
 
     useEffect(() => {
         if (user?.id) {
-            startBackgroundLocation(user);
+            initLocation(user);
         } else {
             stopBackgroundLocation();
         }
