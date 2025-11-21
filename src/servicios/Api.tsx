@@ -1,8 +1,12 @@
 import Constants from "expo-constants";
 import Storage from "../utilitarios/Storage";
-import { usePlantaData } from "../contexto/PlantaDataContext";
+import { Platform } from 'react-native';
 
-const API_URL = Constants.expoConfig?.extra?.apiUrl;
+const { apiUrl, appEnv } = Constants.expoConfig.extra;
+const API_URL =
+  Platform.OS === "web" && appEnv === "dev"
+    ? "http://localhost:8120/api"
+    : apiUrl;
 
 const request = async (endpoint, method = "GET", body = null, headers = {}) => {
     try {

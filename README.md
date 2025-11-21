@@ -56,6 +56,18 @@ npm run web:dev
 npm run web:prod
 ```
 
+### Ejecutar DEV .apk esto solo se hace una vez para instalar modulos nativos y despues usar 
+```bash
+eas build --profile development --platform android
+```
+```bash
+npx expo start --dev-client
+```
+### Ejecutar PROD .apk para construir la app de produccion
+```bash
+eas build --profile production --platform android
+```
+
 
 ### para ejecutar proyecto por tunnel ngrok pero antes se debe habilitar esto para que pueda ser accesible el backend en desarrollo
 ```bash
@@ -177,3 +189,71 @@ npx expo run:android
 ```bash
 <meta-data android:name="com.google.android.geo.API_KEY" android:value="AIzaSyDgoT1jsWnp4t2O-5k-xklh6ZgPc5oOh_8"/>
 ```
+
+
+
+
+### Para arrancar le proyecto el package.json debe estar asi
+"scripts": {
+    "dev": "expo start",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "web": "expo start --web",
+    "build": "npx expo export",
+    "start": "npx serve -s dist",
+    "start:dev": "expo start --config-path app.dev.json",
+    "start:prod": "expo start --config-path app.prod.json"
+},
+
+### desarrollo (local)
+y se arranca el proyecto asi
+#### desarrollo (local)
+npm run start:dev
+#### producción (API real)
+npm run start:prod
+
+
+
+### Crear APK a produccion
+✔ OPCIÓN A (Recomendada): Usar Expo Application Services (EAS)
+NO necesitas Android Studio.
+Solo haces:
+eas build -p android --profile production
+Te genera:
+APK (para instalar directamente)
+AAB (para Play Store)
+📌 Tu configuración eas.json definiría el entorno de producción:
+{
+  "build": {
+    "production": {
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://midominio.railway.app/api"
+      }
+    }
+  }
+}
+
+✔ OPCIÓN B (Sin EAS): generar APK usando Android Studio
+Este método no usa Expo Go, sino Expo Prebuild.
+1. Genera carpeta android/ actualizada:
+npx expo prebuild
+2. Abre el proyecto:
+android/
+Con Android Studio.
+
+
+
+### Crear IPA a produccion
+Aquí no hay escapatoria:
+√ Necesitas una Mac real o Mac en la nube.
+
+Dos opciones:
+✔ Opción A: EAS Build (la mejor)
+eas build -p ios --profile production
+Expo usa sus Macs → Te genera un .ipa.
+
+✔ Opción B: Compilar local en Mac
+npx expo prebuild
+Luego abres:
+ios/
+En Xcode → Archive → Distribuir en App Store.

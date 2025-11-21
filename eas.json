@@ -5,9 +5,11 @@
   },
   "build": {
     "development": {
-      "developmentClient": true,
       "distribution": "internal",
-      "channel": "development"
+      "channel": "development",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://64njntm1-8120.use2.devtunnels.ms/api"
+      }
     },
     "preview": {
       "distribution": "internal",
@@ -16,7 +18,10 @@
     "production": {
       "autoIncrement": true,
       "distribution": "store",
-      "channel": "production"
+      "channel": "production",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://sicte-sas-capacidades-backend-no-production.up.railway.app/api"
+      }
     }
   },
   "submit": {

@@ -19,8 +19,8 @@ import LabeledDatePicker from '../../compuestos/Date';
 import { Ionicons } from '@expo/vector-icons';
 import LabeledInput from '../../compuestos/Input';
 import LargeAreaChart from '../../charts/LargeAreaChart';
-import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { KeyboardAwareScrollView } from "../../mocks/KeyboardAwareScrollView";
+import BottomSheet, { BottomSheetView } from "../../mocks/BottomSheet";
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Recorridos'>;
 
