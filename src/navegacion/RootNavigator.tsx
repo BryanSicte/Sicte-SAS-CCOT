@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createStackNavigator } from "@react-navigation/stack";
 import { createNavigationContainerRef } from "@react-navigation/native";
-import { View, Text, Pressable, Platform, Animated, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, Pressable, Platform, Animated, StyleSheet, ScrollView, AppState } from 'react-native';
 import { useThemeCustom } from '../contexto/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
 import { lightColors, darkColors } from '../estilos/Colors';
@@ -35,6 +35,7 @@ import DetailsScreen from '../ventanas/DetailsScreen';
 import Inventarios from '../ventanas/inventarios/Inventarios';
 import RegistrarInventarios from '../ventanas/inventarios/RegistrarInventarios';
 import Recorridos from '../ventanas/recorridos/Recorridos';
+import { startBackgroundLocation } from '../utilitarios/BackgroundLocation';
 
 export const navigationRef = createNavigationContainerRef();
 
@@ -117,6 +118,15 @@ export default function RootNavigator() {
         return value === "1";
     };
 
+    function initLocation(user) {
+        const subscription = AppState.addEventListener("change", (state) => {
+            if (state === "active") {
+                startBackgroundLocation(user);
+                subscription.remove();
+            }
+        });
+    }
+
     useEffect(() => {
         const loadUser = async () => {
             try {
@@ -130,6 +140,7 @@ export default function RootNavigator() {
         };
 
         loadUser();
+        initLocation(user);
     }, []);
 
     const aplicativosConfig = [

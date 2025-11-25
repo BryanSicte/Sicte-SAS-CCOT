@@ -19,21 +19,36 @@ import LabeledDatePicker from '../../compuestos/Date';
 import { Ionicons } from '@expo/vector-icons';
 import LabeledInput from '../../compuestos/Input';
 import LargeAreaChart from '../../charts/LargeAreaChart';
-import { KeyboardAwareScrollView } from "../../mocks/KeyboardAwareScrollView";
-import BottomSheet, { BottomSheetView } from "../../mocks/BottomSheet";
+import { getCurrentCoords } from '../../utilitarios/BackgroundLocation';
+import CustomTabs, { TabItem } from '../../componentes/Tabs';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Recorridos'>;
 
-function generarHorasEntreFechas(inicio, fin) {
-    const horas = [];
+function generarHorasEntreFechas(inicio, fin, intervaloMin = 60) {
+    const fechas = [];
     const actual = new Date(inicio);
 
     while (actual <= fin) {
-        horas.push(new Date(actual));
-        actual.setHours(actual.getHours() + 1);
+        fechas.push(new Date(actual));
+        actual.setMinutes(actual.getMinutes() + intervaloMin);
     }
 
-    return horas;
+    return fechas;
+}
+
+function normalizarHora(d, intervalo = 60) {
+    const minutos = d.getMinutes();
+    const minutosNormalizados = minutos - (minutos % intervalo);
+
+    return new Date(
+        d.getFullYear(),
+        d.getMonth(),
+        d.getDate(),
+        d.getHours(),
+        minutosNormalizados,
+        0,
+        0
+    ).getTime();
 }
 
 export default function Recorridos({ navigation }: Props) {
@@ -48,6 +63,8 @@ export default function Recorridos({ navigation }: Props) {
     const { logoutHandler } = handleLogout();
     const [ubicaciones, setUbicaciones] = useState<any[]>([]);
     const [showFilters, setShowFilters] = useState(false);
+    const [showStatistics, setShowStatistics] = useState(false);
+    const intervaloMin = 10;
     const createEmptyFormData = () => {
         const hoy = new Date();
         const ayer = new Date(hoy);
@@ -61,14 +78,13 @@ export default function Recorridos({ navigation }: Props) {
         };
     };
     const [filter, setFilter] = useState(createEmptyFormData());
-    const [zoomRange, setZoomRange] = useState(null);
+    const [coordsActuales, setCoordsActuales] = useState<any[]>([]);
 
     const loadData = async () => {
         try {
             const response = await getUbicacionUsuarios();
             const coords = response.data.map((item: any) => {
-                const fechaUTC = new Date(item.fechaToma);
-                const fechaBogota = new Date(fechaUTC.getTime() - 5 * 60 * 60 * 1000);
+                const fechaBogota = new Date(item.fechaToma);
 
                 return {
                     fecha: fechaBogota,
@@ -84,6 +100,7 @@ export default function Recorridos({ navigation }: Props) {
                     origen: item.origen,
                 };
             });
+
             setUbicaciones(coords);
 
             const uniqueUsers = Array.from(new Set(coords.map((u: any) => u.nombre))).sort();
@@ -92,6 +109,9 @@ export default function Recorridos({ navigation }: Props) {
             if (uniqueUsers.length > 0) {
                 setFilter({ ...filter, selectedUser: uniqueUsers[0], selectedCedula: item?.cedula })
             }
+
+            const coordsActualesTemp = await getCurrentCoords();
+            setCoordsActuales([coordsActualesTemp]);
 
             Toast.show({ type: "success", text1: response.messages.message1, text2: response.messages.message2, position: "top" });
         } catch (error) {
@@ -131,46 +151,56 @@ export default function Recorridos({ navigation }: Props) {
 
     const horasRango = generarHorasEntreFechas(
         filter.selectedDateInicio,
-        filter.selectedDateFinal
+        filter.selectedDateFinal,
+        intervaloMin
     );
 
-    const actividad = {};
+    const actividadMovimiento = {};
     horasRango.forEach(date => {
-        actividad[date.getTime()] = 0;
+        actividadMovimiento[normalizarHora(date, intervaloMin)] = 0;
     });
 
     filteredCoords.forEach(p => {
-        const timestamp = new Date(
-            p.fecha.getFullYear(),
-            p.fecha.getMonth(),
-            p.fecha.getDate(),
-            p.fecha.getHours(),
-            0, 0, 0
-        ).getTime();
-
-        const velocidad = p.velocidad || 0;
-
-        if (actividad.hasOwnProperty(timestamp)) {
-            if (velocidad > 1) {
-                actividad[timestamp] += 1;
+        const ts = normalizarHora(new Date(p.fecha), intervaloMin);
+        if (actividadMovimiento[ts] !== undefined) {
+            if ((p.velocidad || 0) > 1) {
+                actividadMovimiento[ts] += 1;
             }
         }
     });
 
-    const actividadPorHora = Object.keys(actividad).map(ts => [
-        Number(ts),
-        actividad[ts],
-    ]);
+    const actividadMovimientoPorHora = Object.entries(actividadMovimiento)
+        .map(([ts, count]) => [Number(ts), count]);
+    
+    const actividadMuestreo = {};
+    horasRango.forEach(date => {
+        actividadMuestreo[normalizarHora(date, intervaloMin)] = 0;
+    });
 
-    const coordsParaMapa = !zoomRange
-        ? filteredCoords
-        : filteredCoords.filter((p) => {
-            const t = p.fecha.getTime();
-            return t >= zoomRange.start && t <= zoomRange.end;
-        });
+    filteredCoords.forEach(p => {
+        const ts = normalizarHora(new Date(p.fecha), intervaloMin);
 
-    const sheetRef = useRef<BottomSheet>(null);
-    const snapPoints = useMemo(() => ["20%", "80%"], []);
+        if (actividadMuestreo[ts] !== undefined) {
+            actividadMuestreo[ts] += 1;
+        }
+    });
+
+    const actividadMuestreoPorHora = Object.entries(actividadMuestreo)
+        .map(([ts, count]) => [Number(ts), count]);
+
+    const coordsParaMapa =
+        Array.isArray(filteredCoords) && filteredCoords.length
+            ? filteredCoords
+            : (coordsActuales ?? []);
+
+    const tabs: TabItem[] = [
+        { key: "movimiento", label: "Movimiento" },
+        { key: "muestreo", label: "Muestreo" },
+    ];
+
+    const [activeTab, setActiveTab] = useState<"movimiento" | "muestreo">(
+        "movimiento"
+    );
 
     if (loading) {
         return <Loader visible={loading} />;
@@ -179,49 +209,8 @@ export default function Recorridos({ navigation }: Props) {
     return (
         <View style={stylesGlobal.container}>
 
-            {/* <View style={{ height: Platform.OS === "web" ? "100%" : Dimensions.get("window").height, width: "100%" }}>
-                <View style={{ height: Platform.OS === "web" ? "60%" : (Dimensions.get("window").height * 0.6) }}>
-                    <MapViewNative coords={coordsParaMapa.length ? coordsParaMapa : []} />
-                </View>
-                <View style={{ height: Platform.OS === "web" ? "40%" : (Dimensions.get("window").height * 0.3) }}>
-                    <LargeAreaChart 
-                    data={actividadPorHora} 
-                    title={"Actividad por movimiento"} 
-                    nameSeries={"Actividad"} 
-                    onZoomChange={(range) => {
-                        setZoomRange(range);
-                    }} 
-                        />
-                </View>
-            </View> */}
-
             <View style={{ flex: 1 }}>
                 <MapViewNative coords={coordsParaMapa.length ? coordsParaMapa : []} />
-
-                <BottomSheet
-                    ref={sheetRef}
-                    snapPoints={snapPoints}
-                    enablePanDownToClose={false}
-                >
-                    <BottomSheetView
-                        style={{
-                            flex: 1,
-                            padding: 10,
-                            height: Platform.OS === "web"
-                                ? "80%"
-                                : Dimensions.get("window").height * 0.65,
-                        }}
-                    >
-                        <LargeAreaChart
-                            data={actividadPorHora}
-                            title={"Actividad por movimiento"}
-                            nameSeries={"Actividad"}
-                            onZoomChange={(range) => {
-                                setZoomRange(range);
-                            }}
-                        />
-                    </BottomSheetView>
-                </BottomSheet>
             </View>
 
             <View
@@ -255,119 +244,261 @@ export default function Recorridos({ navigation }: Props) {
                 </CustomButton>
             </View>
 
+            <View
+                style={{
+                    position: "absolute",
+                    top: 140,
+                    right: 20,
+                    zIndex: 999,
+                }}
+            >
+                <CustomButton
+                    label=''
+                    onPress={() => setShowStatistics(true)}
+                    style={{
+                        width: 50,
+                        height: 50,
+                        borderRadius: 25,
+                        justifyContent: "center",
+                        alignItems: "center",
+                        shadowColor: "#000",
+                        shadowOpacity: 0.2,
+                        shadowOffset: { width: 0, height: 2 },
+                        shadowRadius: 4,
+                        elevation: 4,
+                        padding: 10
+                    }}
+                >
+                    {(state: any) => (
+                        <Ionicons name="stats-chart" size={24} color={state.pressed ? colors.iconoPressed : state.hovered ? colors.iconoHover : "#fff"} />
+                    )}
+                </CustomButton>
+            </View>
+
             <Modal visible={showFilters} transparent animationType="fade">
-                <TouchableWithoutFeedback onPress={() => setShowFilters(false)}>
-                    <View
-                        style={{
-                            flex: 1,
-                            backgroundColor: "rgba(0,0,0,0.4)",
-                            justifyContent: "flex-start",
-                            alignItems: "center",
-                        }}
-                    >
-                        <TouchableWithoutFeedback onPress={() => null}>
-                            <KeyboardAwareScrollView
-                                enableOnAndroid
-                                extraScrollHeight={50}
-                                contentContainerStyle={{
-                                    backgroundColor: colors.backgroundContainer,
-                                    paddingVertical: 20,
-                                    paddingHorizontal: 20,
-                                    borderRadius: 12,
-                                    marginTop: 100,
-                                }}
-                            >
+                <KeyboardAvoidingView
+                    behavior={Platform.OS === "ios" ? "padding" : "height"}
+                    style={{ flex: 1 }}
+                >
+                    <TouchableWithoutFeedback onPress={() => setShowFilters(false)}>
+                        <View
+                            style={{
+                                flex: 1,
+                                backgroundColor: "rgba(0,0,0,0.4)",
+                                justifyContent: "center",
+                                alignItems: "center",
+                            }}
+                        >
+                            <TouchableWithoutFeedback onPress={() => null}>
                                 <View
                                     style={{
-                                        flexDirection: "row",
-                                        alignItems: "center",
-                                        justifyContent: "space-between",
-                                        marginBottom: 10
+                                        backgroundColor: colors.backgroundContainer,
+                                        borderRadius: 12,
+                                        maxHeight: "95%",
+                                        width: isMobileWeb || Platform.OS !== "web" ? "95%" : "85%",
                                     }}
                                 >
-                                    <Text style={{ fontSize: 20, fontWeight: "bold", color: colors.texto }}>
-                                        Filtros
-                                    </Text>
-
-                                    <TouchableOpacity
-                                        onPress={() => setShowFilters(false)}
-                                        style={{
-                                            padding: 5,
-                                            borderRadius: 20
+                                    <ScrollView
+                                        keyboardShouldPersistTaps="always"
+                                        nestedScrollEnabled={true}
+                                        contentContainerStyle={{
+                                            backgroundColor: colors.backgroundContainer,
+                                            paddingVertical: isMobileWeb || Platform.OS !== "web" ? 10 : 20,
+                                            paddingHorizontal: isMobileWeb || Platform.OS !== "web" ? 10 : 20,
+                                            borderRadius: 12,
                                         }}
                                     >
-                                        <Text style={{ fontSize: 22, color: colors.texto }}>✕</Text>
-                                    </TouchableOpacity>
-                                </View>
+                                        <View
+                                            style={{
+                                                flexDirection: "row",
+                                                alignItems: "center",
+                                                justifyContent: "space-between",
+                                                marginBottom: 10,
+                                            }}
+                                        >
+                                            <Text style={{ fontSize: 20, fontWeight: "bold", color: colors.texto }}>
+                                                Filtros
+                                            </Text>
 
+                                            <TouchableOpacity
+                                                onPress={() => setShowFilters(false)}
+                                                style={{
+                                                    padding: 5,
+                                                    borderRadius: 20
+                                                }}
+                                            >
+                                                <Text style={{ fontSize: 22, color: colors.texto }}>✕</Text>
+                                            </TouchableOpacity>
+                                        </View>
+
+                                        <View
+                                            style={{
+                                                width: "100%",
+                                                height: 1,
+                                                backgroundColor: colors.linea,
+                                                marginBottom: 20
+                                            }}
+                                        />
+
+                                        <LabeledDatePicker
+                                            label="Fecha inicial"
+                                            date={filter.selectedDateInicio}
+                                            onChange={(value) => setFilter({ ...filter, selectedDateInicio: value })}
+                                            mode="datetime"
+                                        />
+
+                                        <LabeledDatePicker
+                                            label="Fecha final"
+                                            date={filter.selectedDateFinal}
+                                            onChange={(value) => setFilter({ ...filter, selectedDateFinal: value })}
+                                            mode="datetime"
+                                        />
+
+                                        <View style={{ position: "relative", zIndex: 4 }}>
+                                            <LabeledInput
+                                                label="Cedula"
+                                                value={filter.selectedCedula}
+                                                icon="card-outline"
+                                                placeholder="Ingrese la cedula del usuario"
+                                                onChangeText={(value) => {
+                                                    const item = ubicaciones.find((p) => p.cedula === value);
+                                                    setFilter({ ...filter, selectedCedula: value, selectedUser: item?.nombre ? item.nombre : "Usuario no encontrado" });
+                                                }}
+                                                data={Array.from(new Set(ubicaciones.map(u => u.cedula))).sort()}
+                                                onSelectItem={(value) => {
+                                                    const item = ubicaciones.find((p) => p.cedula === value);
+                                                    setFilter({ ...filter, selectedCedula: value, selectedUser: item?.nombre ? item.nombre : "Usuario no encontrado" });
+                                                }}
+                                            />
+                                        </View>
+                                        <View style={{ position: "relative", zIndex: 3 }}>
+                                            <LabeledInput
+                                                label="Usuario"
+                                                value={filter.selectedUser}
+                                                icon="person-outline"
+                                                placeholder="Ingrese el nombre del usuario"
+                                                onChangeText={(value) => {
+                                                    const item = ubicaciones.find((p) => p.nombre === value);
+                                                    setFilter({ ...filter, selectedUser: value, selectedCedula: item?.cedula ? item.cedula : "Usuario no encontrado" });
+                                                }}
+                                                data={Array.from(new Set(ubicaciones.map(u => u.nombre))).sort()}
+                                                onSelectItem={(value) => {
+                                                    const item = ubicaciones.find((p) => p.nombre === value);
+                                                    setFilter({ ...filter, selectedUser: value, selectedCedula: item?.cedula ? item.cedula : "Usuario no encontrado" });
+                                                }}
+                                            />
+                                        </View>
+
+                                        <View style={{ marginTop: 10, width: 200, alignSelf: "center" }}>
+                                            <CustomButton
+                                                label='Aplicar filtros'
+                                                onPress={() => setShowFilters(false)}
+                                            />
+                                        </View>
+                                    </ScrollView>
+                                </View>
+                            </TouchableWithoutFeedback>
+                        </View>
+                    </TouchableWithoutFeedback >
+                </KeyboardAvoidingView>
+            </Modal >
+
+            <Modal visible={showStatistics} transparent animationType="fade">
+                <KeyboardAvoidingView
+                    behavior={Platform.OS === "ios" ? "padding" : "height"}
+                    style={{ flex: 1 }}
+                >
+                    <TouchableWithoutFeedback onPress={() => setShowStatistics(false)}>
+                        <View
+                            style={{
+                                flex: 1,
+                                backgroundColor: "rgba(0,0,0,0.4)",
+                                justifyContent: "center",
+                                alignItems: "center",
+                            }}
+                        >
+                            <TouchableWithoutFeedback onPress={() => null}>
                                 <View
                                     style={{
-                                        width: "100%",
-                                        height: 1,
-                                        backgroundColor: colors.linea,
-                                        marginBottom: 20
+                                        backgroundColor: colors.backgroundContainer,
+                                        borderRadius: 12,
+                                        maxHeight: "95%",
+                                        width: isMobileWeb || Platform.OS !== "web" ? "95%" : "85%",
                                     }}
-                                />
-
-                                <LabeledDatePicker
-                                    label="Fecha inicial"
-                                    date={filter.selectedDateInicio}
-                                    onChange={(value) => setFilter({ ...filter, selectedDateInicio: value })}
-                                    mode="datetime"
-                                />
-
-                                <LabeledDatePicker
-                                    label="Fecha final"
-                                    date={filter.selectedDateFinal}
-                                    onChange={(value) => setFilter({ ...filter, selectedDateFinal: value })}
-                                    mode="datetime"
-                                />
-
-                                <View style={{ position: "relative", zIndex: 4 }}>
-                                    <LabeledInput
-                                        label="Cedula"
-                                        value={filter.selectedCedula}
-                                        icon="card-outline"
-                                        placeholder="Ingrese la cedula del usuario"
-                                        onChangeText={(value) => {
-                                            const item = ubicaciones.find((p) => p.cedula === value);
-                                            setFilter({ ...filter, selectedCedula: value, selectedUser: item?.nombre ? item.nombre : "Usuario no encontrado" });
+                                >
+                                    <ScrollView
+                                        keyboardShouldPersistTaps="always"
+                                        nestedScrollEnabled={true}
+                                        contentContainerStyle={{
+                                            backgroundColor: colors.backgroundContainer,
+                                            paddingVertical: isMobileWeb || Platform.OS !== "web" ? 10 : 20,
+                                            paddingHorizontal: isMobileWeb || Platform.OS !== "web" ? 10 : 20,
+                                            borderRadius: 12,
                                         }}
-                                        data={Array.from(new Set(ubicaciones.map(u => u.cedula))).sort()}
-                                        onSelectItem={(value) => {
-                                            const item = ubicaciones.find((p) => p.cedula === value);
-                                            setFilter({ ...filter, selectedCedula: value, selectedUser: item?.nombre ? item.nombre : "Usuario no encontrado" });
-                                        }}
-                                    />
+                                    >
+                                        <View
+                                            style={{
+                                                flexDirection: "row",
+                                                alignItems: "center",
+                                                justifyContent: "space-between",
+                                                marginBottom: 10,
+                                            }}
+                                        >
+                                            <Text style={{ fontSize: 20, fontWeight: "bold", color: colors.texto }}>
+                                                Estadisticas
+                                            </Text>
+
+                                            <TouchableOpacity
+                                                onPress={() => setShowStatistics(false)}
+                                                style={{
+                                                    padding: 5,
+                                                    borderRadius: 20
+                                                }}
+                                            >
+                                                <Text style={{ fontSize: 22, color: colors.texto }}>✕</Text>
+                                            </TouchableOpacity>
+                                        </View>
+
+                                        <View
+                                            style={{
+                                                width: "100%",
+                                                height: 1,
+                                                backgroundColor: colors.linea,
+                                            }}
+                                        />
+
+                                        <CustomTabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
+
+                                        {activeTab === "movimiento" && (
+                                            <>
+                                                <View style={{ height: Dimensions.get("window").height * 0.6, width: "100%" }}>
+                                                    <LargeAreaChart
+                                                        data={actividadMovimientoPorHora}
+                                                        title={"Actividad por movimiento"}
+                                                        nameSeries={"Actividad"}
+                                                    />
+                                                </View>
+                                            </>
+                                        )}
+
+                                        {activeTab === "muestreo" && (
+                                            <>
+                                                <View style={{ height: Dimensions.get("window").height * 0.6, width: "100%" }}>
+                                                    <LargeAreaChart
+                                                        data={actividadMuestreoPorHora}
+                                                        title={"Actividad por muestreo"}
+                                                        nameSeries={"Actividad"}
+                                                    />
+                                                </View>
+                                            </>
+                                        )}
+
+                                    </ScrollView>
                                 </View>
-                                <View style={{ position: "relative", zIndex: 3 }}>
-                                    <LabeledInput
-                                        label="Usuario"
-                                        value={filter.selectedUser}
-                                        icon="person-outline"
-                                        placeholder="Ingrese el nombre del usuario"
-                                        onChangeText={(value) => {
-                                            const item = ubicaciones.find((p) => p.nombre === value);
-                                            setFilter({ ...filter, selectedUser: value, selectedCedula: item?.cedula ? item.cedula : "Usuario no encontrado" });
-                                        }}
-                                        data={Array.from(new Set(ubicaciones.map(u => u.nombre))).sort()}
-                                        onSelectItem={(value) => {
-                                            const item = ubicaciones.find((p) => p.nombre === value);
-                                            setFilter({ ...filter, selectedUser: value, selectedCedula: item?.cedula ? item.cedula : "Usuario no encontrado" });
-                                        }}
-                                    />
-                                </View>
-
-                                <View style={{ marginTop: 10, width: 200, alignSelf: "center" }}>
-                                    <CustomButton
-                                        label='Aplicar filtros'
-                                        onPress={() => setShowFilters(false)}
-                                    />
-                                </View>
-                            </KeyboardAwareScrollView>
-                        </TouchableWithoutFeedback>
-                    </View>
-                </TouchableWithoutFeedback >
+                            </TouchableWithoutFeedback>
+                        </View>
+                    </TouchableWithoutFeedback >
+                </KeyboardAvoidingView>
             </Modal >
         </View >
     );

@@ -9,8 +9,10 @@
     "web": "expo start --web",
     "build": "npx expo export",
     "start": "npx serve -s dist",
-    "start:dev": "cross-env APP_ENV=dev expo start --tunnel --clear",
-    "start:prod": "cross-env APP_ENV=prod expo start --clear"
+    "start:dev": "cross-env EXPO_PUBLIC_APP_ENV=dev expo start --tunnel --clear",
+    "start:prod": "cross-env EXPO_PUBLIC_APP_ENV=prod expo start --clear",
+    "prebuild:dev": "cross-env EXPO_PUBLIC_APP_ENV=dev npx expo prebuild",
+    "prebuild:prod": "cross-env EXPO_PUBLIC_APP_ENV=prod npx expo prebuild"
   },
   "dependencies": {
     "@expo-google-fonts/tilt-warp": "^0.4.2",

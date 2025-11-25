@@ -183,6 +183,10 @@ gradlew clean
 cd ..
 npx expo run:android
 ```
+#### En caso donde es necesito reconstruir la caprtea android
+```bash
+npx expo prebuild --platform android --clean
+```
 
 
 ### Agregar la linea de "com.google.android.geo.API_KEY" en AndroidManifest.xml despues de <application
@@ -241,6 +245,16 @@ npx expo prebuild
 android/
 Con Android Studio.
 
+con la configuracion del script con esto, ahora se puede construir la app en forma de produccion
+"prebuild:dev": "EXPO_PUBLIC_APP_ENV=dev npx expo prebuild",
+"prebuild:prod": "EXPO_PUBLIC_APP_ENV=prod npx expo prebuild"
+npm run prebuild:prod
+android/
+En android studio dar click en Assamble 'app' Run Configuration 
+despues dar click en build
+despues dar click en Generate Signed App Bundle or APKs
+y despues Generate APKs
+esto genera una apk en android/app/build/outputs/apk/release/app-release.apk
 
 
 ### Crear IPA a produccion
@@ -257,3 +271,13 @@ npx expo prebuild
 Luego abres:
 ios/
 En Xcode → Archive → Distribuir en App Store.
+
+
+
+
+## LLAVE keytool
+keytool -genkeypair -v -keystore sicte-release-key.jks -storepass Sicte2025* -keypass Sicte2025* -alias sicte_key -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Sicte, OU=IT, O=Sicte, L=Bogota, S=Cundinamarca, C=CO"
+5f0fc98c0cGenerando par de claves RSA de 2,048 bits para certificado autofirmado (SHA256withRSA) con una validez de 10,000 días
+        para: CN=Sicte, OU=IT, O=Sicte, L=Bogota, ST=Cundinamarca, C=CO
+[Almacenando sicte-release-key.jks]
+

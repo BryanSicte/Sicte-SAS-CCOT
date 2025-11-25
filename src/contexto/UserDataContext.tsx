@@ -16,15 +16,6 @@ type UserContextType = {
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
-function initLocation(user) {
-    const subscription = AppState.addEventListener("change", (state) => {
-        if (state === "active") {
-            startBackgroundLocation(user);
-            subscription.remove();
-        }
-    });
-}
-
 export const UserDataProvider = ({ children }: { children: React.ReactNode }) => {
     const [user, setUserState] = useState<User | null>(null);
     const { setPages } = usePageUserData();
@@ -59,9 +50,7 @@ export const UserDataProvider = ({ children }: { children: React.ReactNode }) =>
     };
 
     useEffect(() => {
-        if (user?.id) {
-            initLocation(user);
-        } else {
+        if (!user?.id) {
             stopBackgroundLocation();
         }
     }, [user]);

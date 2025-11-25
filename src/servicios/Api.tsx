@@ -8,6 +8,8 @@ const API_URL =
     ? "http://localhost:8120/api"
     : apiUrl;
 
+console.log(API_URL)
+
 const request = async (endpoint, method = "GET", body = null, headers = {}) => {
     try {
         let token = null;

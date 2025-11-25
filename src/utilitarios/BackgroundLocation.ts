@@ -182,7 +182,67 @@ export async function stopBackgroundLocation() {
     }
 }
 
+export async function getCurrentCoords() {
+    try {
+        if (Platform.OS === "web") {
+            if (lastPosition) {
+                return {
+                    latitude: lastPosition.lat,
+                    longitude: lastPosition.lon
+                };
+            }
 
+            return new Promise((resolve, reject) => {
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                        resolve({
+                            latitude: pos.coords.latitude,
+                            longitude: pos.coords.longitude
+                        });
+                    },
+                    (err) => reject(err),
+                    { enableHighAccuracy: true }
+                );
+            });
+        }
+
+        const { status: foregroundStatus } = await ExpoLocation.requestForegroundPermissionsAsync();
+        if (foregroundStatus !== "granted") {
+            Toast.show({ type: "error", text1: "Permiso de ubicación denegado", text2: "Foreground permission no concedido por el usuario.", position: "top" });
+            return;
+        }
+
+        const { status: backgroundStatus } = await ExpoLocation.requestBackgroundPermissionsAsync();
+        if (backgroundStatus !== "granted") {
+            Toast.show({ type: "error", text1: "Permiso de ubicación denegado", text2: "Background permission no concedido por el usuario.", position: "top" });
+            return;
+        }
+
+        const { status } = await ExpoLocation.getForegroundPermissionsAsync();
+        if (status !== "granted") {
+            console.warn("⚠️ No hay permiso de ubicación");
+            return null;
+        }
+
+        const loc = await ExpoLocation.getCurrentPositionAsync({
+            accuracy: ExpoLocation.Accuracy.Highest
+        });
+
+        if (!loc?.coords) {
+            console.warn("⚠️ No se pudo obtener coords");
+            return null;
+        }
+
+        return {
+            latitude: loc.coords.latitude,
+            longitude: loc.coords.longitude
+        };
+
+    } catch (e) {
+        console.error("❌ Error obteniendo coordenadas actuales:", e);
+        return null;
+    }
+}
 /*
 
 Campo	Significado	Ejemplo

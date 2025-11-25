@@ -45,10 +45,7 @@ export default ({ config }) => {
 
       android: {
         package: "com.sicte.sas.ccot",
-        adaptiveIcon: {
-          foregroundImage: "./assets/LogoSicte13.png",
-          backgroundColor: "#ffffff"
-        },
+        icon: "./assets/LogoSicte13.png",
         edgeToEdgeEnabled: true,
         permissions: [
           "ACCESS_COARSE_LOCATION",
