@@ -285,3 +285,19 @@ git push origin v1.0.1
 
 3️⃣ Crear release con archivo APK
 gh release create v1.0.1 Sicte_CCOT-v1.0.1.apk -t "v1.0.1" -n "Nueva versión con mejoras"
+
+
+### Borrar la release anterior en github y cargar la nueva
+gh release delete v1.0.3
+gh release create v1.0.3 Sicte_CCOT-v1.0.3.apk -t "v1.0.3" -n "Nueva versión con mejoras v3"
+
+### Reemplazar archivo en release existente
+gh release upload v1.0.3 Sicte_CCOT-v1.0.3.apk --clobber
+
+
+### Manejo de entorno Dev cuando se hizo Pro antes
+Remove-Item -Recurse -Force android
+npm run android
+
+### Manejo de entorno Pro
+npm run prebuild:prod

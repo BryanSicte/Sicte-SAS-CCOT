@@ -9,10 +9,13 @@ export default ({ config }) => {
   const apiUrl = apiUrls[appEnv];
 
   return {
+    ...config,
+
     expo: {
+      ...config.expo,
       name: "Sicte CCOT",
       slug: "sicte-ccot",
-      version: "1.0.1",
+      version: "1.0.4",
       orientation: "default",
       icon: "./assets/LogoSicte13.png",
       userInterfaceStyle: "light",
@@ -45,13 +48,14 @@ export default ({ config }) => {
         package: "com.sicte.sas.ccot",
         icon: "./assets/LogoSicte13.png",
         edgeToEdgeEnabled: true,
-        versionCode: 2,
+        versionCode: 4,
         permissions: [
           "ACCESS_COARSE_LOCATION",
           "ACCESS_FINE_LOCATION",
           "ACCESS_BACKGROUND_LOCATION"
         ],
         config: {
+          API_URL: apiUrl,
           googleMaps: {
             apiKey: "AIzaSyDgoT1jsWnp4t2O-5k-xklh6ZgPc5oOh_8"
           }
@@ -80,6 +84,9 @@ export default ({ config }) => {
       },
 
       plugins: [
+        "./plugins/gradle-env-plugin",
+        "./plugins/withApiMeta",
+        "./plugins/rename-apk",
         "expo-font",
         [
           "expo-location",
@@ -87,6 +94,21 @@ export default ({ config }) => {
             locationAlwaysAndWhenInUsePermission:
               "Sicte necesita acceder a tu ubicación incluso cuando la app no esté abierta, para registrar tus movimientos de servicio.",
             isAndroidBackgroundLocationEnabled: true
+          }
+        ],
+
+        [
+          "expo-build-properties",
+          {
+            android: {
+              extraGradleProperties: {
+                API_URL: apiUrl
+              },
+
+              extraProguardRules: `
+                -keep class com.sicte.** { *; }
+              `
+            }
           }
         ]
       ]

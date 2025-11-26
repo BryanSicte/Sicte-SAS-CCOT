@@ -16,7 +16,7 @@ import * as Updates from "expo-updates";
 import { TokenUserProvider } from './contexto/TokenUserContext';
 import { UserDataProvider } from './contexto/UserDataContext';
 import { PageUserProvider } from './contexto/PageUserDataContext';
-import checkForUpdate from './utilitarios/CheckForUpdate';
+import useCheckForUpdate from './utilitarios/CheckForUpdate';
 
 SplashScreen.preventAutoHideAsync().catch(() => { });
 
@@ -28,6 +28,7 @@ function ThemedToast() {
 }
 
 export default function App() {
+    const { checkForUpdate, ModalComponent } = useCheckForUpdate();
     const [fontsLoaded] = useFonts({
         TiltWarp: TiltWarp_400Regular,
     });
@@ -127,6 +128,7 @@ export default function App() {
                                             <GlobalDataProvider>
                                                 <RootNavigator />
                                                 <ThemedToast />
+                                                {ModalComponent}
                                             </GlobalDataProvider>
                                         </UserMenuProvider>
                                     </MenuProvider>
