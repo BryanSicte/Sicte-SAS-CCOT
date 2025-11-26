@@ -36,6 +36,7 @@ import Inventarios from '../ventanas/inventarios/Inventarios';
 import RegistrarInventarios from '../ventanas/inventarios/RegistrarInventarios';
 import Recorridos from '../ventanas/recorridos/Recorridos';
 import { startBackgroundLocation } from '../utilitarios/BackgroundLocation';
+import Constants from "expo-constants";
 
 export const navigationRef = createNavigationContainerRef();
 
@@ -696,7 +697,7 @@ export default function RootNavigator() {
                         Rol: {user.rol}
                     </Text>
                     <Text style={{ color: colors.texto, fontSize: stylesGlobal.texto.fontSize - 4, marginBottom: 5, textAlign: "center" }}>
-                        Version 1.0.5
+                        Versión {Constants.expoConfig.version}
                     </Text>
 
                     <View

@@ -221,21 +221,13 @@ npm run start:prod
 ### Crear APK a produccion
 ✔ OPCIÓN A (Recomendada): Usar Expo Application Services (EAS)
 NO necesitas Android Studio.
-Solo haces:
-eas build -p android --profile production
-Te genera:
-APK (para instalar directamente)
-AAB (para Play Store)
-📌 Tu configuración eas.json definiría el entorno de producción:
-{
-  "build": {
-    "production": {
-      "env": {
-        "EXPO_PUBLIC_API_URL": "https://midominio.railway.app/api"
-      }
-    }
-  }
-}
+Solo haces para crear el canal una vez:
+npx eas channel:create production 
+para construir el proyecto una vez
+eas build --platform android --profile prod
+para actualizar la aplicacion
+npx expo update --channel production
+
 
 ✔ OPCIÓN B (Sin EAS): generar APK usando Android Studio
 Este método no usa Expo Go, sino Expo Prebuild.
@@ -254,7 +246,7 @@ En android studio dar click en Assamble 'app' Run Configuration
 despues dar click en build
 despues dar click en Generate Signed App Bundle or APKs
 y despues Generate APKs
-esto genera una apk en android/app/build/outputs/apk/release/app-release.apk
+esto genera una apk en android/app/release/app-release.apk
 
 
 ### Crear IPA a produccion
@@ -281,3 +273,15 @@ keytool -genkeypair -v -keystore sicte-release-key.jks -storepass Sicte2025* -ke
         para: CN=Sicte, OU=IT, O=Sicte, L=Bogota, ST=Cundinamarca, C=CO
 [Almacenando sicte-release-key.jks]
 
+
+
+### Subir APK a github
+Flujo recomendado (profesional)
+1️⃣ Crear tag local
+git tag v1.0.1
+
+2️⃣ Subir tag al repo
+git push origin v1.0.1
+
+3️⃣ Crear release con archivo APK
+gh release create v1.0.1 Sicte_CCOT-v1.0.1.apk -t "v1.0.1" -n "Nueva versión con mejoras"

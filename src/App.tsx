@@ -16,6 +16,7 @@ import * as Updates from "expo-updates";
 import { TokenUserProvider } from './contexto/TokenUserContext';
 import { UserDataProvider } from './contexto/UserDataContext';
 import { PageUserProvider } from './contexto/PageUserDataContext';
+import checkForUpdate from './utilitarios/CheckForUpdate';
 
 SplashScreen.preventAutoHideAsync().catch(() => { });
 
@@ -32,6 +33,7 @@ export default function App() {
     });
 
     useEffect(() => {
+        checkForUpdate();
         if (Platform.OS === "web") {
             const htmlEl = document.documentElement;
             htmlEl.setAttribute("translate", "no");

@@ -113,4 +113,7 @@ export const getInventariosCedulasTecnico = () =>
 export const getInventariosImagen = (data) =>
     request(`/inventarios/descargarImagen?filename=${encodeURIComponent(data)}`, "GET");
 
+export const getVersion = () =>
+    request("/version", "GET");
+
 export default request;

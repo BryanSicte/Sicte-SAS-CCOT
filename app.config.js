@@ -1,5 +1,3 @@
-import 'dotenv/config';
-
 export default ({ config }) => {
   const appEnv = process.env.EXPO_PUBLIC_APP_ENV;
 
@@ -14,7 +12,7 @@ export default ({ config }) => {
     expo: {
       name: "Sicte CCOT",
       slug: "sicte-ccot",
-      version: "1.0.0",
+      version: "1.0.1",
       orientation: "default",
       icon: "./assets/LogoSicte13.png",
       userInterfaceStyle: "light",
@@ -29,7 +27,7 @@ export default ({ config }) => {
       },
 
       splash: {
-        image: "./assets/LogoSicte14.png",
+        image: "./assets/LogoSicte15.png",
         resizeMode: "cover",
         backgroundColor: "#ffffff"
       },
@@ -47,11 +45,17 @@ export default ({ config }) => {
         package: "com.sicte.sas.ccot",
         icon: "./assets/LogoSicte13.png",
         edgeToEdgeEnabled: true,
+        versionCode: 2,
         permissions: [
           "ACCESS_COARSE_LOCATION",
           "ACCESS_FINE_LOCATION",
           "ACCESS_BACKGROUND_LOCATION"
-        ]
+        ],
+        config: {
+          googleMaps: {
+            apiKey: "AIzaSyDgoT1jsWnp4t2O-5k-xklh6ZgPc5oOh_8"
+          }
+        }
       },
 
       jsEngine: "hermes",
