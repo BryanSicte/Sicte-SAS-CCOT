@@ -1,32 +1,28 @@
-const { withGradleProperties } = require("@expo/config-plugins");
+const { withAndroidManifest } = require("@expo/config-plugins");
 
-module.exports = function withEnvGradle(config) {
-    return withGradleProperties(config, (config) => {
-        const envVars = [
-            { key: "API_URL_DEV", value: process.env.EXPO_PUBLIC_API_URL_DEV },
-            { key: "API_URL_PROD", value: process.env.EXPO_PUBLIC_API_URL_PROD },
-            { key: "APP_ENV", value: process.env.EXPO_PUBLIC_APP_ENV },
-        ];
+module.exports = function withApiMeta(config) {
+    return withAndroidManifest(config, (config) => {
+        const apiUrl = process.env.EXPO_PUBLIC_APP_ENV === "prod"
+            ? process.env.EXPO_PUBLIC_API_URL_PROD
+            : process.env.EXPO_PUBLIC_API_URL_DEV;
 
-        envVars.forEach(({ key, value }) => {
-            if (value === undefined) return;
+        const appMetaData = {
+            $: {
+                "android:name": "API_URL",
+                "android:value": apiUrl
+            }
+        };
 
-            const exists = config.modResults.some(
-                (prop) => prop.key === key
+        const application = config.modResults.manifest.application?.[0];
+        if (application) {
+            application["meta-data"] = application["meta-data"] || [];
+
+            application["meta-data"] = application["meta-data"].filter(
+                (m) => m.$["android:name"] !== "API_URL"
             );
 
-            if (!exists) {
-                config.modResults.push({
-                    type: "property",
-                    key,
-                    value,
-                });
-            } else {
-                config.modResults = config.modResults.map((prop) =>
-                    prop.key === key ? { ...prop, value } : prop
-                );
-            }
-        });
+            application["meta-data"].push(appMetaData);
+        }
 
         return config;
     });

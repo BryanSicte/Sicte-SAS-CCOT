@@ -296,8 +296,28 @@ gh release upload v1.0.3 Sicte_CCOT-v1.0.3.apk --clobber
 
 
 ### Manejo de entorno Dev cuando se hizo Pro antes
-Remove-Item -Recurse -Force android
 npm run android
 
 ### Manejo de entorno Pro
+Validar que esta variable este definida 
+setx NODE_ENV "production"
+Remove-Item -Recurse -Force android
+npm install
+npm run prebuild:prod
+cd android
+./gradlew clean
+despues abrir android studio en blanco
+esperar a que sincronice android studio
+despues dar click en build
+despues dar click en Generate Signed App Bundle or APKs
+
+
+
+### Ejecutar para limpiar el proyecto
+cd android
+./gradlew clean
+Borrar despues de ejecutar
+android/.gradle
+android/.cxx  
+salir de android y ejecutar
 npm run prebuild:prod
