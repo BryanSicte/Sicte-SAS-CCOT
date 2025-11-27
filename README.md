@@ -301,7 +301,7 @@ npm run android
 ### Manejo de entorno Pro
 Validar que esta variable este definida 
 setx NODE_ENV "production"
-Remove-Item -Recurse -Force android
+Remove-Item -Recurse -Force android ó rmdir /s /q android
 npm install
 npm run prebuild:prod
 cd android
