@@ -6,6 +6,8 @@ import Storage from "../utilitarios/Storage";
 import { useUserMenu } from "../contexto/UserMenuContext";
 import { useNavigationParams } from "../contexto/NavigationParamsContext";
 import { HeaderTitle } from "./HeaderTitle";
+import Toast from "react-native-toast-message";
+import { getCcot } from "../servicios/Api";
 
 type HeaderOptionsParams = {
     toggleMenu: () => void;
@@ -86,6 +88,58 @@ function UserHeaderButton({ navigation, colors }: any) {
     );
 }
 
+function HeaderLogo({
+    isDark,
+    isMobileWeb,
+}: {
+    isDark: boolean;
+    isMobileWeb: boolean;
+}) {
+    const [imagenes, setImagenes] = useState<string[]>([]);
+
+    useEffect(() => {
+        const loadData = async () => {
+            try {
+                const response = await getCcot();
+
+                const parsedImages = Array.isArray(response?.archivos)
+                    ? response.archivos
+                        .map((img: any) => img?.url)
+                        .filter(Boolean)
+                    : [];
+
+                setImagenes(parsedImages);
+            } catch (error: any) {
+                const msg1 = "Error al cargar imagenes";
+                const msg2 = error?.data?.messages?.message2 || "Las imagenes no estan disponibles.";
+                Toast.show({ type: "info", text1: msg1, text2: msg2, position: "top" });
+                setImagenes([]);
+            }
+        };
+
+        loadData();
+    }, []);
+
+    const uri =
+        Platform.OS === "web" && !isMobileWeb
+            ? isDark
+                ? imagenes.find((url: string) => url.includes("1OQS5GOfKu4bedFrHEbZhltuCcObOHFN4"))
+                : imagenes.find((url: string) => url.includes("1opFjvV_HkKsgqQdJB0lhbgxgafqRxx5w"))
+            : null;
+
+    return (
+        <Image
+            source={{ uri }}
+            style={{
+                width: Platform.OS === "web" ? 150 : 0,
+                height: 40,
+                marginLeft: 20,
+            }}
+            resizeMode="contain"
+        />
+    );
+}
+
 export const getHeaderOptions = (
     title: string,
     {
@@ -147,22 +201,7 @@ export const getHeaderOptions = (
                 )}
 
                 {showLogo && (
-                    <Image
-                        source={{
-                            uri:
-                                Platform.OS === "web" && !isMobileWeb
-                                    ? isDark
-                                        ? "https://res.cloudinary.com/dcozwbcpi/image/upload/v1753297343/Logo_Original_2_zelyfk.png"
-                                        : "https://res.cloudinary.com/dcozwbcpi/image/upload/v1753297342/Logo_Original_homvl9.png"
-                                    : null,
-                        }}
-                        style={{
-                            width: Platform.OS === "web" ? 150 : 0,
-                            height: 40,
-                            marginLeft: 20,
-                        }}
-                        resizeMode="contain"
-                    />
+                    <HeaderLogo isDark={isDark} isMobileWeb={isMobileWeb} />
                 )}
             </View>
         ),

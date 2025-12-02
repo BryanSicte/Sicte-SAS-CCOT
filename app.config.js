@@ -1,5 +1,6 @@
-export default ({ config }) => {
-  const appEnv = process.env.EXPO_PUBLIC_APP_ENV;
+module.exports = ({ config }) => {
+  const appEnv = process.env.EXPO_PUBLIC_APP_ENV || "dev";
+  const appVersion = "1.0.5";
 
   const apiUrls = {
     dev: process.env.EXPO_PUBLIC_API_URL_DEV,
@@ -13,16 +14,16 @@ export default ({ config }) => {
 
     name: "Sicte CCOT",
     slug: "sicte-ccot",
-    version: "1.0.4",
+    version: appVersion,
     orientation: "default",
-    newArchEnabled: true,
+    newArchEnabled: false,
 
     icon: "./assets/LogoSicte13.png",
-    userInterfaceStyle: "light",
 
     extra: {
-      apiUrl,
       appEnv,
+      apiUrl,
+      appVersion,
       eas: {
         projectId: "3e845c37-4e47-4c6a-bb0d-1ad1897e3c3d"
       }
@@ -62,8 +63,6 @@ export default ({ config }) => {
       }
     },
 
-    jsEngine: "hermes",
-
     web: {
       bundler: "metro",
       favicon: "./assets/LogoSicte12.png",
@@ -75,6 +74,8 @@ export default ({ config }) => {
 
     updates: {
       url: "https://u.expo.dev/3e845c37-4e47-4c6a-bb0d-1ad1897e3c3d",
+      enabled: false,
+      checkAutomatically: "NEVER",
       fallbackToCacheTimeout: 0
     },
 
@@ -85,8 +86,8 @@ export default ({ config }) => {
     plugins: [
       "./plugins/gradle-env-plugin",
       "./plugins/withApiMeta",
-      "./plugins/rename-apk",
       "./plugins/withGradleMemory",
+      "./plugins/withAndroidSigningAndRename",
       "expo-font",
       [
         "expo-location",

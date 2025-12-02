@@ -298,7 +298,7 @@ export default function Inventarios({ navigation }: Props) {
                                                         if (Platform.OS === "web") {
                                                             try {
                                                                 const html2canvas = (await import("html2canvas")).default;
-                                                                const { jsPDF } = await import("jspdf");
+                                                                const { default: JsPDF } = await import("jspdf/dist/jspdf.es.min.js");
 
                                                                 setForceDesktopMode(true);
 
@@ -362,7 +362,7 @@ export default function Inventarios({ navigation }: Props) {
 
                                                                     const imgData = canvas.toDataURL("image/png");
 
-                                                                    const pdf = new jsPDF({
+                                                                    const pdf = new JsPDF({
                                                                         orientation: "portrait",
                                                                         unit: "mm",
                                                                         format: "letter",

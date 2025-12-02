@@ -17,9 +17,13 @@ export default function useCheckForUpdate() {
             const backendVersion = data.latestVersion;
             const url = data.apkUrl;
 
-            const currentVersionTemp = Platform.OS === "web"
-                ? Constants.expoConfig.version
-                : Application.nativeApplicationVersion;
+            const extra = Constants.expoConfig?.extra ?? {};
+
+            const currentVersionTemp =
+                extra.appVersion ??
+                Constants.expoConfig?.version ??
+                Application.nativeApplicationVersion ??
+                "0.0.0";
 
             if (backendVersion.trim() !== currentVersionTemp.trim()) {
                 setCurrentVersion(currentVersionTemp);

@@ -4,16 +4,13 @@
     "appVersionSource": "remote"
   },
   "build": {
-    "dev": {
-      "distribution": "internal",
-      "env": {
-        "EXPO_PUBLIC_APP_ENV": "dev"
-      }
-    },
-    "prod": {
+    "production": {
       "distribution": "store",
+      "channel": "production",
+      "android": { "buildType": "apk" },
       "env": {
         "EXPO_PUBLIC_APP_ENV": "prod"
+        // "EXPO_NEW_ARCH_ENABLED": "1"
       }
     }
   },

@@ -160,14 +160,6 @@ cd android
 ```
 
 
-### Configurar variables de entorno sobre terminal solo para esa sesion de terminal
-set JAVA_HOME=C:\Program Files\Java\jdk-17
-set PATH=%JAVA_HOME%\bin;%PATH%
-java -version
-
-set ANDROID_HOME=C:\Users\Alejandra\AppData\Local\Android\Sdk
-set ANDROID_SDK_ROOT=C:\Users\Alejandra\AppData\Local\Android\Sdk
-
 
 ### Cada que se quiera reconstruir el .apk en modo dev usar estos comandos
 #### Metodo 1 mas demorado pero mas garantizado
@@ -266,35 +258,6 @@ En Xcode → Archive → Distribuir en App Store.
 
 
 
-
-## LLAVE keytool
-keytool -genkeypair -v -keystore sicte-release-key.jks -storepass Sicte2025* -keypass Sicte2025* -alias sicte_key -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Sicte, OU=IT, O=Sicte, L=Bogota, S=Cundinamarca, C=CO"
-5f0fc98c0cGenerando par de claves RSA de 2,048 bits para certificado autofirmado (SHA256withRSA) con una validez de 10,000 días
-        para: CN=Sicte, OU=IT, O=Sicte, L=Bogota, ST=Cundinamarca, C=CO
-[Almacenando sicte-release-key.jks]
-
-
-
-### Subir APK a github
-Flujo recomendado (profesional)
-1️⃣ Crear tag local
-git tag v1.0.1
-
-2️⃣ Subir tag al repo
-git push origin v1.0.1
-
-3️⃣ Crear release con archivo APK
-gh release create v1.0.1 Sicte_CCOT-v1.0.1.apk -t "v1.0.1" -n "Nueva versión con mejoras"
-
-
-### Borrar la release anterior en github y cargar la nueva
-gh release delete v1.0.3
-gh release create v1.0.3 Sicte_CCOT-v1.0.3.apk -t "v1.0.3" -n "Nueva versión con mejoras v3"
-
-### Reemplazar archivo en release existente
-gh release upload v1.0.3 Sicte_CCOT-v1.0.3.apk --clobber
-
-
 ### Manejo de entorno Dev cuando se hizo Pro antes
 npm run android
 
@@ -321,3 +284,153 @@ android/.gradle
 android/.cxx  
 salir de android y ejecutar
 npm run prebuild:prod
+
+
+
+
+
+
+
+
+
+
+
+# Notas
+### Limpiar el proyecto
+```bash
+Remove-Item -Recurse -Force node_modules
+Remove-Item package-lock.json
+```
+## Ejecutar proyecto con Expo
+### Arrancar proyecto primera vez con npm
+```bash
+$env:NODE_ENV = "development"
+npm install --legacy-peer-deps
+npm run start:dev
+```
+### Arrancar proyecto en modo dev expo
+```bash
+npm run start:dev
+```
+## Ejecutar proyecto con app nativa en DEV
+### Generar una apk nativa para dev primera vez con eas
+```bash
+npx expo prebuild
+npm run android:dev
+```
+### Generar una apk nativa para dev despues de la primera vez con eas
+```bash
+Remove-Item -Recurse -Force android\.cxx, android\app\.cxx, android\app\build, android\.gradle -ErrorAction SilentlyContinue
+npm run android:dev
+```
+#### ó iOS (si tienes Mac)
+```bash
+npx expo run:ios
+```
+### Arrancar Metro en modo dev client:
+```bash
+npx expo start --dev-client
+```
+## Ejecutar proyecto con app nativa en PROD
+### Generar una apk nativa para prod con metro primera vez
+```bash
+$env:EXPO_PUBLIC_APP_ENV="prod"
+npm run prebuild:prod
+cd android
+.\gradlew.bat assembleRelease
+```
+### Generar una apk nativa para prod con metro despues de la primera vez
+```bash
+npm run prebuild:prod
+cd android
+.\gradlew.bat assembleRelease
+```
+### Detener a daemons de Gradle
+```bash
+cd android
+.\gradlew.bat --stop
+cd ..
+```
+### El resultado deja la app en "android/app/build/outputs/apk/release/"
+
+
+# Notas Adicionales
+
+## Tuneles
+### Ejecutar proyecto por tunnel ngrok
+```bash
+ngrok http 8120
+```
+
+## Servicio adbcd ..
+### Cerrar el servicio ADB
+```bash
+adb kill-server
+```
+### Abrir el servicio ADB
+```bash
+adb start-server
+```
+### Consultar el servicio ADB
+```bash
+adb devices
+```
+
+## Generar llave keytool
+```bash
+keytool -genkeypair -v -keystore sicte-release-key.jks -storepass Sicte2025* -keypass Sicte2025* -alias sicte_key -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Sicte, OU=IT, O=Sicte, L=Bogota, S=Cundinamarca, C=CO"
+```
+5f0fc98c0cGenerando par de claves RSA de 2,048 bits para certificado autofirmado (SHA256withRSA) con una validez de 10,000 días
+        para: CN=Sicte, OU=IT, O=Sicte, L=Bogota, ST=Cundinamarca, C=CO
+[Almacenando sicte-release-key.jks]
+
+## Manejo de APK en github
+### Subir nueva version de APK
+#### Crear tag local
+```bash
+git tag v1.0.1
+```
+#### Subir tag al repo
+```bash
+git push origin v1.0.1
+```
+#### Crear release con archivo APK
+```bash
+gh release create v1.0.1 Sicte_CCOT-v1.0.1.apk -t "v1.0.1" -n "Nueva versión con mejoras"
+```
+### Borrar la release anterior en github y cargar la nueva
+```bash
+gh release delete v1.0.3
+gh release create v1.0.3 Sicte_CCOT-v1.0.3.apk -t "v1.0.3" -n "Nueva versión con mejoras v3"
+```
+### Reemplazar archivo en release existente
+```bash
+gh release upload v1.0.3 Sicte_CCOT-v1.0.3.apk --clobber
+```
+
+## Variables de entorno
+### Configurar variables de entorno sobre terminal solo para esa sesion de terminal
+```bash
+set JAVA_HOME=C:\Program Files\Java\jdk-17
+set PATH=%JAVA_HOME%\bin;%PATH%
+java -version
+set ANDROID_HOME=C:\Users\Alejandra\AppData\Local\Android\Sdk
+set ANDROID_SDK_ROOT=C:\Users\Alejandra\AppData\Local\Android\Sdk
+```
+
+
+# Package.json
+## npm run start:dev
+### npm run start:dev: solo servidor Metro en modo desarrollo apuntando a backend dev (EXPO_PUBLIC_APP_ENV=dev); para probar en Expo Go o web dev.
+## npm run start:prod
+### npm run start:prod: servidor Metro dev pero usando URLs de prod; útil para probar lógica con backend prod sin hacer build nativo.
+## npm run android:dev
+### npm run android:dev: compila e instala un build debug nativo apuntando a backend dev; lo usas cuando necesitas probar APIs dev con código nativo (por ejemplo, ubicación en segundo plano).
+## npm run android:prod
+### npm run android:prod: compila e instala un build debug apuntando a backend prod; para validar contra prod sin hacer build release.
+## npm run prebuild:dev
+### npm run prebuild:dev: genera android/ con el config de dev; úsalo si borraste android/ o cambiaste plugins y quieres flavor dev.
+## npm run prebuild:prod
+### npm run prebuild:prod: idem pero con env prod y clean; se usa antes de un build nativo apuntando a prod.
+## npm run build:apk / npm run build:ios
+### npm run build:apk / npm run build:ios: build EAS apuntando a prod (release). Úsalos para generar artefactos de distribución; asegúrate de que los secrets/vars en EAS tengan las EXPO_PUBLIC_* correctas.

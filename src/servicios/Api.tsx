@@ -1,20 +1,26 @@
-import Constants from "expo-constants";
 import Storage from "../utilitarios/Storage";
-import { Platform } from 'react-native';
+import { Platform } from "react-native";
 
-const { apiUrl, appEnv } = Constants.expoConfig.extra;
+const apiUrl = process.env.EXPO_PUBLIC_APP_ENV === "dev"
+    ? process.env.EXPO_PUBLIC_API_URL_DEV
+    : process.env.EXPO_PUBLIC_API_URL_PROD;
+
 const API_URL =
-  Platform.OS === "web" && appEnv === "dev"
-    ? "http://localhost:8120/api"
-    : apiUrl;
+    Platform.OS === "web" && process.env.EXPO_PUBLIC_APP_ENV === "dev"
+        ? "http://localhost:8120/api"
+        : apiUrl;
 
-console.log(API_URL)
+if (!API_URL) {
+    console.warn("API_URL no esta definido. Revisa .env y expo.config.js");
+} else {
+    console.log(API_URL)
+}
 
 const request = async (endpoint, method = "GET", body = null, headers = {}) => {
     try {
         let token = null;
 
-        if (!endpoint.includes("/usuarios/loginV2")) {
+        if (!endpoint.includes("/usuarios/loginV2") || !endpoint.includes("/imagenes/inicio")) {
             const storedTokenUser = await Storage.getItem("dataTokenUser");
             if (storedTokenUser) {
                 const parsed = JSON.parse(storedTokenUser);
@@ -63,6 +69,12 @@ const request = async (endpoint, method = "GET", body = null, headers = {}) => {
     }
 };
 
+export const getCcot = () =>
+    request("/imagenes/ccot", "GET");
+
+export const getInicio = () =>
+    request("/imagenes/inicio", "GET");
+
 export const login = (correo, contrasena) =>
     request("/usuarios/loginV2", "POST", { correo, contrasena });
 
@@ -85,7 +97,7 @@ export const getUsuariosCedulaNombre = async (planta) => {
 export const postParqueAutomotor = (data) =>
     request("/parqueAutomotor/crearRegistro", "POST", data);
 
-export const getParqueAutomotor = () => 
+export const getParqueAutomotor = () =>
     request("/parqueAutomotor/registros", "GET");
 
 export const getParqueAutomotorBase = async (parqueAutomotorBase) => {

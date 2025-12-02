@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { View, Dimensions, Image, Animated, Platform } from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import Carousel from "react-native-reanimated-carousel";
@@ -6,23 +6,13 @@ import { RootStackParamList } from "../navegacion/RootNavigator";
 import { useGlobalStyles } from "../estilos/GlobalStyles";
 import { useMenu } from "../contexto/MenuContext";
 import { useIsMobileWeb } from "../utilitarios/IsMobileWeb";
+import Loader from "../componentes/Loader";
+import Toast from "react-native-toast-message";
+import { getInicio } from "../servicios/Api";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Home">;
 
 const { width, height } = Dimensions.get("window");
-
-const images = [
-    'https://res.cloudinary.com/dcozwbcpi/image/upload/v1753297344/Principal_uionbk.jpg',
-    'https://res.cloudinary.com/dcozwbcpi/image/upload/v1753297345/Telec_2_wmowse.jpg',
-    'https://res.cloudinary.com/dcozwbcpi/image/upload/v1753297342/Obr_Civ_1_cjopsi.jpg',
-    'https://res.cloudinary.com/dcozwbcpi/image/upload/v1753297342/Electr_1_u8w2hw.jpg',
-    'https://res.cloudinary.com/dcozwbcpi/image/upload/v1753297344/Telec_1_tow9ku.jpg',
-    'https://res.cloudinary.com/dcozwbcpi/image/upload/v1753297343/Obr_Civ_2_cpxs6n.jpg',
-    'https://res.cloudinary.com/dcozwbcpi/image/upload/v1753297344/Electr_2_wok2fp.jpg',
-    'https://res.cloudinary.com/dcozwbcpi/image/upload/v1753297345/Telec_3_qdnbuw.jpg',
-    'https://res.cloudinary.com/dcozwbcpi/image/upload/v1753297343/Electr_3_xdizwr.jpg',
-    'https://res.cloudinary.com/dcozwbcpi/image/upload/v1753297347/Telec_4_pkfnpo.jpg'
-];
 
 export default function Inicio({ }: Props) {
     const { open } = useMenu();
@@ -31,6 +21,29 @@ export default function Inicio({ }: Props) {
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const slideAnim = useRef(new Animated.Value(-30)).current;
     const lineWidth = useRef(new Animated.Value(0)).current;
+    const [loading, setLoading] = useState(true);
+    const [imagenes, setImagenes] = useState<string[]>([]);
+
+    const loadData = async () => {
+        try {
+            const response = await getInicio();
+
+            const parsedImages = Array.isArray(response?.archivos)
+                ? response.archivos
+                    .map((img: any) => img?.url)
+                    .filter(Boolean)
+                : [];
+
+            setImagenes(parsedImages);
+        } catch (error: any) {
+            const msg1 = "Error al cargar imágenes";
+            const msg2 = error?.data?.messages?.message2 || "Las imagenes no está disponible.";
+            Toast.show({ type: "info", text1: msg1, text2: msg2, position: "top" });
+            setImagenes([]);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
         Animated.sequence([
@@ -52,6 +65,7 @@ export default function Inicio({ }: Props) {
                 useNativeDriver: false,
             }),
         ]).start();
+        loadData();
     }, []);
 
     const animatedLineWidth = lineWidth.interpolate({
@@ -59,13 +73,17 @@ export default function Inicio({ }: Props) {
         outputRange: [0, width * 0.6],
     });
 
+    if (loading) {
+        return <Loader visible={loading} />;
+    }
+
     return (
         <View style={{ ...stylesGlobal.container }}>
             <Carousel
                 width={width}
                 height={height}
                 autoPlay={true}
-                data={images}
+                data={imagenes}
                 scrollAnimationDuration={1000}
                 renderItem={({ item }) => (
                     <Image

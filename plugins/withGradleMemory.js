@@ -13,6 +13,7 @@ module.exports = function withGradleMemory(config) {
             { key: "org.gradle.daemon", value: "true" },
             { key: "org.gradle.parallel", value: "true" },
             { key: "org.gradle.configureondemand", value: "true" },
+            { key: "newArchEnabled", value: "false" },
         ];
 
         // Actualizar o agregar org.gradle.jvmargs

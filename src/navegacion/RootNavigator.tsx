@@ -135,13 +135,13 @@ export default function RootNavigator() {
                 if (userTemp === null) {
                     logout();
                 }
+                initLocation(userTemp);
             } catch (error) {
                 console.log("Error obteniendo usuario:", error);
             }
         };
 
         loadUser();
-        initLocation(user);
     }, []);
 
     const aplicativosConfig = [

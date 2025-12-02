@@ -1,11 +1,25 @@
 import React, { memo, useMemo } from "react";
-import { MapContainer, TileLayer, Polyline, CircleMarker, useMap, } from 'react-leaflet';
+import { MapContainer, TileLayer, Polyline, CircleMarker, useMap } from "react-leaflet";
 import { View, StyleSheet } from "react-native";
-import 'leaflet/dist/leaflet.css';
+import L from "leaflet";
 import CustomButton from "./Button";
 import { Ionicons } from "@expo/vector-icons";
 import { useThemeCustom } from "../contexto/ThemeContext";
 import { darkColors, lightColors } from "../estilos/Colors";
+
+if (typeof document !== "undefined" && !document.getElementById("leaflet-cdn-css")) {
+    const link = document.createElement("link");
+    link.id = "leaflet-cdn-css";
+    link.rel = "stylesheet";
+    link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+    document.head.appendChild(link);
+}
+
+L.Icon.Default.mergeOptions({
+    iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+    iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+    shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+});
 
 function RecenterButton({ coords }) {
     const map = useMap();
