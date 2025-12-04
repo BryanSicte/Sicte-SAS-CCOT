@@ -3,9 +3,9 @@ import { View, Text, ScrollView, KeyboardAvoidingView, Platform } from 'react-na
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navegacion/RootNavigator';
 import { useGlobalStyles } from '../../estilos/GlobalStyles';
-import CustomButton from '../../componentes/Button';
-import CustomTable from '../../componentes/Table';
-import CustomTabs, { TabItem } from '../../componentes/Tabs';
+import CustomButton from '../../componentes/ui/Button';
+import CustomTable from '../../componentes/ui/Table';
+import CustomTabs, { TabItem } from '../../componentes/ui/Tabs';
 import { useThemeCustom } from '../../contexto/ThemeContext';
 import { darkColors, lightColors } from '../../estilos/Colors';
 import { getParqueAutomotor, getParqueAutomotorBase } from '../../servicios/Api';

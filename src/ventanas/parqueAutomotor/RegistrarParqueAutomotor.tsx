@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, Pressable, ScrollView, Platform, KeyboardAvoidingView } from "react-native";
 import { useGlobalStyles } from "../../estilos/GlobalStyles";
-import CustomButton from "../../componentes/Button";
+import CustomButton from "../../componentes/ui/Button";
 import { Ionicons } from "@expo/vector-icons";
 import { darkColors, lightColors } from "../../estilos/Colors";
 import { useThemeCustom } from "../../contexto/ThemeContext";
@@ -278,6 +278,7 @@ export default function RegistrarParqueAutomotor({ navigation }) {
                             onChangeText={(text) => setFormData({ ...formData, nombre: text })}
                             icon="card-outline"
                             disabled
+                            style={{ marginBottom: 15 }}
                         />
                         <LabeledInput
                             label="Nombre Usuario"
@@ -286,6 +287,7 @@ export default function RegistrarParqueAutomotor({ navigation }) {
                             onChangeText={(text) => setFormData({ ...formData, nombre: text })}
                             icon="person-outline"
                             disabled
+                            style={{ marginBottom: 15 }}
                         />
                         <LabeledSelect
                             label="Sede"
@@ -323,6 +325,7 @@ export default function RegistrarParqueAutomotor({ navigation }) {
                                 onSelectItem={(value) => {
                                     setFormData({ ...formData, placa: value });
                                 }}
+                                style={{ marginBottom: 15 }}
                             />
                         </View>
                         <View style={{ position: "relative", zIndex: 4 }}>
@@ -340,6 +343,7 @@ export default function RegistrarParqueAutomotor({ navigation }) {
                                     const plantaItem = planta.data.find((p) => p.nit === value);
                                     setFormData({ ...formData, cedula: value, nombre: plantaItem?.nombre ? plantaItem.nombre : "Usuario no encontrado" });
                                 }}
+                                style={{ marginBottom: 15 }}
                             />
                         </View>
                         <View style={{ position: "relative", zIndex: 3 }}>
@@ -357,6 +361,7 @@ export default function RegistrarParqueAutomotor({ navigation }) {
                                     const plantaItem = planta.data.find((p) => p.nombre === value);
                                     setFormData({ ...formData, nombre: value, cedula: plantaItem?.nit ? plantaItem.nit : "Usuario no encontrado" });
                                 }}
+                                style={{ marginBottom: 15 }}
                             />
                         </View>
                         <LabeledSelect

@@ -34,6 +34,7 @@ import TesoreriaAbastecimiento from '../ventanas/cadenaDeSuministro/TesoreriaAba
 import DetailsScreen from '../ventanas/DetailsScreen';
 import Inventarios from '../ventanas/inventarios/Inventarios';
 import RegistrarInventarios from '../ventanas/inventarios/RegistrarInventarios';
+import ControlUsuarios from '../ventanas/controlUsuarios/ControlUsuarios';
 import Recorridos from '../ventanas/recorridos/Recorridos';
 import { startBackgroundLocation } from '../utilitarios/BackgroundLocation';
 import Constants from "expo-constants";
@@ -72,6 +73,7 @@ export type RootStackParamList = {
     TesoreriaAbastecimiento: { message?: string, label?: string };
     Inventarios: { message?: string, label?: string };
     RegistrarInventarios: { message?: string, label?: string };
+    ControlUsuarios: { message?: string, label?: string };
     Recorridos: { message?: string, label?: string };
     Details: { message: string };
 };
@@ -464,6 +466,24 @@ export default function RootNavigator() {
                 />
 
                 <Stack.Screen
+                    name="ControlUsuarios"
+                    component={ControlUsuarios}
+                    options={() => {
+                        return {
+                            ...getHeaderOptions("Control de Usuarios", {
+                                toggleMenu,
+                                toggleTheme,
+                                isDark,
+                                colors,
+                                navigation,
+                                showLogo: !isMobileWeb && Platform.OS === "web",
+                                isMobileWeb: isMobileWeb,
+                            }),
+                        };
+                    }}
+                />
+
+                <Stack.Screen
                     name="Recorridos"
                     component={Recorridos}
                     options={() => {
@@ -715,6 +735,33 @@ export default function RootNavigator() {
                                 return;
                             }
                             setMenuVisibleUser(false);
+                        }}
+                        style={({ pressed, hovered }: any) => [
+                            styles.item,
+                            { paddingVertical: 6, opacity: user.rol !== "admin" ? 0.4 : 1 },
+                            hovered && { backgroundColor: colors.backgroundHover },
+                            pressed && { backgroundColor: colors.backgroundPressed },
+                        ]}
+                    >
+                        {(state: any) => (
+                            <View style={{ flexDirection: "row", alignItems: "center" }}>
+                                <Ionicons name="server-outline" size={18} color={state.pressed ? colors.iconoPressed : state.hovered ? colors.iconoHover : colors.icono} style={{ marginRight: 10, paddingLeft: 5 }} />
+                                <Text style={{ color: state.pressed ? colors.textoPressed : state.hovered ? colors.textoHover : colors.texto, fontSize: stylesGlobal.texto.fontSize - 2 }}>
+                                    Bases de Datos
+                                </Text>
+                            </View>
+                        )}
+                    </Pressable>
+
+                    <Pressable
+                        onPress={() => {
+                            if (user.rol !== "admin") {
+                                showAccessDeniedToast();
+                                return;
+                            }
+                            setMenuVisibleUser(false);
+                            setParams("Control de Usuarios", { label: "Control de Usuarios" });
+                            navigation.navigate("ControlUsuarios");
                         }}
                         style={({ pressed, hovered }: any) => [
                             styles.item,

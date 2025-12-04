@@ -3,7 +3,7 @@ import { View, Text, Platform, Dimensions, Modal, TouchableOpacity, TouchableWit
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navegacion/RootNavigator';
 import { useGlobalStyles } from '../../estilos/GlobalStyles';
-import CustomButton from '../../componentes/Button';
+import CustomButton from '../../componentes/ui/Button';
 import { useThemeCustom } from '../../contexto/ThemeContext';
 import { darkColors, lightColors } from '../../estilos/Colors';
 import { getUbicacionUsuarios } from '../../servicios/Api';
@@ -20,7 +20,7 @@ import { Ionicons } from '@expo/vector-icons';
 import LabeledInput from '../../compuestos/Input';
 import LargeAreaChart from '../../charts/LargeAreaChart';
 import { getCurrentCoords } from '../../utilitarios/BackgroundLocation';
-import CustomTabs, { TabItem } from '../../componentes/Tabs';
+import CustomTabs, { TabItem } from '../../componentes/ui/Tabs';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Recorridos'>;
 

@@ -305,6 +305,12 @@ Remove-Item package-lock.json
 ### Arrancar proyecto primera vez con npm
 ```bash
 $env:NODE_ENV = "development"
+```
+#### ó
+```bash
+set NODE_ENV=development
+```
+```bash
 npm install --legacy-peer-deps
 npm run start:dev
 ```
@@ -327,7 +333,12 @@ npm run android:dev
 ```bash
 npx expo run:ios
 ```
-### Arrancar Metro en modo dev client:
+### Generar una apk nativa para dev primera vez con metro
+```bash
+npx expo prebuild
+npm run android:dev
+```
+### Arrancar Metro en modo dev client despues de la primera vez:
 ```bash
 npx expo start --dev-client
 ```
@@ -335,6 +346,12 @@ npx expo start --dev-client
 ### Generar una apk nativa para prod con metro primera vez
 ```bash
 $env:EXPO_PUBLIC_APP_ENV="prod"
+```
+#### ó
+```bash
+set EXPO_PUBLIC_APP_ENV=prod
+```
+```bash
 npm run prebuild:prod
 cd android
 .\gradlew.bat assembleRelease

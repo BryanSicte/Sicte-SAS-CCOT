@@ -1,7 +1,7 @@
 import React from "react";
 import RNPickerSelect, { Item } from "react-native-picker-select";
-import { useThemeCustom } from "../contexto/ThemeContext";
-import { darkColors, lightColors } from "../estilos/Colors";
+import { useThemeCustom } from "../../contexto/ThemeContext";
+import { darkColors, lightColors } from "../../estilos/Colors";
 import { Platform, View } from "react-native";
 
 interface Props {

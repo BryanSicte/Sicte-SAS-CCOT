@@ -2,7 +2,7 @@ import React, { memo, useMemo } from "react";
 import { MapContainer, TileLayer, Polyline, CircleMarker, useMap } from "react-leaflet";
 import { View, StyleSheet } from "react-native";
 import L from "leaflet";
-import CustomButton from "./Button";
+import CustomButton from "./ui/Button";
 import { Ionicons } from "@expo/vector-icons";
 import { useThemeCustom } from "../contexto/ThemeContext";
 import { darkColors, lightColors } from "../estilos/Colors";

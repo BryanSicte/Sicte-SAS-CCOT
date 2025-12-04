@@ -4,7 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useThemeCustom } from "../contexto/ThemeContext";
 import { darkColors, lightColors } from "../estilos/Colors";
 import { useGlobalStyles } from "../estilos/GlobalStyles";
-import CustomTextarea from "../componentes/Textarea";
+import CustomTextarea from "../componentes/ui/Textarea";
 
 interface Props extends TextInputProps {
     label: string;

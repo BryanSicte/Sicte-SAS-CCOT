@@ -1,6 +1,6 @@
 module.exports = ({ config }) => {
   const appEnv = process.env.EXPO_PUBLIC_APP_ENV || "dev";
-  const appVersion = "1.0.5";
+  const appVersion = "1.0.6";
 
   const apiUrls = {
     dev: process.env.EXPO_PUBLIC_API_URL_DEV,

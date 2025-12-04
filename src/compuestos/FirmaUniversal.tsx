@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Platform, View, Image } from "react-native";
-import SignaturePad from "../componentes/SignaturePad";
+import SignaturePad from "../componentes/ui/SignaturePad";
 import ReactSignatureCanvas from "react-signature-canvas";
-import CustomButton from "../componentes/Button";
+import CustomButton from "../componentes/ui/Button";
 import { useThemeCustom } from "../contexto/ThemeContext";
 import { darkColors, lightColors } from "../estilos/Colors";
 import { useIsMobileWeb } from "../utilitarios/IsMobileWeb";

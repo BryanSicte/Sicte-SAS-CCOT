@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { TextInput, StyleSheet, View, Text } from "react-native";
-import { useThemeCustom } from "../contexto/ThemeContext";
-import { darkColors, lightColors } from "../estilos/Colors";
-import { useGlobalStyles } from "../estilos/GlobalStyles";
+import { useThemeCustom } from "../../contexto/ThemeContext";
+import { darkColors, lightColors } from "../../estilos/Colors";
+import { useGlobalStyles } from "../../estilos/GlobalStyles";
 
 interface Props {
     label?: string;

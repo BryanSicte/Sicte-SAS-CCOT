@@ -79,7 +79,7 @@ export const login = (correo, contrasena) =>
     request("/usuarios/loginV2", "POST", { correo, contrasena });
 
 export const getUsuarios = () =>
-    request("/usuarios", "GET");
+    request("/usuarios/usersV2", "GET");
 
 export const getUbicacionUsuarios = () =>
     request("/usuarios/ubicacionUsuarios", "GET");

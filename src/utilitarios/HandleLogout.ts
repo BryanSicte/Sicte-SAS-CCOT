@@ -30,6 +30,8 @@ export const handleLogout = () => {
             await Storage.removeItem("dataMaterial");
             await Storage.removeItem("formInventarioAccion");
             await Storage.removeItem("formInventario");
+            await Storage.removeItem("formSolicitudAbastecimiento");
+            await Storage.removeItem("dataUsers");
             const result = await logout();
             setMenuVisibleUser?.(false);
 

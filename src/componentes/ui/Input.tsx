@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import { TextInput, StyleSheet, Text, View, TouchableOpacity, Platform, TouchableWithoutFeedback, FlatList, Pressable } from "react-native";
-import { useThemeCustom } from "../contexto/ThemeContext";
-import { darkColors, lightColors } from "../estilos/Colors";
+import { useThemeCustom } from "../../contexto/ThemeContext";
+import { darkColors, lightColors } from "../../estilos/Colors";
 import { Eye, EyeOff } from "lucide-react-native";
-import { useGlobalStyles } from "../estilos/GlobalStyles";
+import { useGlobalStyles } from "../../estilos/GlobalStyles";
 import { Ionicons } from "@expo/vector-icons";
 
 interface Props {

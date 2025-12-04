@@ -3,7 +3,7 @@ import { View, Text, Pressable, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useThemeCustom } from "../contexto/ThemeContext";
 import { darkColors, lightColors } from "../estilos/Colors";
-import CustomButton from "../componentes/Button";
+import CustomButton from "../componentes/ui/Button";
 
 interface MenuOption {
     label: string;

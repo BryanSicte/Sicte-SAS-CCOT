@@ -1,13 +1,13 @@
 import React, { useMemo, useState } from "react";
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, Dimensions, Pressable, ScrollView, Platform } from "react-native";
-import { useThemeCustom } from "../contexto/ThemeContext";
-import { useGlobalStyles } from "../estilos/GlobalStyles";
-import { darkColors, lightColors } from "../estilos/Colors";
+import { useThemeCustom } from "../../contexto/ThemeContext";
+import { useGlobalStyles } from "../../estilos/GlobalStyles";
+import { darkColors, lightColors } from "../../estilos/Colors";
 import CustomButton from "./Button";
 import CustomInput from "./Input";
-import { useMenu } from "../contexto/MenuContext";
+import { useMenu } from "../../contexto/MenuContext";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { useIsMobileWeb } from "../utilitarios/IsMobileWeb";
+import { useIsMobileWeb } from "../../utilitarios/IsMobileWeb";
 
 interface Props {
     headers: string[];

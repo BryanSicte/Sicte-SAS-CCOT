@@ -1,7 +1,7 @@
 import React, { useRef } from "react";
 import { View, StyleSheet, Dimensions } from "react-native";
 import MapView, { Marker, Polyline } from 'react-native-maps';
-import CustomButton from "./Button";
+import CustomButton from "./ui/Button";
 import { Ionicons } from "@expo/vector-icons";
 import { useThemeCustom } from "../contexto/ThemeContext";
 import { darkColors, lightColors } from "../estilos/Colors";

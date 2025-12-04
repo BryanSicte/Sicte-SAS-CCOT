@@ -3,8 +3,8 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-nati
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navegacion/RootNavigator';
 import { useGlobalStyles } from '../estilos/GlobalStyles';
-import CustomInput from '../componentes/Input';
-import CustomButton from '../componentes/Button';
+import CustomInput from '../componentes/ui/Input';
+import CustomButton from '../componentes/ui/Button';
 import { darkColors, lightColors } from '../estilos/Colors';
 import { useThemeCustom } from '../contexto/ThemeContext';
 import Toast from "react-native-toast-message";

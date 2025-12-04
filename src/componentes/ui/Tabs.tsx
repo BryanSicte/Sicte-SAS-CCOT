@@ -1,9 +1,9 @@
 import React from "react";
 import { View, Text, StyleSheet, Pressable, ScrollView } from "react-native";
 import CustomButton from "./Button";
-import { darkColors, lightColors } from "../estilos/Colors";
-import { useThemeCustom } from "../contexto/ThemeContext";
-import { useIsMobileWeb } from "../utilitarios/IsMobileWeb";
+import { darkColors, lightColors } from "../../estilos/Colors";
+import { useThemeCustom } from "../../contexto/ThemeContext";
+import { useIsMobileWeb } from "../../utilitarios/IsMobileWeb";
 
 export interface TabItem {
     key: string;

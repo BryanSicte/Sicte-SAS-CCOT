@@ -110,6 +110,7 @@ export default function App() {
                 TesoreriaAbastecimiento: 'cadenaDeSuministro/tesoreria',
                 Inventarios: 'inventarios',
                 RegistrarInventarios: 'inventarios/registrar',
+                ControlUsuarios: 'controlUsuarios',
                 Recorridos: 'recorridos',
             },
         },

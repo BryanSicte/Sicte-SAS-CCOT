@@ -2,9 +2,9 @@ import React, { useState } from "react";
 import { Platform, View, Text, Pressable } from "react-native";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { Ionicons } from "@expo/vector-icons";
-import { useThemeCustom } from "../contexto/ThemeContext";
-import { darkColors, lightColors } from "../estilos/Colors";
-import { useGlobalStyles } from "../estilos/GlobalStyles";
+import { useThemeCustom } from "../../contexto/ThemeContext";
+import { darkColors, lightColors } from "../../estilos/Colors";
+import { useGlobalStyles } from "../../estilos/GlobalStyles";
 
 interface Props {
     date: Date | null;

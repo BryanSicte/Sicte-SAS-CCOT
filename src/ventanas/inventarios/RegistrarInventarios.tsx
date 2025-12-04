@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { View, Text, Pressable, ScrollView, Platform, KeyboardAvoidingView, StyleSheet } from "react-native";
 import { useGlobalStyles } from "../../estilos/GlobalStyles";
-import CustomButton from "../../componentes/Button";
+import CustomButton from "../../componentes/ui/Button";
 import { Ionicons } from "@expo/vector-icons";
 import { darkColors, lightColors } from "../../estilos/Colors";
 import { useThemeCustom } from "../../contexto/ThemeContext";
@@ -14,7 +14,7 @@ import { useUserData } from "../../contexto/UserDataContext";
 import { useNavigationParams } from "../../contexto/NavigationParamsContext";
 import { useUserMenu } from "../../contexto/UserMenuContext";
 import { handleLogout } from "../../utilitarios/HandleLogout";
-import CustomTable from "../../componentes/Table";
+import CustomTable from "../../componentes/ui/Table";
 import { useIsMobileWeb } from "../../utilitarios/IsMobileWeb";
 import { useMaterialData } from "../../contexto/MaterialDataContext";
 import Storage from "../../utilitarios/Storage";

@@ -4,7 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useThemeCustom } from "../contexto/ThemeContext";
 import { darkColors, lightColors } from "../estilos/Colors";
 import { useGlobalStyles } from "../estilos/GlobalStyles";
-import CustomDatePicker from "../componentes/Date";
+import CustomDatePicker from "../componentes/ui/Date";
 
 interface Props {
     label: string;

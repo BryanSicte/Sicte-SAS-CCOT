@@ -1,8 +1,8 @@
 import React from "react";
 import { Text, TouchableOpacity, StyleSheet, ViewStyle, TextStyle, ActivityIndicator, Pressable } from "react-native";
-import { useThemeCustom } from "../contexto/ThemeContext";
-import { useGlobalStyles } from "../estilos/GlobalStyles";
-import { darkColors, lightColors } from "../estilos/Colors";
+import { useThemeCustom } from "../../contexto/ThemeContext";
+import { useGlobalStyles } from "../../estilos/GlobalStyles";
+import { darkColors, lightColors } from "../../estilos/Colors";
 
 type Variant = String;
 

@@ -4,7 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useThemeCustom } from "../contexto/ThemeContext";
 import { darkColors, lightColors } from "../estilos/Colors";
 import { useGlobalStyles } from "../estilos/GlobalStyles";
-import CustomInput from "../componentes/Input";
+import CustomInput from "../componentes/ui/Input";
 
 interface Props extends TextInputProps {
     label: string;
@@ -52,7 +52,6 @@ const stylesLocal = () => {
 
     return StyleSheet.create({
         container: {
-            marginBottom: 15,
             position: "relative",
         },
         label: {
