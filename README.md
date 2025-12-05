@@ -335,7 +335,7 @@ npx expo run:ios
 ```
 ### Generar una apk nativa para dev primera vez con metro
 ```bash
-npx expo prebuild
+npm run prebuild:dev
 npm run android:dev
 ```
 ### Arrancar Metro en modo dev client despues de la primera vez:
